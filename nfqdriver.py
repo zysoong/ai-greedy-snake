@@ -321,8 +321,7 @@ class Driver:
                 s_t_temp = s_t_add_1
 
                 # show step
-                print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(total_steps))
-                print(display)
+                
 
                 # choose action at t+1
                 max_q_t_add_1, a_t_add_1 = self.choose_action_via_greedy(s_t_add_1, model)
@@ -350,8 +349,12 @@ class Driver:
                 r_print = str(float(r))
                 sat_print = str(list(s_a_t))
                 t_print = str(float(t))
-                print('action = ' + a_print + ' / reward = ' + r_print + ' / teacher = ' + t_print + '\n')
                 f.write('[' + s_print + ',' + a_print + ',' + r_print + ',' + sat_print + ',' + t_print +']\n')
+
+                # print to debug
+                print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(total_steps), flush=True)
+                print('action = ' + a_print + ' / reward = ' + r_print + ' / teacher = ' + t_print + '\n', flush=True)
+                print(display, flush=True)
                 
 
             # record steps
