@@ -9,7 +9,7 @@ from collections import OrderedDict
 class Driver:
 
     def __init__(self, max_epochs = 1000, max_steps = 8000, 
-                max_teaching_epochs = 10, beta = 0.2, gamma = 0.5, beta_rate = 0.999, gamma_rate = 0.999):
+                max_teaching_epochs = 10, beta = 0.1, gamma = 0.1, beta_rate = 0.999, gamma_rate = 0.999):
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
         self.max_epochs = max_epochs
@@ -141,7 +141,7 @@ class Driver:
             return k, v
 
 
-    def choose_action_via_boltzmann(self, state_action_arr, model, current_step, T_init=10, T_decay=0.999):
+    def choose_action_via_boltzmann(self, state_action_arr, model, current_step, T_init=14.845, T_decay=0.9999):
         
 
         # get q values for all actions and compare the max q value
@@ -235,7 +235,7 @@ class Driver:
         model.add(keras.layers.BatchNormalization())
         #model.add(keras.layers.Dropout(0.2))
         model.add(keras.layers.Dense(1))
-        model.compile(loss = 'mean_squared_error', optimizer = keras.optimizers.RMSprop(lr=0.2), metrics=['MeanSquaredError'])
+        model.compile(loss = 'mean_squared_error', optimizer = keras.optimizers.RMSprop(lr=0.1), metrics=['MeanSquaredError'])
         
         # pretrain network with previous steps
         #from greedysnake import Direction
@@ -270,9 +270,6 @@ class Driver:
             # index to compare to max_steps
             i = 0
 
-            # total survival steps
-            survival_steps = 0
-            
             # buffer
             s_t_temp = None
 
@@ -296,25 +293,12 @@ class Driver:
                 signal = self.greedysnake.step(a_t)
                 r = 0
                 if signal == Signal.HIT:
-                    r = 0
-                    survival_steps = 0
-                    print('Game Over')
+                    r = -1
                     self.greedysnake.reset()
                 elif signal == Signal.EAT:
-                    survival_steps += 1
-                    r = len(self.greedysnake.snake)
+                    r = 1
                 elif signal == Signal.NORMAL:
-                    survival_steps += 1
-
-                    # avoid beginning reward
-                    if len(self.greedysnake.snake) == 2:
-                        r = 1
-                    else:
-                        r = len(self.greedysnake.snake) - (len(self.greedysnake.snake) * ( survival_steps / (self.greedysnake.SIZE * 2)))
-
-                    # limitation
-                    if r < 0.01:
-                        r = 0.01
+                    r = 0
 
                 # observe state after action
                 s_t_add_1, display = self.convert_to_state_action_arr()
