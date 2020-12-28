@@ -352,9 +352,9 @@ class Driver:
                 f.write('[' + s_print + ',' + a_print + ',' + r_print + ',' + sat_print + ',' + t_print +']\n')
 
                 # print to debug
-                print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(total_steps), flush=True)
-                print('action = ' + a_print + ' / reward = ' + r_print + ' / teacher = ' + t_print + '\n', flush=True)
-                print(display, flush=True)
+                print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(total_steps))
+                print('action = ' + a_print + ' / reward = ' + r_print + ' / teacher = ' + t_print + '\n')
+                print(display)
                 
 
             # record steps
