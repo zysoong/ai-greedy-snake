@@ -3,7 +3,6 @@ import time
 import numpy as np
 from threading import Thread
 import subprocess
-from pynput.keyboard import Key, Listener
 from tensorflow import keras
 from collections import OrderedDict
 
