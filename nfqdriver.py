@@ -8,8 +8,8 @@ from collections import OrderedDict
 
 class Driver:
 
-    def __init__(self, max_epochs = 1000, max_steps = 8000, 
-                max_teaching_epochs = 10, beta = 0.01, gamma = 0.35, beta_rate = 0.999, gamma_rate = 0.999):
+    def __init__(self, max_epochs = 10000, max_steps = 8000, 
+                max_teaching_epochs = 50, beta = 0.05, gamma = 0.35, beta_rate = 0.999, gamma_rate = 0.999):
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
         self.max_epochs = max_epochs
@@ -33,7 +33,7 @@ class Driver:
         print(display)
 
 
-
+    '''
     def convert_to_state_action_arr(self):
         
         state_action_arr = np.zeros(self.greedysnake.SIZE * self.greedysnake.SIZE + 4)
@@ -70,6 +70,46 @@ class Driver:
             # switch line
             if col == self.greedysnake.SIZE - 1:
                 display += '\n'
+
+        return state_action_arr, display
+    '''
+
+    def convert_to_state_action_arr(self):
+        
+        state_action_arr = np.zeros(self.greedysnake.SIZE * self.greedysnake.SIZE * 4 + 4)
+        display = ''
+
+        for i in range(self.greedysnake.SIZE):
+            for j in range(self.greedysnake.SIZE):
+
+                snake_index = self.greedysnake.is_snake(i, j)
+
+                # snake
+                if snake_index > -1:
+
+                    # snake head
+                    if snake_index == 0: 
+                        state_action_arr[i * self.greedysnake.SIZE + j * 4 + 0] = 1
+                        display += '@'
+
+                    # snake body
+                    else:
+                        state_action_arr[i * self.greedysnake.SIZE + j * 4 + 1] = 1
+                        display += 'O'
+
+                # food
+                elif (np.array([i, j]) == self.greedysnake.food).all():
+                    state_action_arr[i * self.greedysnake.SIZE + j * 4 + 2] = 1
+                    display += '#'
+
+                # block
+                else: 
+                    state_action_arr[i * self.greedysnake.SIZE + j * 4 + 3] = 1
+                    display += '-'
+
+                # switch line
+                if j == self.greedysnake.SIZE - 1:
+                    display += '\n'
 
         return state_action_arr, display
 
@@ -219,18 +259,18 @@ class Driver:
         state_action_arr_dim = len(state_action_arr)
         print('state action array dimentions = ' + str(state_action_arr_dim))
         model = keras.models.Sequential()
-        model.add(keras.layers.Dense(10, input_dim = state_action_arr_dim, kernel_initializer='he_normal', activation = 'elu'))
+        model.add(keras.layers.Dense(20, input_dim = state_action_arr_dim, kernel_initializer='he_normal', activation = 'elu'))
         model.add(keras.layers.BatchNormalization())
-        #model.add(keras.layers.Dropout(0.2))
+        model.add(keras.layers.Dropout(0.2))
         model.add(keras.layers.Dense(10, kernel_initializer='he_normal', activation = 'elu'))
         model.add(keras.layers.BatchNormalization())
-        #model.add(keras.layers.Dropout(0.2))
+        model.add(keras.layers.Dropout(0.2))
         model.add(keras.layers.Dense(10, kernel_initializer='he_normal', activation = 'elu'))
         model.add(keras.layers.BatchNormalization())
-        #model.add(keras.layers.Dropout(0.2))
+        model.add(keras.layers.Dropout(0.2))
         model.add(keras.layers.Dense(1))
         opt = keras.optimizers.RMSprop(
-            lr = 0.01, 
+            lr = 0.05, 
             clipnorm=40
         )
         model.compile(loss = 'mean_squared_error', optimizer = opt, metrics=['MeanSquaredError'])
