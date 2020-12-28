@@ -229,14 +229,9 @@ class Driver:
         model.add(keras.layers.BatchNormalization())
         #model.add(keras.layers.Dropout(0.2))
         model.add(keras.layers.Dense(1))
-        lr_schedule = keras.optimizers.schedules.ExponentialDecay(
-            initial_learning_rate = 0.01,
-            decay_steps=500000,
-            decay_rate=0.995,
-            staircase=True
-        )
         opt = keras.optimizers.RMSprop(
-            lr = lr_schedule
+            lr = 0.01, 
+            clipnorm=40
         )
         model.compile(loss = 'mean_squared_error', optimizer = opt, metrics=['MeanSquaredError'])
         
