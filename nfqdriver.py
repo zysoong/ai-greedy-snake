@@ -8,7 +8,7 @@ from collections import OrderedDict
 
 class Driver:
 
-    def __init__(self, max_epochs = 1000000000000, max_steps = 800, 
+    def __init__(self, max_epochs = 1000000000000, max_steps = 8000, 
                 max_teaching_epochs = 10, beta = 0.2, gamma = 0.5, beta_rate = 0.999, gamma_rate = 0.999):
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
@@ -219,14 +219,20 @@ class Driver:
         state_action_arr_dim = len(state_action_arr)
         print('state action array dimentions = ' + str(state_action_arr_dim))
         model = keras.models.Sequential()
-        model.add(keras.layers.Dense(10, input_dim = state_action_arr_dim, kernel_initializer='random_normal', activation = 'relu'))
-        model.add(keras.layers.BatchNormalization())
+        model.add(keras.layers.Dense(20, input_dim = state_action_arr_dim, kernel_initializer='random_normal', activation = 'relu'))
+        #model.add(keras.layers.BatchNormalization())
         #model.add(keras.layers.Dropout(0.2))
-        model.add(keras.layers.Dense(5, kernel_initializer='random_normal', activation = 'relu'))
-        model.add(keras.layers.BatchNormalization())
+        model.add(keras.layers.Dense(10, kernel_initializer='random_normal', activation = 'relu'))
+        #model.add(keras.layers.BatchNormalization())
         #model.add(keras.layers.Dropout(0.2))
-        model.add(keras.layers.Dense(5, kernel_initializer='random_normal', activation = 'relu'))
-        model.add(keras.layers.BatchNormalization())
+        model.add(keras.layers.Dense(10, kernel_initializer='random_normal', activation = 'relu'))
+        #model.add(keras.layers.BatchNormalization())
+        #model.add(keras.layers.Dropout(0.2))
+        model.add(keras.layers.Dense(10, kernel_initializer='random_normal', activation = 'relu'))
+        #model.add(keras.layers.BatchNormalization())
+        #model.add(keras.layers.Dropout(0.2))
+        model.add(keras.layers.Dense(10, kernel_initializer='random_normal', activation = 'relu'))
+        #model.add(keras.layers.BatchNormalization())
         #model.add(keras.layers.Dropout(0.2))
         model.add(keras.layers.Dense(1))
         model.compile(loss = 'mean_squared_error', optimizer = keras.optimizers.RMSprop(lr=0.2), metrics=['MeanSquaredError'])
@@ -353,7 +359,7 @@ class Driver:
             # train N(s, a) network
             input = np.array(sat_arr).reshape((len(sat_arr), state_action_arr_dim))
             teacher = np.array(t_arr).reshape((len(t_arr), 1))
-            model.fit(input, teacher, epochs=self.max_teaching_epochs)
+            model.fit(input, teacher, epochs=self.max_teaching_epochs, batch_size = int(self.max_steps / 10))
 
 
 
