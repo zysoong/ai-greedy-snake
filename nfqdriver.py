@@ -236,8 +236,7 @@ class Driver:
             staircase=True
         )
         opt = keras.optimizers.RMSprop(
-            lr = lr_schedule, 
-            clipnorm=1.0
+            lr = lr_schedule
         )
         model.compile(loss = 'mean_squared_error', optimizer = opt, metrics=['MeanSquaredError'])
         
