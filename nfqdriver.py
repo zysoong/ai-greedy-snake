@@ -350,6 +350,7 @@ class Driver:
                 r_print = str(float(r))
                 sat_print = str(list(s_a_t))
                 t_print = str(float(t))
+                print('action = ' + a_print + ' / reward = ' + r_print + ' / teacher = ' + t_print + '\n')
                 f.write('[' + s_print + ',' + a_print + ',' + r_print + ',' + sat_print + ',' + t_print +']\n')
                 
 
