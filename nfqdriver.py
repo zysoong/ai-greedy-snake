@@ -30,7 +30,7 @@ class Driver:
                 else:
                     display += '-'
             display += '\n'
-        print(display, end='\r', flush=True)
+        print(display)
 
 
 
