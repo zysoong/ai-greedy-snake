@@ -141,7 +141,7 @@ class Driver:
             return k, v
 
 
-    def choose_action_via_boltzmann(self, state_action_arr, model, current_step, T_init=14.845, T_decay=0.9999):
+    def choose_action_via_boltzmann(self, state_action_arr, model, current_step, T_init=14.845, T_decay=0.9995):
         
 
         # get q values for all actions and compare the max q value
