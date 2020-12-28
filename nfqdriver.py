@@ -9,7 +9,7 @@ from collections import OrderedDict
 class Driver:
 
     def __init__(self, max_epochs = 1000, max_steps = 8000, 
-                max_teaching_epochs = 10, beta = 0.1, gamma = 0.1, beta_rate = 0.999, gamma_rate = 0.999):
+                max_teaching_epochs = 500, beta = 0.1, gamma = 0.1, beta_rate = 0.999, gamma_rate = 0.999):
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
         self.max_epochs = max_epochs
@@ -255,8 +255,6 @@ class Driver:
 
         # set global step counter
         total_steps = 0
-
-        
         
         # off-policy Q-Learning
         for e in range(self.max_epochs):
