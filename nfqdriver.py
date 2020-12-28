@@ -9,7 +9,7 @@ from collections import OrderedDict
 class Driver:
 
     def __init__(self, max_epochs = 1000, max_steps = 8000, 
-                max_teaching_epochs = 500, beta = 0.1, gamma = 0.1, beta_rate = 0.999, gamma_rate = 0.999):
+                max_teaching_epochs = 10, beta = 0.01, gamma = 0.35, beta_rate = 0.999, gamma_rate = 0.999):
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
         self.max_epochs = max_epochs
@@ -219,23 +219,27 @@ class Driver:
         state_action_arr_dim = len(state_action_arr)
         print('state action array dimentions = ' + str(state_action_arr_dim))
         model = keras.models.Sequential()
-        model.add(keras.layers.Dense(20, input_dim = state_action_arr_dim, kernel_initializer='random_normal', activation = 'relu'))
+        model.add(keras.layers.Dense(10, input_dim = state_action_arr_dim, kernel_initializer='he_normal', activation = 'elu'))
         model.add(keras.layers.BatchNormalization())
         #model.add(keras.layers.Dropout(0.2))
-        model.add(keras.layers.Dense(10, kernel_initializer='random_normal', activation = 'relu'))
+        model.add(keras.layers.Dense(10, kernel_initializer='he_normal', activation = 'elu'))
         model.add(keras.layers.BatchNormalization())
         #model.add(keras.layers.Dropout(0.2))
-        model.add(keras.layers.Dense(10, kernel_initializer='random_normal', activation = 'relu'))
-        model.add(keras.layers.BatchNormalization())
-        #model.add(keras.layers.Dropout(0.2))
-        model.add(keras.layers.Dense(10, kernel_initializer='random_normal', activation = 'relu'))
-        model.add(keras.layers.BatchNormalization())
-        #model.add(keras.layers.Dropout(0.2))
-        model.add(keras.layers.Dense(10, kernel_initializer='random_normal', activation = 'relu'))
+        model.add(keras.layers.Dense(10, kernel_initializer='he_normal', activation = 'elu'))
         model.add(keras.layers.BatchNormalization())
         #model.add(keras.layers.Dropout(0.2))
         model.add(keras.layers.Dense(1))
-        model.compile(loss = 'mean_squared_error', optimizer = keras.optimizers.RMSprop(lr=0.1), metrics=['MeanSquaredError'])
+        lr_schedule = keras.optimizers.schedules.ExponentialDecay(
+            initial_learning_rate = 0.01,
+            decay_steps=500000,
+            decay_rate=0.995,
+            staircase=True
+        )
+        opt = keras.optimizers.RMSprop(
+            lr = lr_schedule, 
+            clipnorm=1.0
+        )
+        model.compile(loss = 'mean_squared_error', optimizer = opt, metrics=['MeanSquaredError'])
         
         # pretrain network with previous steps
         #from greedysnake import Direction
