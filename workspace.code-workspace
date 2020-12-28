@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "..\\ani\\ANI-Contest"
+		}
+	],
+	"settings": {
+		"python.pythonPath": "f:\\PROJECT\\python-3.8.0-embed-amd64\\python.exe"
+	}
+}
