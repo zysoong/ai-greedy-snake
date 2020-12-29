@@ -17,15 +17,15 @@ class Driver:
         env = 'TEST'
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
-        self.max_epochs = config[env]['max_epochs']
-        self.max_steps = config[env]['max_steps']
-        self.critic_net_epochs = config[env]['critic_net_epochs']
-        self.beta = config[env]['beta']
-        self.gamma = config[env]['gamma']
-        self.critic_net_learnrate = config[env]['critic_net_learnrate']
-        self.critic_net_clipnorm = config[env]['critic_net_clipnorm']
-        self.epsilon_init = config[env]['epsilon_init']
-        self.epsilon_decay = config[env]['epsilon_decay']
+        self.max_epochs = int(config[env]['max_epochs'])
+        self.max_steps = int(config[env]['max_steps'])
+        self.critic_net_epochs = int(config[env]['critic_net_epochs'])
+        self.beta = float(config[env]['beta'])
+        self.gamma = float(config[env]['gamma'])
+        self.critic_net_learnrate = float(config[env]['critic_net_learnrate'])
+        self.critic_net_clipnorm = float(config[env]['critic_net_clipnorm'])
+        self.epsilon_init = float(config[env]['epsilon_init'])
+        self.epsilon_decay = float(config[env]['epsilon_decay'])
         self.train_hist_file = config[env]['train_hist_file']
         self.keras_model_file = config[env]['keras_model_file']
 

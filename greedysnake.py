@@ -22,12 +22,15 @@ class GreedySnake:
         config = configparser.ConfigParser()
         config.read('greedysnake.ini')
         env = 'DEFAULT'
-        self.SIZE = config[env]['size']
-        self.INIT_SNAKE = [np.array([config[env]['snake_1_init_row'], 
-                            config[env]['snake_1_init_row']]), 
-                            np.array([config[env]['snake_2_init_row'], 
-                            config[env]['snake_2_init_row']])]
-        self.INIT_FOOD = np.array([config[env]['food_row'], config[env]['food_col']])
+        snake_1_init_row = int(config[env]['snake_1_init_row'])
+        snake_1_init_col = int(config[env]['snake_1_init_col'])
+        snake_2_init_row = int(config[env]['snake_2_init_row'])
+        snake_2_init_col = int(config[env]['snake_2_init_col'])
+        food_row = int(config[env]['food_row'])
+        food_col = int(config[env]['food_col'])
+        self.SIZE = int(config[env]['size'])
+        self.INIT_SNAKE = [np.array([snake_1_init_row, snake_1_init_col]), np.array([snake_2_init_row, snake_2_init_col])]
+        self.INIT_FOOD = np.array([food_row, food_col])
         self.PICK_BLOCKS = list(range(0, self.SIZE*self.SIZE))
         self.snake = self.INIT_SNAKE
         self.food = self.INIT_FOOD
