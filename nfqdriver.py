@@ -393,7 +393,7 @@ class Driver:
                 stdscr.addstr(3, 0, 'teacher = ' + t_print)
                 stdscr.addstr(4, 0, 'Score = ' + str(len(self.greedysnake.snake)))
                 stdscr.addstr(5, 0, 'Thousand steps average score = ' + str(avg))
-                stdscr.addstr(5, 0, display)
+                stdscr.addstr(6, 0, display)
                 stdscr.refresh()
                 
 
