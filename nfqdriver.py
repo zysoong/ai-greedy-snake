@@ -277,10 +277,10 @@ class Driver:
                 # observe state and action at t = 0
                 if i == 0:
                     s_t = self.convert_to_state_action_arr()[0]
-                    a_t = self.choose_action_via_eps_greedy(s_t, 0.5*(0.9999**total_steps), model)[1]
+                    a_t = self.choose_action_via_eps_greedy(0.5*(0.9999**total_steps), s_t, model)[1]
                 else: 
                     s_t = s_t_temp
-                    a_t = self.choose_action_via_eps_greedy(s_t, 0.5*(0.9999**total_steps), model)[1]
+                    a_t = self.choose_action_via_eps_greedy(0.5*(0.9999**total_steps), s_t, model)[1]
                     
                 # combine state and action at t
                 s_a_t = self.combine_state_action_arr(s_t, a_t)
