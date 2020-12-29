@@ -371,7 +371,7 @@ class Driver:
             hist = model.fit(input, teacher, epochs=self.max_teaching_epochs, batch_size = int(self.max_steps / 10), verbose=0)
 
             # record train history
-            f.write(hist)
+            f.write(str(hist))
             f.close()
 
             model.save('model')
