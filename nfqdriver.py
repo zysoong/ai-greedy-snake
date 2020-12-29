@@ -348,10 +348,6 @@ class Driver:
                     scores.append(len(self.greedysnake.snake))
                 avg = sum(scores) / len(scores)
 
-                if total_steps % 1000 == 0:
-                    hits = 0
-                    eats = 0
-
                 # print to debug
                 #print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(total_steps))
                 #print('action = ' + a_print + ' / reward = ' + r_print + ' / teacher = ' + t_print + '\n')
@@ -366,8 +362,8 @@ class Driver:
                 stdscr.addstr(4, 0, 'predict = ' + str(float(n_s_a)))
                 stdscr.addstr(5, 0, 'Score = ' + str(len(self.greedysnake.snake)))
                 stdscr.addstr(6, 0, 'Thousand steps average score = ' + str(avg))
-                stdscr.addstr(7, 0, 'Hits in 1000 steps = ' + str(hits))
-                stdscr.addstr(8, 0, 'Eats in 1000 steps = ' + str(eats))
+                stdscr.addstr(7, 0, 'Hit rate = ' + str(hits / total_steps))
+                stdscr.addstr(8, 0, 'Eat rate = ' + str(eats / total_steps))
                 stdscr.addstr(9, 0, display)
                 stdscr.refresh()
                 
