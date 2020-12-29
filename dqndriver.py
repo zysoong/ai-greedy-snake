@@ -15,7 +15,7 @@ class Driver:
 
     def __init__(self):
         config = configparser.ConfigParser()
-        config.read('nfqdriver.ini')
+        config.read('dqndriver.ini')
         env = 'DEFAULT'
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
@@ -44,7 +44,7 @@ class Driver:
         model.add(keras.layers.Dense(15, input_dim = state_action_arr_dim, kernel_initializer='he_normal', activation = 'elu'))
         model.add(keras.layers.BatchNormalization())
         model.add(keras.layers.Dense(15, kernel_initializer='he_normal', activation = 'elu'))
-        model.add(keras.layers.Dense(1, activation = 'tanh'))
+        model.add(keras.layers.Dense(1))
         opt = keras.optimizers.RMSprop(
             lr = lr, 
             clipnorm = clipnorm
