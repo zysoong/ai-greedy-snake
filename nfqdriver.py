@@ -11,7 +11,7 @@ import random
 class Driver:
 
     def __init__(self, max_epochs = 1000, max_steps = 6000, 
-                max_teaching_epochs = 5, beta = 0.05, gamma = 0.3):
+                max_teaching_epochs = 5, beta = 0.1, gamma = 0.3):
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
         self.max_epochs = max_epochs
@@ -235,7 +235,7 @@ class Driver:
         #model.add(keras.layers.Dropout(0.2))
         model.add(keras.layers.Dense(1))
         opt = keras.optimizers.RMSprop(
-            lr = 0.05, 
+            lr = 0.1, 
             clipnorm=40
         )
         model.compile(loss = 'mean_squared_error', optimizer = opt, metrics=['MeanSquaredError'])
@@ -299,11 +299,11 @@ class Driver:
                 signal = self.greedysnake.step(a_t)
                 r = None
                 if signal == Signal.HIT:
-                    r = -1
+                    r = - (self.greedysnake.SIZE ** 2)
                     hits += 1
                     self.greedysnake.reset()
                 elif signal == Signal.EAT:
-                    r = 1
+                    r = len(self.greedysnake.snake)
                     eats += 1
                 elif signal == Signal.NORMAL:
                     r = 0
