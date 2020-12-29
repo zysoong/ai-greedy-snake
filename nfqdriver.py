@@ -371,10 +371,10 @@ class Driver:
             hist = model.fit(input, teacher, epochs=self.max_teaching_epochs, batch_size = int(self.max_steps / 10), verbose=0)
 
             # record train history
-            f.write(str(hist))
+            f.write(str(hist.history))
             f.close()
 
-            model.save('model')
+            model.save('nfq.keras')
             time.sleep(5)
 
 
