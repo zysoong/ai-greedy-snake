@@ -383,9 +383,11 @@ class Driver:
                 # print for linux
                 stdscr = curses.initscr()
                 stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(total_steps))
-                stdscr.addstr(1, 0, 'action = ' + a_print + '\t  reward = ' + r_print + '\t  teacher = ' + t_print + '\n')
-                stdscr.addstr(2, 0, 'Score = ' + str(len(self.greedysnake.snake)))
-                stdscr.addstr(3, 0, display)
+                stdscr.addstr(1, 0, 'action = ' + a_print)
+                stdscr.addstr(2, 0, 'reward = ' + r_print)
+                stdscr.addstr(3, 0, 'teacher = ' + t_print)
+                stdscr.addstr(4, 0, 'Score = ' + str(len(self.greedysnake.snake)))
+                stdscr.addstr(5, 0, display)
                 stdscr.refresh()
                 
 
