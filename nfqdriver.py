@@ -292,7 +292,6 @@ class Driver:
 
         # set global step counter
         total_steps = 0
-        survival_step = 0
         
         # off-policy Q-Learning
         for e in range(self.max_epochs):
