@@ -2,7 +2,6 @@ from greedysnake import GreedySnake, Direction, Signal
 import time
 import numpy as np
 import curses
-from curses import textpad
 from threading import Thread
 import subprocess
 from tensorflow import keras
@@ -267,8 +266,8 @@ class Driver:
         #model.add(keras.layers.Dropout(0.2))
         model.add(keras.layers.Dense(15, kernel_initializer='he_normal', activation = 'elu'))
         model.add(keras.layers.BatchNormalization())
-        model.add(keras.layers.Dropout(0.2))
-        #model.add(keras.layers.Dense(1))
+        #model.add(keras.layers.Dropout(0.2))
+        model.add(keras.layers.Dense(1))
         opt = keras.optimizers.RMSprop(
             lr = 0.1, 
             clipnorm=40
