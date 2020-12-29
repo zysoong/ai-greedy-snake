@@ -6,6 +6,7 @@ from threading import Thread
 import subprocess
 from tensorflow import keras
 from collections import OrderedDict
+import random
 
 class Driver:
 
@@ -210,8 +211,8 @@ class Driver:
         if rand <= (1-eps):
             return qa[0][0], qa[0][1]
         else:
-            index = int(np.random.randint(1, 4))
-            return qa[index][0], qa[index][1]
+            qapair = random.choice(qa)
+            return qapair[0], qapair[1]
 
     def drive(self):
         # define deep learning network
