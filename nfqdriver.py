@@ -11,7 +11,7 @@ import random
 class Driver:
 
     def __init__(self, max_epochs = 1000, max_steps = 6000, 
-                max_teaching_epochs = 5, beta = 0.1, gamma = 0.3):
+                max_teaching_epochs = 20, beta = 0.01, gamma = 0.3):
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
         self.max_epochs = max_epochs
@@ -235,7 +235,7 @@ class Driver:
         #model.add(keras.layers.Dropout(0.2))
         model.add(keras.layers.Dense(1))
         opt = keras.optimizers.RMSprop(
-            lr = 0.1, 
+            lr = 0.01, 
             clipnorm=40
         )
         model.compile(loss = 'mean_squared_error', optimizer = opt, metrics=['MeanSquaredError'])
@@ -280,7 +280,7 @@ class Driver:
             s_t_temp = None
 
             # open file to record steps
-            f = open('step.input', 'a')
+            #f = open('step.input', 'a')
             
             while i < self.max_steps:
 
@@ -337,7 +337,7 @@ class Driver:
                 r_print = str(float(r))
                 sat_print = str(list(s_a_t))
                 t_print = str(float(t))
-                f.write('[' + sat_print + ',' + t_print +']\n')
+                #f.write('[' + sat_print + ',' + t_print +']\n')
 
                 # calc stats
                 if len(scores) < 1000:
@@ -353,7 +353,6 @@ class Driver:
                 #print(display)
 
                 # print for linux
-                
                 stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(total_steps))
                 stdscr.addstr(1, 0, 'action = ' + a_print)
                 stdscr.addstr(2, 0, 'reward = ' + r_print)
@@ -369,12 +368,13 @@ class Driver:
                 
 
             # record steps
-            f.close()
+            #f.close()
 
             # train N(s, a) network
             input = np.array(sat_arr).reshape((len(sat_arr), state_action_arr_dim))
             teacher = np.array(t_arr).reshape((len(t_arr), 1))
             model.fit(input, teacher, epochs=self.max_teaching_epochs, batch_size = int(self.max_steps / 10))
+            model.save('model')
             time.sleep(5)
 
 
