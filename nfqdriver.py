@@ -10,7 +10,7 @@ from collections import OrderedDict
 class Driver:
 
     def __init__(self, max_epochs = 1000, max_steps = 2000, 
-                max_teaching_epochs = 10, beta = 0.1, gamma = 0.2, beta_rate = 0.999, gamma_rate = 0.999):
+                max_teaching_epochs = 2, beta = 0.1, gamma = 0.2, beta_rate = 0.999, gamma_rate = 0.999):
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
         self.max_epochs = max_epochs
@@ -261,10 +261,10 @@ class Driver:
         state_action_arr_dim = len(state_action_arr)
         print('state action array dimentions = ' + str(state_action_arr_dim))
         model = keras.models.Sequential()
-        model.add(keras.layers.Dense(15, input_dim = state_action_arr_dim, kernel_initializer='he_normal', activation = 'elu'))
+        model.add(keras.layers.Dense(15, input_dim = state_action_arr_dim, kernel_initializer='zeros', activation = 'elu'))
         model.add(keras.layers.BatchNormalization())
         #model.add(keras.layers.Dropout(0.2))
-        model.add(keras.layers.Dense(15, kernel_initializer='he_normal', activation = 'elu'))
+        model.add(keras.layers.Dense(15, kernel_initializer='zeros', activation = 'elu'))
         model.add(keras.layers.BatchNormalization())
         #model.add(keras.layers.Dropout(0.2))
         model.add(keras.layers.Dense(1))
@@ -376,9 +376,10 @@ class Driver:
 
                 # print for linux
                 stdscr = curses.initscr()
-                stdscr.addstr(0, 0, 'Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(total_steps))
-                stdscr.addstr(1, 0, 'action = ' + a_print + ' / reward = ' + r_print + ' / teacher = ' + t_print + '\n')
-                stdscr.addstr(2, 0, display)
+                stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(total_steps))
+                stdscr.addstr(1, 0, 'action = ' + a_print + '\treward = ' + r_print + '\tteacher = ' + t_print + '\n')
+                stdscr.addstr(2, 0, 'Score = ' + len(self.greedysnake.snake))
+                stdscr.addstr(3, 0, display)
                 stdscr.refresh()
                 
 
