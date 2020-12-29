@@ -292,6 +292,7 @@ class Driver:
 
         # set global step counter
         total_steps = 0
+        survival_step = 0
         
         # off-policy Q-Learning
         for e in range(self.max_epochs):
@@ -328,12 +329,17 @@ class Driver:
                 signal = self.greedysnake.step(a_t)
                 r = 0
                 if signal == Signal.HIT:
-                    r = -1
+                    r = 0
+                    survival_step = 0
                     self.greedysnake.reset()
                 elif signal == Signal.EAT:
-                    r = 1
+                    survival_step += 1
+                    r = len(self.greedysnake.snake)
                 elif signal == Signal.NORMAL:
-                    r = 0
+                    survival_step += 1
+                    r = (1 - survival_step / (self.greedysnake.SIZE * 2)) * (len(self.greedysnake.snake) - 2)
+                    if r < 0:
+                        r = 0
 
                 # observe state after action
                 s_t_add_1, display = self.convert_to_state_action_arr()
@@ -377,7 +383,7 @@ class Driver:
                 # print for linux
                 stdscr = curses.initscr()
                 stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(total_steps))
-                stdscr.addstr(1, 0, 'action = ' + a_print + '\treward = ' + r_print + '\tteacher = ' + t_print + '\n')
+                stdscr.addstr(1, 0, 'action = ' + a_print + '\t  reward = ' + r_print + '\t  teacher = ' + t_print + '\n')
                 stdscr.addstr(2, 0, 'Score = ' + str(len(self.greedysnake.snake)))
                 stdscr.addstr(3, 0, display)
                 stdscr.refresh()
