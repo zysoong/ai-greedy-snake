@@ -242,7 +242,7 @@ class Driver:
         
         # pretrain network with previous steps
         #from greedysnake import Direction
-        #f = open('step.input', 'r')
+        #f = open('train.hist', 'r')
         #lines = f.readlines()
         #steps = [None]*len(lines)
         #sat_arr = []
@@ -280,7 +280,7 @@ class Driver:
             s_t_temp = None
 
             # open file to record steps
-            #f = open('step.input', 'a')
+            f = open('train_hist.log', 'a')
             
             while i < self.max_steps:
 
@@ -365,15 +365,15 @@ class Driver:
                 stdscr.addstr(9, 0, display)
                 stdscr.refresh()
                 
-                
-
-            # record steps
-            #f.close()
-
             # train N(s, a) network
             input = np.array(sat_arr).reshape((len(sat_arr), state_action_arr_dim))
             teacher = np.array(t_arr).reshape((len(t_arr), 1))
-            model.fit(input, teacher, epochs=self.max_teaching_epochs, batch_size = int(self.max_steps / 10))
+            hist = model.fit(input, teacher, epochs=self.max_teaching_epochs, batch_size = int(self.max_steps / 10), verbose=0)
+
+            # record train history
+            f.write(hist)
+            f.close()
+
             model.save('model')
             time.sleep(5)
 
