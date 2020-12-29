@@ -266,11 +266,13 @@ class Driver:
                 signal = self.greedysnake.step(a_t)
                 r = None
                 if signal == Signal.HIT:
-                    r = - (self.greedysnake.SIZE ** 2)
+                    #r = - (self.greedysnake.SIZE ** 2)
+                    r = -1
                     hits += 1
                     self.greedysnake.reset()
                 elif signal == Signal.EAT:
-                    r = len(self.greedysnake.snake)
+                    #r = len(self.greedysnake.snake)
+                    r = 1
                     eats += 1
                 elif signal == Signal.NORMAL:
                     r = 0
