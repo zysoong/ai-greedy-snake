@@ -3,10 +3,10 @@ import numpy as np
 from enum import Enum
 
 class Direction(Enum):
-    LEFT = 0
-    RIGHT = 1
-    UP = 2
-    DOWN = 3
+    UP = 0
+    DOWN = 1
+    LEFT = 2
+    RIGHT = 3
     STRAIGHT = 4
 
 class Signal(Enum):

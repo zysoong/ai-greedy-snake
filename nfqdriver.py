@@ -1,7 +1,7 @@
 from greedysnake import GreedySnake, Direction, Signal
 import time
 import numpy as np
-import curses
+#import curses
 from threading import Thread
 import subprocess
 from tensorflow import keras
@@ -10,8 +10,8 @@ import random
 
 class Driver:
 
-    def __init__(self, max_epochs = 1000, max_steps = 8000, 
-                max_teaching_epochs = 10, beta = 0.1, gamma = 0.2):
+    def __init__(self, max_epochs = 1000, max_steps = 3000, 
+                max_teaching_epochs = 5, beta = 0.1, gamma = 0.2):
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
         self.max_epochs = max_epochs
@@ -160,11 +160,11 @@ class Driver:
         qvalue_a4 = model.predict(state_action_arr.reshape((1, len(state_action_arr))))
 
         # figure out the best legal action
-        dict = {float(qvalue_a1): Direction.UP, float(qvalue_a2): Direction.DOWN, 
-                float(qvalue_a3): Direction.LEFT, float(qvalue_a4): Direction.RIGHT}
-        od = OrderedDict(sorted(dict.items()), reverse=True)
-        for k, v in od.items():
-            return k, v
+        dict = {Direction.UP: float(qvalue_a1), Direction.DOWN: float(qvalue_a2), 
+                Direction.LEFT: float(qvalue_a3), Direction.RIGHT: float(qvalue_a4)}
+        sorted_dict = {k: v for k, v in sorted(dict.items(), reverse=True, key=lambda item: item[1])}
+        for key in sorted_dict:
+            return sorted_dict[key], key
 
     def choose_action_via_eps_greedy(self, eps, state_action_arr, model):
 
@@ -199,21 +199,22 @@ class Driver:
         qvalue_a4 = model.predict(state_action_arr.reshape((1, len(state_action_arr))))
 
         # figure out the best legal action
-        qa = []
-        dict = {float(qvalue_a1): Direction.UP, float(qvalue_a2): Direction.DOWN, 
-                float(qvalue_a3): Direction.LEFT, float(qvalue_a4): Direction.RIGHT}
-        od = OrderedDict(sorted(dict.items()), reverse=True)
-        for k, v in od.items():
-            qa.append([k, v])
+        q_arr = []
+        act_arr = []
+        dict = {Direction.UP: float(qvalue_a1), Direction.DOWN: float(qvalue_a2), 
+                Direction.LEFT: float(qvalue_a3), Direction.RIGHT: float(qvalue_a4)}
+        sorted_dict = {k: v for k, v in sorted(dict.items(), reverse=True, key=lambda item: item[1])}
+        for key in sorted_dict:
+            q_arr.append(sorted_dict[key])
+            act_arr.append(key)
 
         # eps-greedy
         rand = np.random.rand()
         if rand <= (1-eps):
-            return qa[0][0], qa[0][1]
+            return q_arr[0], act_arr[0]
         else:
-            qapair = random.choice(qa)
-            print(qapair)
-            return qapair[0], qapair[1]
+            index = random.randint(0, len(q_arr)-1)
+            return q_arr[index], act_arr[index]
 
     def drive(self):
         # define deep learning network
@@ -248,8 +249,11 @@ class Driver:
         #    sat_arr.append(self.combine_state_action_arr(steps[i][0], steps[i][1]))
         #    r_arr.append(steps[i][2])
         #    sat_arr.append(self.combine_state_action_arr(steps[i][0], steps[i][1]))
-        # set global step counter
+
+
+        # set step counter
         total_steps = 0
+        survival_steps = 0
 
         # statics
         scores = []
@@ -289,22 +293,26 @@ class Driver:
 
                 # take action via greedy, get reward
                 signal = self.greedysnake.step(a_t)
-                r = 0
+                r = None
                 if signal == Signal.HIT:
-                    r = -1
+                    r = 0
                     hits += 1
+                    survival_steps = 0
                     self.greedysnake.reset()
                 elif signal == Signal.EAT:
-                    r = 1
+                    r = len(self.greedysnake.snake)
                     eats += 1
+                    survival_steps += 1
                 elif signal == Signal.NORMAL:
-                    r = 0
+                    survival_steps += 1
+                    r = (1 - survival_steps / (self.greedysnake.SIZE * 2)) * (len(self.greedysnake.snake) - 2)
+                    if r < 0:
+                        r = 0
 
                 # observe state after action
                 s_t_add_1, display = self.convert_to_state_action_arr()
                 s_t_temp = s_t_add_1
                 
-
                 # choose action at t+1
                 max_q_t_add_1, a_t_add_1 = self.choose_action_via_greedy(s_t_add_1, model)
 
@@ -343,11 +351,12 @@ class Driver:
                 avg = sum(scores) / len(scores)
 
                 # print to debug
-                #print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(total_steps))
-                #print('action = ' + a_print + ' / reward = ' + r_print + ' / teacher = ' + t_print + '\n')
-                #print(display)
+                print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(total_steps))
+                print('action = ' + a_print + ' / reward = ' + r_print + ' / teacher = ' + t_print + '\n')
+                print(display)
 
                 # print for linux
+                '''
                 stdscr = curses.initscr()
                 stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(total_steps))
                 stdscr.addstr(1, 0, 'action = ' + a_print)
@@ -360,6 +369,7 @@ class Driver:
                 stdscr.addstr(8, 0, 'Eats in 1000 steps = ' + str(eats))
                 stdscr.addstr(9, 0, display)
                 stdscr.refresh()
+                '''
                 
 
             # record steps
