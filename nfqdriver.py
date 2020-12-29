@@ -253,7 +253,6 @@ class Driver:
 
         # set step counter
         total_steps = 0
-        survival_steps = 0
 
         # statics
         scores = []
@@ -295,17 +294,14 @@ class Driver:
                 signal = self.greedysnake.step(a_t)
                 r = None
                 if signal == Signal.HIT:
-                    r = 0
+                    r = -1
                     hits += 1
-                    survival_steps = 0
                     self.greedysnake.reset()
                 elif signal == Signal.EAT:
-                    r = len(self.greedysnake.snake)
+                    r = 1
                     eats += 1
-                    survival_steps += 1
                 elif signal == Signal.NORMAL:
-                    survival_steps += 1
-                    r = (1 - survival_steps / (self.greedysnake.SIZE * 2)) * (len(self.greedysnake.snake) - 2)
+                    r = 0
                     if r < 0:
                         r = 0
 
