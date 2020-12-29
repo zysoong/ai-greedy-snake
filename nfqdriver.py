@@ -10,7 +10,7 @@ from collections import OrderedDict
 class Driver:
 
     def __init__(self, max_epochs = 1000, max_steps = 8000, 
-                max_teaching_epochs = 10, beta = 0.1, gamma = 0.2, beta_rate = 0.999, gamma_rate = 0.999):
+                max_teaching_epochs = 10, beta = 0.1, gamma = 0.2):
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
         self.max_epochs = max_epochs
@@ -20,21 +20,6 @@ class Driver:
         self.gamma = gamma
 
 
-    def display_game(self):
-        display = ''
-        for i in range(self.greedysnake.SIZE): 
-            for j in range(self.greedysnake.SIZE):
-                if (self.greedysnake.food == np.array([i, j])).all():
-                    display += '#'
-                elif self.greedysnake.is_snake(i, j) >= 0:
-                    display += '@'
-                else:
-                    display += '-'
-            display += '\n'
-        print(display)
-
-
-    
     def convert_to_state_action_arr(self):
         
         state_action_arr = np.zeros(self.greedysnake.SIZE * self.greedysnake.SIZE + 4)
@@ -141,8 +126,6 @@ class Driver:
         return result
                 
         
-
-
     def choose_action_via_greedy(self, state_action_arr, model):
 
         # get q values for all actions and compare the max q value
@@ -182,9 +165,7 @@ class Driver:
         for k, v in od.items():
             return k, v
 
-
-    def choose_action_via_boltzmann(self, state_action_arr, model, current_step, T_init=14.845, T_decay=0.9995):
-        
+    def choose_action_via_eps_greedy(self, eps, state_action_arr, model):
 
         # get q values for all actions and compare the max q value
         # action 1 (UP)
@@ -193,6 +174,7 @@ class Driver:
         state_action_arr[len(state_action_arr) - 2] = 0
         state_action_arr[len(state_action_arr) - 1] = 0
         qvalue_a1 = model.predict(state_action_arr.reshape((1, len(state_action_arr))))
+
 
         # action 2 (DOWN)
         state_action_arr[len(state_action_arr) - 4] = 0
@@ -215,47 +197,23 @@ class Driver:
         state_action_arr[len(state_action_arr) - 1] = 1
         qvalue_a4 = model.predict(state_action_arr.reshape((1, len(state_action_arr))))
 
-        # Boltzmann algo
-        denom_of_counter = T_init * (T_decay ** current_step)
-        if denom_of_counter < 0.1:
-            denom_of_counter = 0.1
-        counter_a1 = np.exp(qvalue_a1 / denom_of_counter)
-        counter_a2 = np.exp(qvalue_a2 / denom_of_counter)
-        counter_a3 = np.exp(qvalue_a3 / denom_of_counter)
-        counter_a4 = np.exp(qvalue_a4 / denom_of_counter)
-        denom = counter_a1 + counter_a2 + counter_a3 + counter_a4
-        p_a1 = float(counter_a1 / denom)
-        p_a2 = float(counter_a2 / denom)
-        p_a3 = float(counter_a3 / denom)
-        p_a3 = float(counter_a4 / denom)
-
-        rand = np.random.randint(0, 1000)
-        if 0 <= rand < 1000*p_a1:
-            action = Direction.UP
-            qvalue = qvalue_a1
-        elif 1000*(p_a1) <= rand < 1000*(p_a1 + p_a2):
-            action = Direction.DOWN
-            qvalue = qvalue_a2
-        elif 1000*(p_a1 + p_a2) <= rand < 1000*(p_a1 + p_a2 + p_a3):
-            action = Direction.LEFT
-            qvalue = qvalue_a3
-        elif rand >= 1000*(p_a1 + p_a2 + p_a3):
-            action = Direction.RIGHT
-            qvalue = qvalue_a4
-        else:
-
-            # Small number prevension: Use greedy
-            dict = {float(qvalue_a1): Direction.UP, float(qvalue_a2): Direction.DOWN, 
+        # figure out the best legal action
+        qa = []
+        dict = {float(qvalue_a1): Direction.UP, float(qvalue_a2): Direction.DOWN, 
                 float(qvalue_a3): Direction.LEFT, float(qvalue_a4): Direction.RIGHT}
-            od = OrderedDict(sorted(dict.items()), reverse=True)
-            for k, v in od.items():
-                return k, v
+        od = OrderedDict(sorted(dict.items()), reverse=True)
+        for k, v in od.items():
+            qa.append([k, v])
 
-        return qvalue, action
-        
+        # eps-greedy
+        rand = np.random.rand()
+        if rand <= (1-eps):
+            return qa[0][0], qa[0][1]
+        else:
+            index = int(np.random.randint(1, 4))
+            return qa[index][0], qa[index][1]
 
     def drive(self):
-
         # define deep learning network
         state_action_arr = self.convert_to_state_action_arr()[0]
         state_action_arr_dim = len(state_action_arr)
@@ -288,10 +246,13 @@ class Driver:
         #    sat_arr.append(self.combine_state_action_arr(steps[i][0], steps[i][1]))
         #    r_arr.append(steps[i][2])
         #    sat_arr.append(self.combine_state_action_arr(steps[i][0], steps[i][1]))
-        
-
         # set global step counter
         total_steps = 0
+
+        # statics
+        scores = []
+        hits = 0
+        eats = 0
         
         # off-policy Q-Learning
         for e in range(self.max_epochs):
@@ -310,19 +271,16 @@ class Driver:
 
             # open file to record steps
             f = open('step.input', 'a')
-
-            # list to record 1000 scores
-            scores = []
             
             while i < self.max_steps:
 
                 # observe state and action at t = 0
                 if i == 0:
                     s_t = self.convert_to_state_action_arr()[0]
-                    a_t = self.choose_action_via_boltzmann(s_t, model, total_steps)[1]
+                    a_t = self.choose_action_via_eps_greedy(s_t, 0.5*(0.9999**total_steps), model)[1]
                 else: 
                     s_t = s_t_temp
-                    a_t = self.choose_action_via_boltzmann(s_t, model, total_steps)[1]
+                    a_t = self.choose_action_via_eps_greedy(s_t, 0.5*(0.9999**total_steps), model)[1]
                     
                 # combine state and action at t
                 s_a_t = self.combine_state_action_arr(s_t, a_t)
@@ -332,17 +290,17 @@ class Driver:
                 r = 0
                 if signal == Signal.HIT:
                     r = -1
+                    hits += 1
                     self.greedysnake.reset()
                 elif signal == Signal.EAT:
                     r = 1
+                    eats += 1
                 elif signal == Signal.NORMAL:
                     r = 0
 
                 # observe state after action
                 s_t_add_1, display = self.convert_to_state_action_arr()
                 s_t_temp = s_t_add_1
-
-                # show step
                 
 
                 # choose action at t+1
@@ -372,12 +330,14 @@ class Driver:
                 t_print = str(float(t))
                 f.write('[' + sat_print + ',' + t_print +']\n')
 
-                # calc avg score of last 1000 steps
+                # calc stats
                 if len(scores) < 1000:
                     scores.append(len(self.greedysnake.snake))
                 else:
                     scores.pop(0)
                     scores.append(len(self.greedysnake.snake))
+                    hits = 0
+                    eats = 0
                 avg = sum(scores) / len(scores)
 
                 # print to debug
@@ -391,9 +351,12 @@ class Driver:
                 stdscr.addstr(1, 0, 'action = ' + a_print)
                 stdscr.addstr(2, 0, 'reward = ' + r_print)
                 stdscr.addstr(3, 0, 'teacher = ' + t_print)
-                stdscr.addstr(4, 0, 'Score = ' + str(len(self.greedysnake.snake)))
-                stdscr.addstr(5, 0, 'Thousand steps average score = ' + str(avg))
-                stdscr.addstr(6, 0, display)
+                stdscr.addstr(4, 0, 'predict = ' + str(float(n_s_a)))
+                stdscr.addstr(5, 0, 'Score = ' + str(len(self.greedysnake.snake)))
+                stdscr.addstr(6, 0, 'Thousand steps average score = ' + str(avg))
+                stdscr.addstr(7, 0, 'Hits in 1000 steps = ' + str(hits))
+                stdscr.addstr(8, 0, 'Eats in 1000 steps = ' + str(eats))
+                stdscr.addstr(9, 0, display)
                 stdscr.refresh()
                 
 
