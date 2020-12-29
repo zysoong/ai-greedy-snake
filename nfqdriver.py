@@ -212,6 +212,7 @@ class Driver:
             return qa[0][0], qa[0][1]
         else:
             qapair = random.choice(qa)
+            print(qapair)
             return qapair[0], qapair[1]
 
     def drive(self):
