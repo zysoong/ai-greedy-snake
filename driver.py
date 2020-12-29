@@ -46,7 +46,6 @@ class Driver:
                 display += '\n'
             print(display, end='\r', flush=True)
             time.sleep(self.display_delay)
-            #os.system('cls')
 
     def drive(self):
         while True:

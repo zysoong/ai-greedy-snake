@@ -1,6 +1,7 @@
 import random
 import numpy as np
 from enum import Enum
+import configparser
 
 class Direction(Enum):
     UP = 0
@@ -18,9 +19,15 @@ class GreedySnake:
 
 
     def __init__(self):
-        self.SIZE = 11
-        self.INIT_SNAKE = [np.array([5, 5]), np.array([5, 6])]
-        self.INIT_FOOD = np.array([5, 3])
+        config = configparser.ConfigParser()
+        config.read('greedysnake.ini')
+        env = 'DEFAULT'
+        self.SIZE = config[env]['size']
+        self.INIT_SNAKE = [np.array([config[env]['snake_1_init_row'], 
+                            config[env]['snake_1_init_row']]), 
+                            np.array([config[env]['snake_2_init_row'], 
+                            config[env]['snake_2_init_row']])]
+        self.INIT_FOOD = np.array([config[env]['food_row'], config[env]['food_col']])
         self.PICK_BLOCKS = list(range(0, self.SIZE*self.SIZE))
         self.snake = self.INIT_SNAKE
         self.food = self.INIT_FOOD

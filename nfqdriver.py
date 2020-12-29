@@ -7,19 +7,48 @@ import subprocess
 from tensorflow import keras
 from collections import OrderedDict
 import random
+import configparser
 
 class Driver:
 
-    def __init__(self, max_epochs = 1000, max_steps = 6000, 
-                max_teaching_epochs = 20, beta = 0.01, gamma = 0.3):
+    def __init__(self):
+        config = configparser.ConfigParser()
+        config.read('nfqdriver.ini')
+        env = 'TEST'
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
-        self.max_epochs = max_epochs
-        self.max_steps = max_steps
-        self.max_teaching_epochs = max_teaching_epochs
-        self.beta = beta
-        self.gamma = gamma
+        self.max_epochs = config[env]['max_epochs']
+        self.max_steps = config[env]['max_steps']
+        self.critic_net_epochs = config[env]['critic_net_epochs']
+        self.beta = config[env]['beta']
+        self.gamma = config[env]['gamma']
+        self.critic_net_learnrate = config[env]['critic_net_learnrate']
+        self.critic_net_clipnorm = config[env]['critic_net_clipnorm']
+        self.epsilon_init = config[env]['epsilon_init']
+        self.epsilon_decay = config[env]['epsilon_decay']
+        self.train_hist_file = config[env]['train_hist_file']
+        self.keras_model_file = config[env]['keras_model_file']
 
+
+    def critic_net(self):
+
+        lr = self.critic_net_learnrate
+        clipnorm = self.critic_net_clipnorm
+
+        # define deep learning network
+        state_action_arr = self.convert_to_state_action_arr()[0]
+        state_action_arr_dim = len(state_action_arr)
+        model = keras.models.Sequential()
+        model.add(keras.layers.Dense(15, input_dim = state_action_arr_dim, kernel_initializer='he_normal', activation = 'elu'))
+        model.add(keras.layers.BatchNormalization())
+        model.add(keras.layers.Dense(15, kernel_initializer='he_normal', activation = 'elu'))
+        model.add(keras.layers.Dense(1))
+        opt = keras.optimizers.RMSprop(
+            lr = lr, 
+            clipnorm = clipnorm
+        )
+        model.compile(loss = 'mean_squared_error', optimizer = opt, metrics=['MeanSquaredError'])
+        return model
 
     def convert_to_state_action_arr(self):
         
@@ -57,50 +86,7 @@ class Driver:
             # switch line
             if col == self.greedysnake.SIZE - 1:
                 display += '\n'
-
         return state_action_arr, display
-    
-    '''
-    def convert_to_state_action_arr(self):
-        
-        state_action_arr = np.zeros(self.greedysnake.SIZE * self.greedysnake.SIZE * 4 + 4)
-        display = ''
-
-        for i in range(self.greedysnake.SIZE):
-            for j in range(self.greedysnake.SIZE):
-
-                snake_index = self.greedysnake.is_snake(i, j)
-
-                # snake
-                if snake_index > -1:
-
-                    # snake head
-                    if snake_index == 0: 
-                        state_action_arr[i * self.greedysnake.SIZE + j * 4 + 0] = 1
-                        display += '@'
-
-                    # snake body
-                    else:
-                        state_action_arr[i * self.greedysnake.SIZE + j * 4 + 1] = 1
-                        display += 'O'
-
-                # food
-                elif (np.array([i, j]) == self.greedysnake.food).all():
-                    state_action_arr[i * self.greedysnake.SIZE + j * 4 + 2] = 1
-                    display += '#'
-
-                # block
-                else: 
-                    state_action_arr[i * self.greedysnake.SIZE + j * 4 + 3] = 1
-                    display += '-'
-
-                # switch line
-                if j == self.greedysnake.SIZE - 1:
-                    display += '\n'
-
-        return state_action_arr, display
-    '''
-
 
     def combine_state_action_arr(self, state_action_arr, action): 
         result = state_action_arr.copy()
@@ -126,7 +112,6 @@ class Driver:
             result[len(state_action_arr) - 1] = 1
         return result
                 
-        
     def choose_action_via_greedy(self, state_action_arr, model):
 
         # get q values for all actions and compare the max q value
@@ -221,40 +206,20 @@ class Driver:
             index = random.randint(0, len(q_arr)-1)
             return q_arr[index], act_arr[index]
 
-    def drive(self, stdscr):
-        # define deep learning network
+    def drive(self):
+
+        # define stdscr for linux
+        stdscr = curses.initscr()
+        curses.noecho()
+        curses.cbreak()
+
+        # read size of (s,a) array
         state_action_arr = self.convert_to_state_action_arr()[0]
         state_action_arr_dim = len(state_action_arr)
         print('state action array dimentions = ' + str(state_action_arr_dim))
-        model = keras.models.Sequential()
-        model.add(keras.layers.Dense(15, input_dim = state_action_arr_dim, kernel_initializer='he_normal', activation = 'elu'))
-        model.add(keras.layers.BatchNormalization())
-        #model.add(keras.layers.Dropout(0.2))
-        model.add(keras.layers.Dense(15, kernel_initializer='he_normal', activation = 'elu'))
-        model.add(keras.layers.BatchNormalization())
-        #model.add(keras.layers.Dropout(0.2))
-        model.add(keras.layers.Dense(1))
-        opt = keras.optimizers.RMSprop(
-            lr = 0.01, 
-            clipnorm=40
-        )
-        model.compile(loss = 'mean_squared_error', optimizer = opt, metrics=['MeanSquaredError'])
         
-        # pretrain network with previous steps
-        #from greedysnake import Direction
-        #f = open('train.hist', 'r')
-        #lines = f.readlines()
-        #steps = [None]*len(lines)
-        #sat_arr = []
-        #r_arr = []
-        #satadd1_arr = []
-        #t_arr = []
-        #for i in range(len(steps)):
-        #    exec('steps[' + str(i) + '] = ' + str(lines[i]))
-        #    sat_arr.append(self.combine_state_action_arr(steps[i][0], steps[i][1]))
-        #    r_arr.append(steps[i][2])
-        #    sat_arr.append(self.combine_state_action_arr(steps[i][0], steps[i][1]))
-
+        # define deep learning network
+        model = self.critic_net()
 
         # set step counter
         total_steps = 0
@@ -280,17 +245,17 @@ class Driver:
             s_t_temp = None
 
             # open file to record steps
-            f = open('train_hist.log', 'a')
+            f = open(self.train_hist_file, 'a')
             
             while i < self.max_steps:
 
                 # observe state and action at t = 0
                 if i == 0:
                     s_t = self.convert_to_state_action_arr()[0]
-                    a_t = self.choose_action_via_eps_greedy(1.0*(0.99997**total_steps), s_t, model)[1]
+                    a_t = self.choose_action_via_eps_greedy(self.epsilon_init*(self.epsilon_decay**total_steps), s_t, model)[1]
                 else: 
                     s_t = s_t_temp
-                    a_t = self.choose_action_via_eps_greedy(1.0*(0.99997**total_steps), s_t, model)[1]
+                    a_t = self.choose_action_via_eps_greedy(self.epsilon_init*(self.epsilon_decay**total_steps), s_t, model)[1]
                     
                 # combine state and action at t
                 s_a_t = self.combine_state_action_arr(s_t, a_t)
@@ -335,9 +300,7 @@ class Driver:
                 # store step info to file to retrain
                 a_print = str(a_t)
                 r_print = str(float(r))
-                sat_print = str(list(s_a_t))
                 t_print = str(float(t))
-                #f.write('[' + sat_print + ',' + t_print +']\n')
 
                 # calc stats
                 if len(scores) < 1000:
@@ -368,27 +331,21 @@ class Driver:
             # train N(s, a) network
             input = np.array(sat_arr).reshape((len(sat_arr), state_action_arr_dim))
             teacher = np.array(t_arr).reshape((len(t_arr), 1))
-            hist = model.fit(input, teacher, epochs=self.max_teaching_epochs, batch_size = int(self.max_steps / 10), verbose=0)
+            hist = model.fit(input, teacher, epochs=self.critic_net_epochs, batch_size = int(self.max_steps / 10), verbose=0)
 
             # record train history
             f.write(str(hist.history))
             f.close()
 
-            model.save('nfq.keras')
-            time.sleep(5)
+            # save model to file
+            model.save(self.keras_model_file)
 
 
-
-    def run(self, stdscr):
-        self.drive(stdscr)
-
-stdscr = curses.initscr()
-curses.noecho()
-curses.cbreak()
-try:
+if __name__ == "__main__":
     d = Driver()
-    d.run(stdscr)
-finally:
-    curses.echo()
-    curses.nocbreak()
-    curses.endwin()
+    try:
+        d.drive()
+    finally:
+        curses.echo()
+        curses.nocbreak()
+        curses.endwin()
