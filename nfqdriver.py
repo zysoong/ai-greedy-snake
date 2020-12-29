@@ -346,9 +346,11 @@ class Driver:
                 else:
                     scores.pop(0)
                     scores.append(len(self.greedysnake.snake))
+                avg = sum(scores) / len(scores)
+
+                if total_steps % 1000 == 0:
                     hits = 0
                     eats = 0
-                avg = sum(scores) / len(scores)
 
                 # print to debug
                 #print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(total_steps))
