@@ -329,17 +329,12 @@ class Driver:
                 signal = self.greedysnake.step(a_t)
                 r = 0
                 if signal == Signal.HIT:
-                    r = 0
-                    survival_step = 0
+                    r = -1
                     self.greedysnake.reset()
                 elif signal == Signal.EAT:
-                    survival_step += 1
-                    r = len(self.greedysnake.snake)
+                    r = 1
                 elif signal == Signal.NORMAL:
-                    survival_step += 1
-                    r = (1 - survival_step / (self.greedysnake.SIZE * 2)) * (len(self.greedysnake.snake) - 2)
-                    if r < 0:
-                        r = 0
+                    r = 0
 
                 # observe state after action
                 s_t_add_1, display = self.convert_to_state_action_arr()
