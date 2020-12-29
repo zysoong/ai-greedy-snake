@@ -18,9 +18,9 @@ class GreedySnake:
 
 
     def __init__(self):
-        self.SIZE = 5
-        self.INIT_SNAKE = [np.array([2, 3]), np.array([2, 4])]
-        self.INIT_FOOD = np.array([2, 1])
+        self.SIZE = 11
+        self.INIT_SNAKE = [np.array([5, 5]), np.array([5, 6])]
+        self.INIT_FOOD = np.array([5, 3])
         self.PICK_BLOCKS = list(range(0, self.SIZE*self.SIZE))
         self.snake = self.INIT_SNAKE
         self.food = self.INIT_FOOD

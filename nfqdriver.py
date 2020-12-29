@@ -1,6 +1,8 @@
 from greedysnake import GreedySnake, Direction, Signal
 import time
 import numpy as np
+import curses
+from curses import textpad
 from threading import Thread
 import subprocess
 from tensorflow import keras
@@ -8,8 +10,8 @@ from collections import OrderedDict
 
 class Driver:
 
-    def __init__(self, max_epochs = 10000, max_steps = 8000, 
-                max_teaching_epochs = 50, beta = 0.05, gamma = 0.35, beta_rate = 0.999, gamma_rate = 0.999):
+    def __init__(self, max_epochs = 1000, max_steps = 2000, 
+                max_teaching_epochs = 10, beta = 0.1, gamma = 0.2, beta_rate = 0.999, gamma_rate = 0.999):
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
         self.max_epochs = max_epochs
@@ -33,7 +35,7 @@ class Driver:
         print(display)
 
 
-    '''
+    
     def convert_to_state_action_arr(self):
         
         state_action_arr = np.zeros(self.greedysnake.SIZE * self.greedysnake.SIZE + 4)
@@ -72,8 +74,8 @@ class Driver:
                 display += '\n'
 
         return state_action_arr, display
+    
     '''
-
     def convert_to_state_action_arr(self):
         
         state_action_arr = np.zeros(self.greedysnake.SIZE * self.greedysnake.SIZE * 4 + 4)
@@ -112,6 +114,7 @@ class Driver:
                     display += '\n'
 
         return state_action_arr, display
+    '''
 
 
     def combine_state_action_arr(self, state_action_arr, action): 
@@ -250,7 +253,7 @@ class Driver:
                 return k, v
 
         return qvalue, action
-
+        
 
     def drive(self):
 
@@ -259,18 +262,15 @@ class Driver:
         state_action_arr_dim = len(state_action_arr)
         print('state action array dimentions = ' + str(state_action_arr_dim))
         model = keras.models.Sequential()
-        model.add(keras.layers.Dense(20, input_dim = state_action_arr_dim, kernel_initializer='he_normal', activation = 'elu'))
+        model.add(keras.layers.Dense(15, input_dim = state_action_arr_dim, kernel_initializer='he_normal', activation = 'elu'))
+        model.add(keras.layers.BatchNormalization())
+        #model.add(keras.layers.Dropout(0.2))
+        model.add(keras.layers.Dense(15, kernel_initializer='he_normal', activation = 'elu'))
         model.add(keras.layers.BatchNormalization())
         model.add(keras.layers.Dropout(0.2))
-        model.add(keras.layers.Dense(10, kernel_initializer='he_normal', activation = 'elu'))
-        model.add(keras.layers.BatchNormalization())
-        model.add(keras.layers.Dropout(0.2))
-        model.add(keras.layers.Dense(10, kernel_initializer='he_normal', activation = 'elu'))
-        model.add(keras.layers.BatchNormalization())
-        model.add(keras.layers.Dropout(0.2))
-        model.add(keras.layers.Dense(1))
+        #model.add(keras.layers.Dense(1))
         opt = keras.optimizers.RMSprop(
-            lr = 0.05, 
+            lr = 0.1, 
             clipnorm=40
         )
         model.compile(loss = 'mean_squared_error', optimizer = opt, metrics=['MeanSquaredError'])
@@ -363,18 +363,24 @@ class Driver:
                 i += 1
                 total_steps += 1
 
-                # store step info to file to track and pretrain
-                s_print = str(list(s_t))
+                # store step info to file to retrain
                 a_print = str(a_t)
                 r_print = str(float(r))
                 sat_print = str(list(s_a_t))
                 t_print = str(float(t))
-                f.write('[' + s_print + ',' + a_print + ',' + r_print + ',' + sat_print + ',' + t_print +']\n')
+                f.write('[' + sat_print + ',' + t_print +']\n')
 
                 # print to debug
-                print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(total_steps))
-                print('action = ' + a_print + ' / reward = ' + r_print + ' / teacher = ' + t_print + '\n')
-                print(display)
+                #print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(total_steps))
+                #print('action = ' + a_print + ' / reward = ' + r_print + ' / teacher = ' + t_print + '\n')
+                #print(display)
+
+                # print for linux
+                stdscr = curses.initscr()
+                stdscr.addstr(0, 0, 'Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(total_steps))
+                stdscr.addstr(1, 0, 'action = ' + a_print + ' / reward = ' + r_print + ' / teacher = ' + t_print + '\n')
+                stdscr.addstr(2, 0, display)
+                stdscr.refresh()
                 
 
             # record steps
@@ -384,6 +390,7 @@ class Driver:
             input = np.array(sat_arr).reshape((len(sat_arr), state_action_arr_dim))
             teacher = np.array(t_arr).reshape((len(t_arr), 1))
             model.fit(input, teacher, epochs=self.max_teaching_epochs, batch_size = int(self.max_steps / 10))
+            time.sleep(5)
 
 
 
