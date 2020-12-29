@@ -30,6 +30,8 @@ class Driver:
         self.epsilon_decay = float(config[env]['epsilon_decay'])
         self.train_hist_file = config[env]['train_hist_file']
         self.keras_model_file = config[env]['keras_model_file']
+        self.timeslip_size = config[env]['timeslip_size']
+        self.timeslip = np.zeros(shape=(self.timeslip_size, self.greedysnake.SIZE, self.greedysnake.SIZE))
 
 
     def critic_net(self):
@@ -52,13 +54,13 @@ class Driver:
         model.compile(loss = 'mean_squared_error', optimizer = opt, metrics=['MeanSquaredError'])
         return model
 
-    def convert_to_state_action_arr(self):
+    def write_to_timeslip(self):
         
-        state_action_arr = np.zeros(self.greedysnake.SIZE * self.greedysnake.SIZE + 4)
         display = ''
+        frame = np.zeros(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE))
 
         # generate states for N(s, a)
-        for i in range(len(state_action_arr) - 4):
+        for i in range(self.greedysnake.SIZE ** 2):
             row = i // self.greedysnake.SIZE
             col = i % self.greedysnake.SIZE
             snake_index = self.greedysnake.is_snake(row, col)
@@ -68,17 +70,17 @@ class Driver:
 
                 # snake head
                 if snake_index == 0: 
-                    state_action_arr[i] = 0.5
+                    frame[row, col] = 0.5
                     display += '@'
 
                 # snake body
                 else:
-                    state_action_arr[i] = 0.2
+                    frame[row, col] = 0.2
                     display += 'O'
 
             # food
             elif (np.array([row, col]) == self.greedysnake.food).all():
-                state_action_arr[i] = 1.0
+                frame[row, col] = 1.0
                 display += '#'
             
             # block
@@ -88,125 +90,13 @@ class Driver:
             # switch line
             if col == self.greedysnake.SIZE - 1:
                 display += '\n'
-        return state_action_arr, display
 
-    def combine_state_action_arr(self, state_action_arr, action): 
-        result = state_action_arr.copy()
-        if action == Direction.UP:
-            result[len(state_action_arr) - 4] = 1
-            result[len(state_action_arr) - 3] = 0
-            result[len(state_action_arr) - 2] = 0
-            result[len(state_action_arr) - 1] = 0
-        elif action == Direction.DOWN:
-            result[len(state_action_arr) - 4] = 0
-            result[len(state_action_arr) - 3] = 1
-            result[len(state_action_arr) - 2] = 0
-            result[len(state_action_arr) - 1] = 0
-        elif action == Direction.LEFT:
-            result[len(state_action_arr) - 4] = 0
-            result[len(state_action_arr) - 3] = 0
-            result[len(state_action_arr) - 2] = 1
-            result[len(state_action_arr) - 1] = 0
-        elif action == Direction.RIGHT:
-            result[len(state_action_arr) - 4] = 0
-            result[len(state_action_arr) - 3] = 0
-            result[len(state_action_arr) - 2] = 0
-            result[len(state_action_arr) - 1] = 1
-        return result
-                
-    def choose_action_via_greedy(self, state_action_arr, model):
+            # store frame to timeslip
+            self.timeslip = np.insert(self.timeslip, 0, frame, axis=0)
+            self.timeslip = np.delete(self.timeslip, self.timeslip.shape[0]-1, axis=0)
 
-        # get q values for all actions and compare the max q value
-        # action 1 (UP)
-        state_action_arr[len(state_action_arr) - 4] = 1
-        state_action_arr[len(state_action_arr) - 3] = 0
-        state_action_arr[len(state_action_arr) - 2] = 0
-        state_action_arr[len(state_action_arr) - 1] = 0
-        qvalue_a1 = model.predict(state_action_arr.reshape((1, len(state_action_arr))))
+        return display
 
-
-        # action 2 (DOWN)
-        state_action_arr[len(state_action_arr) - 4] = 0
-        state_action_arr[len(state_action_arr) - 3] = 1
-        state_action_arr[len(state_action_arr) - 2] = 0
-        state_action_arr[len(state_action_arr) - 1] = 0
-        qvalue_a2 = model.predict(state_action_arr.reshape((1, len(state_action_arr))))
-
-        # action 3 (LEFT)
-        state_action_arr[len(state_action_arr) - 4] = 0
-        state_action_arr[len(state_action_arr) - 3] = 0
-        state_action_arr[len(state_action_arr) - 2] = 1
-        state_action_arr[len(state_action_arr) - 1] = 0
-        qvalue_a3 = model.predict(state_action_arr.reshape((1, len(state_action_arr))))
-
-        # action 4 (RIGHT)
-        state_action_arr[len(state_action_arr) - 4] = 0
-        state_action_arr[len(state_action_arr) - 3] = 0
-        state_action_arr[len(state_action_arr) - 2] = 0
-        state_action_arr[len(state_action_arr) - 1] = 1
-        qvalue_a4 = model.predict(state_action_arr.reshape((1, len(state_action_arr))))
-
-        # figure out the best legal action
-        q_arr = []
-        act_arr = []
-        dict = {Direction.UP: float(qvalue_a1), Direction.DOWN: float(qvalue_a2), 
-                Direction.LEFT: float(qvalue_a3), Direction.RIGHT: float(qvalue_a4)}
-        sorted_dict = {k: v for k, v in sorted(dict.items(), reverse=True, key=lambda item: item[1])}
-        for key in sorted_dict:
-            q_arr.append(sorted_dict[key])
-            act_arr.append(key)
-        return q_arr[0], act_arr[0]
-
-
-    def choose_action_via_eps_greedy(self, eps, state_action_arr, model):
-
-        # get q values for all actions and compare the max q value
-        # action 1 (UP)
-        state_action_arr[len(state_action_arr) - 4] = 1
-        state_action_arr[len(state_action_arr) - 3] = 0
-        state_action_arr[len(state_action_arr) - 2] = 0
-        state_action_arr[len(state_action_arr) - 1] = 0
-        qvalue_a1 = model.predict(state_action_arr.reshape((1, len(state_action_arr))))
-
-
-        # action 2 (DOWN)
-        state_action_arr[len(state_action_arr) - 4] = 0
-        state_action_arr[len(state_action_arr) - 3] = 1
-        state_action_arr[len(state_action_arr) - 2] = 0
-        state_action_arr[len(state_action_arr) - 1] = 0
-        qvalue_a2 = model.predict(state_action_arr.reshape((1, len(state_action_arr))))
-
-        # action 3 (LEFT)
-        state_action_arr[len(state_action_arr) - 4] = 0
-        state_action_arr[len(state_action_arr) - 3] = 0
-        state_action_arr[len(state_action_arr) - 2] = 1
-        state_action_arr[len(state_action_arr) - 1] = 0
-        qvalue_a3 = model.predict(state_action_arr.reshape((1, len(state_action_arr))))
-
-        # action 4 (RIGHT)
-        state_action_arr[len(state_action_arr) - 4] = 0
-        state_action_arr[len(state_action_arr) - 3] = 0
-        state_action_arr[len(state_action_arr) - 2] = 0
-        state_action_arr[len(state_action_arr) - 1] = 1
-        qvalue_a4 = model.predict(state_action_arr.reshape((1, len(state_action_arr))))
-
-        # figure out the best legal action
-        q_arr = []
-        act_arr = []
-        dict = {Direction.UP: float(qvalue_a1), Direction.DOWN: float(qvalue_a2), 
-                Direction.LEFT: float(qvalue_a3), Direction.RIGHT: float(qvalue_a4)}
-        sorted_dict = {k: v for k, v in sorted(dict.items(), reverse=True, key=lambda item: item[1])}
-        for key in sorted_dict:
-            q_arr.append(sorted_dict[key])
-            act_arr.append(key)
-
-        # eps-greedy
-        rand = np.random.rand()
-        if rand <= (1-eps):
-            return q_arr[0], act_arr[0]
-        else:
-            index = random.randint(0, len(q_arr)-1)
-            return q_arr[index], act_arr[index]
 
     def drive(self):
 
