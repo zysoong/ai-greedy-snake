@@ -311,6 +311,9 @@ class Driver:
 
             # open file to record steps
             f = open('step.input', 'a')
+
+            # list to record 1000 scores
+            scores = []
             
             while i < self.max_steps:
 
@@ -370,6 +373,14 @@ class Driver:
                 t_print = str(float(t))
                 f.write('[' + sat_print + ',' + t_print +']\n')
 
+                # calc avg score of last 1000 steps
+                if len(scores) < 1000:
+                    scores.append(len(self.greedysnake.snake))
+                else:
+                    scores.pop(0)
+                    scores.append(len(self.greedysnake.snake))
+                avg = sum(scores) / len(scores)
+
                 # print to debug
                 #print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(total_steps))
                 #print('action = ' + a_print + ' / reward = ' + r_print + ' / teacher = ' + t_print + '\n')
@@ -382,6 +393,7 @@ class Driver:
                 stdscr.addstr(2, 0, 'reward = ' + r_print)
                 stdscr.addstr(3, 0, 'teacher = ' + t_print)
                 stdscr.addstr(4, 0, 'Score = ' + str(len(self.greedysnake.snake)))
+                stdscr.addstr(5, 0, 'Thousand steps average score = ' + str(avg))
                 stdscr.addstr(5, 0, display)
                 stdscr.refresh()
                 
