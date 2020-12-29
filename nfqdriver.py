@@ -10,8 +10,8 @@ import random
 
 class Driver:
 
-    def __init__(self, max_epochs = 1000, max_steps = 3000, 
-                max_teaching_epochs = 5, beta = 0.1, gamma = 0.2):
+    def __init__(self, max_epochs = 1000, max_steps = 6000, 
+                max_teaching_epochs = 5, beta = 0.05, gamma = 0.3):
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
         self.max_epochs = max_epochs
@@ -160,11 +160,16 @@ class Driver:
         qvalue_a4 = model.predict(state_action_arr.reshape((1, len(state_action_arr))))
 
         # figure out the best legal action
+        q_arr = []
+        act_arr = []
         dict = {Direction.UP: float(qvalue_a1), Direction.DOWN: float(qvalue_a2), 
                 Direction.LEFT: float(qvalue_a3), Direction.RIGHT: float(qvalue_a4)}
         sorted_dict = {k: v for k, v in sorted(dict.items(), reverse=True, key=lambda item: item[1])}
         for key in sorted_dict:
-            return sorted_dict[key], key
+            q_arr.append(sorted_dict[key])
+            act_arr.append(key)
+        return q_arr[0], act_arr[0]
+
 
     def choose_action_via_eps_greedy(self, eps, state_action_arr, model):
 
@@ -222,15 +227,15 @@ class Driver:
         state_action_arr_dim = len(state_action_arr)
         print('state action array dimentions = ' + str(state_action_arr_dim))
         model = keras.models.Sequential()
-        model.add(keras.layers.Dense(15, input_dim = state_action_arr_dim, kernel_initializer='zeros', activation = 'elu'))
+        model.add(keras.layers.Dense(15, input_dim = state_action_arr_dim, kernel_initializer='he_normal', activation = 'elu'))
         model.add(keras.layers.BatchNormalization())
         #model.add(keras.layers.Dropout(0.2))
-        model.add(keras.layers.Dense(15, kernel_initializer='zeros', activation = 'elu'))
+        model.add(keras.layers.Dense(15, kernel_initializer='he_normal', activation = 'elu'))
         model.add(keras.layers.BatchNormalization())
         #model.add(keras.layers.Dropout(0.2))
         model.add(keras.layers.Dense(1))
         opt = keras.optimizers.RMSprop(
-            lr = 0.1, 
+            lr = 0.05, 
             clipnorm=40
         )
         model.compile(loss = 'mean_squared_error', optimizer = opt, metrics=['MeanSquaredError'])
@@ -282,10 +287,10 @@ class Driver:
                 # observe state and action at t = 0
                 if i == 0:
                     s_t = self.convert_to_state_action_arr()[0]
-                    a_t = self.choose_action_via_eps_greedy(0.5*(0.9999**total_steps), s_t, model)[1]
+                    a_t = self.choose_action_via_eps_greedy(1.0*(0.99997**total_steps), s_t, model)[1]
                 else: 
                     s_t = s_t_temp
-                    a_t = self.choose_action_via_eps_greedy(0.5*(0.9999**total_steps), s_t, model)[1]
+                    a_t = self.choose_action_via_eps_greedy(1.0*(0.99997**total_steps), s_t, model)[1]
                     
                 # combine state and action at t
                 s_a_t = self.combine_state_action_arr(s_t, a_t)
@@ -302,8 +307,6 @@ class Driver:
                     eats += 1
                 elif signal == Signal.NORMAL:
                     r = 0
-                    if r < 0:
-                        r = 0
 
                 # observe state after action
                 s_t_add_1, display = self.convert_to_state_action_arr()
