@@ -216,7 +216,7 @@ class Driver:
             index = random.randint(0, len(q_arr)-1)
             return q_arr[index], act_arr[index]
 
-    def drive(self):
+    def drive(self, stdscr):
         # define deep learning network
         state_action_arr = self.convert_to_state_action_arr()[0]
         state_action_arr_dim = len(state_action_arr)
@@ -354,7 +354,7 @@ class Driver:
                 #print(display)
 
                 # print for linux
-                stdscr = curses.initscr()
+                
                 stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(total_steps))
                 stdscr.addstr(1, 0, 'action = ' + a_print)
                 stdscr.addstr(2, 0, 'reward = ' + r_print)
@@ -380,14 +380,15 @@ class Driver:
 
 
 
-    def run(self):
-        self.drive()
+    def run(self, stdscr):
+        self.drive(stdscr)
 
+stdscr = curses.initscr()
 curses.noecho()
 curses.cbreak()
 try:
     d = Driver()
-    d.run()
+    d.run(stdscr)
 finally:
     curses.echo()
     curses.nocbreak()
