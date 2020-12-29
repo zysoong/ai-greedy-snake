@@ -383,6 +383,12 @@ class Driver:
     def run(self):
         self.drive()
 
-
-d = Driver()
-d.run()
+curses.noecho()
+curses.cbreak()
+try:
+    d = Driver()
+    d.run()
+finally:
+    curses.echo()
+    curses.nocbreak()
+    curses.endwin()
