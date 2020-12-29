@@ -1,7 +1,7 @@
 from greedysnake import GreedySnake, Direction, Signal
 import time
 import numpy as np
-#import curses
+import curses
 from threading import Thread
 import subprocess
 from tensorflow import keras
@@ -351,12 +351,11 @@ class Driver:
                 avg = sum(scores) / len(scores)
 
                 # print to debug
-                print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(total_steps))
-                print('action = ' + a_print + ' / reward = ' + r_print + ' / teacher = ' + t_print + '\n')
-                print(display)
+                #print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(total_steps))
+                #print('action = ' + a_print + ' / reward = ' + r_print + ' / teacher = ' + t_print + '\n')
+                #print(display)
 
                 # print for linux
-                '''
                 stdscr = curses.initscr()
                 stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(total_steps))
                 stdscr.addstr(1, 0, 'action = ' + a_print)
@@ -369,7 +368,7 @@ class Driver:
                 stdscr.addstr(8, 0, 'Eats in 1000 steps = ' + str(eats))
                 stdscr.addstr(9, 0, display)
                 stdscr.refresh()
-                '''
+                
                 
 
             # record steps
