@@ -8,13 +8,15 @@ from tensorflow import keras
 from collections import OrderedDict
 import random
 import configparser
+import warnings
+warnings.filterwarnings("ignore")
 
 class Driver:
 
     def __init__(self):
         config = configparser.ConfigParser()
         config.read('nfqdriver.ini')
-        env = 'TEST'
+        env = 'DEFAULT'
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
         self.max_epochs = int(config[env]['max_epochs'])
