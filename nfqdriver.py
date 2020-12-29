@@ -345,7 +345,12 @@ if __name__ == "__main__":
     d = Driver()
     try:
         d.drive()
+    except:
+        curses.echo()
+        curses.nocbreak()
+        curses.endwin()
     finally:
         curses.echo()
         curses.nocbreak()
         curses.endwin()
+        
