@@ -10,7 +10,7 @@ from collections import OrderedDict
 class Driver:
 
     def __init__(self, max_epochs = 1000, max_steps = 2000, 
-                max_teaching_epochs = 2, beta = 0.1, gamma = 0.2, beta_rate = 0.999, gamma_rate = 0.999):
+                max_teaching_epochs = 5, beta = 0.1, gamma = 0.2, beta_rate = 0.999, gamma_rate = 0.999):
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
         self.max_epochs = max_epochs
