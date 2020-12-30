@@ -22,14 +22,21 @@ class Driver:
         self.max_epochs = int(config[env]['max_epochs'])
         self.max_steps = int(config[env]['max_steps'])
         self.critic_net_epochs = int(config[env]['critic_net_epochs'])
-        self.beta = float(config[env]['beta'])
+        self.beta_init = float(config[env]['beta_init'])
+        self.beta_decay = float(config[env]['beta_decay'])
         self.gamma = float(config[env]['gamma'])
-        self.critic_net_learnrate = float(config[env]['critic_net_learnrate'])
+        self.critic_net_learnrate_init = float(config[env]['critic_net_learnrate_init'])
+        self.critic_net_learnrate_decay = float(config[env]['critic_net_learnrate_decay'])
         self.critic_net_clipnorm = float(config[env]['critic_net_clipnorm'])
         self.epsilon_init = float(config[env]['epsilon_init'])
         self.epsilon_decay = float(config[env]['epsilon_decay'])
         self.train_hist_file = config[env]['train_hist_file']
         self.keras_model_file = config[env]['keras_model_file']
+
+        # parameters
+        self.total_steps = 0
+        self.beta = self.beta_init * (self.beta_decay ** self.total_steps)
+        self.critic_net_learnrate = self.critic_net_learnrate_init * (self.critic_net_learnrate_decay ** self.total_steps)
 
 
     def critic_net(self):
@@ -325,11 +332,13 @@ class Driver:
                 stdscr.addstr(2, 0, 'reward = ' + r_print)
                 stdscr.addstr(3, 0, 'teacher = ' + t_print)
                 stdscr.addstr(4, 0, 'predict = ' + str(float(n_s_a)))
-                stdscr.addstr(5, 0, 'Score = ' + str(len(self.greedysnake.snake)))
-                stdscr.addstr(6, 0, 'Thousand steps average score = ' + str(avg))
-                stdscr.addstr(7, 0, 'Hit rate = ' + str(hits / total_steps))
-                stdscr.addstr(8, 0, 'Eat rate = ' + str(eats / total_steps))
-                stdscr.addstr(9, 0, display)
+                stdscr.addstr(5, 0, 'beta = ' + str(float(self.beta)))
+                stdscr.addstr(6, 0, 'critic net learn rate = ' + str(float(self.critic_net_learnrate)))
+                stdscr.addstr(7, 0, 'Score = ' + str(len(self.greedysnake.snake)))
+                stdscr.addstr(8, 0, 'Thousand steps average score = ' + str(avg))
+                stdscr.addstr(9, 0, 'Hit rate = ' + str(hits / total_steps))
+                stdscr.addstr(10, 0, 'Eat rate = ' + str(eats / total_steps))
+                stdscr.addstr(11, 0, display)
                 stdscr.refresh()
                 
             # train N(s, a) network
