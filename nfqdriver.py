@@ -5,6 +5,7 @@ import curses
 from threading import Thread
 import subprocess
 from tensorflow import keras
+from tensorflow.keras import backend as K
 from collections import OrderedDict
 import random
 import configparser
@@ -304,6 +305,11 @@ class Driver:
                 # accumulate index
                 i += 1
                 self.total_steps += 1
+
+                # update learn rate
+                self.beta = self.beta_init * (self.beta_decay ** self.total_steps)
+                self.critic_net_learnrate = self.critic_net_learnrate_init * (self.critic_net_learnrate_decay ** self.total_steps)
+                K.set_value(model.optimizer.learning_rate, self.critic_net_learnrate)
 
                 # store step info to file to retrain
                 a_print = str(a_t)
