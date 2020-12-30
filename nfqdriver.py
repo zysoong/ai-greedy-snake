@@ -335,7 +335,7 @@ class Driver:
                 stdscr.addstr(2, 0, 'reward = ' + r_print)
                 stdscr.addstr(3, 0, 'teacher = ' + t_print)
                 stdscr.addstr(4, 0, 'predict = ' + str(float(n_s_a)))
-                stdscr.addstr(5, 0, 'predict / teacher diff rate = ' + str(abs(float(t) - float(n_s_a)) / float(t)))
+                stdscr.addstr(5, 0, 'predict / teacher diff rate = ' + str(abs(float(t) - float(n_s_a) / float(t))))
                 stdscr.addstr(6, 0, 'beta = ' + str(float(self.beta)))
                 stdscr.addstr(7, 0, 'critic net learn rate = ' + str(float(self.critic_net_learnrate)))
                 stdscr.addstr(8, 0, 'Score = ' + str(len(self.greedysnake.snake)))
