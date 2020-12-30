@@ -17,7 +17,7 @@ class Driver:
     def __init__(self):
         config = configparser.ConfigParser()
         config.read('nfqdriver.ini')
-        self.env = config['ENV']['env']
+        self.env = str(config['ENV']['env'])
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
         self.max_epochs = int(config[self.env]['max_epochs'])
