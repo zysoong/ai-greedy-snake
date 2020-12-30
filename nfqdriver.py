@@ -17,22 +17,22 @@ class Driver:
     def __init__(self):
         config = configparser.ConfigParser()
         config.read('nfqdriver.ini')
-        env = 'DEFAULT'
+        self.env = config['env']
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
-        self.max_epochs = int(config[env]['max_epochs'])
-        self.max_steps = int(config[env]['max_steps'])
-        self.critic_net_epochs = int(config[env]['critic_net_epochs'])
-        self.beta_init = float(config[env]['beta_init'])
-        self.beta_decay = float(config[env]['beta_decay'])
-        self.gamma = float(config[env]['gamma'])
-        self.critic_net_learnrate_init = float(config[env]['critic_net_learnrate_init'])
-        self.critic_net_learnrate_decay = float(config[env]['critic_net_learnrate_decay'])
-        self.critic_net_clipnorm = float(config[env]['critic_net_clipnorm'])
-        self.epsilon_init = float(config[env]['epsilon_init'])
-        self.epsilon_decay = float(config[env]['epsilon_decay'])
-        self.train_hist_file = config[env]['train_hist_file']
-        self.keras_model_file = config[env]['keras_model_file']
+        self.max_epochs = int(config[self.env]['max_epochs'])
+        self.max_steps = int(config[self.env]['max_steps'])
+        self.critic_net_epochs = int(config[self.env]['critic_net_epochs'])
+        self.beta_init = float(config[self.env]['beta_init'])
+        self.beta_decay = float(config[self.env]['beta_decay'])
+        self.gamma = float(config[self.env]['gamma'])
+        self.critic_net_learnrate_init = float(config[self.env]['critic_net_learnrate_init'])
+        self.critic_net_learnrate_decay = float(config[self.env]['critic_net_learnrate_decay'])
+        self.critic_net_clipnorm = float(config[self.env]['critic_net_clipnorm'])
+        self.epsilon_init = float(config[self.env]['epsilon_init'])
+        self.epsilon_decay = float(config[self.env]['epsilon_decay'])
+        self.train_hist_file = config[self.env]['train_hist_file']
+        self.keras_model_file = config[self.env]['keras_model_file']
 
         # parameters
         self.total_steps = 0
