@@ -285,7 +285,7 @@ class Driver:
                     eats += 1
                 elif signal == Signal.NORMAL:
                     survival_steps += 1
-                    r = (1 - survival_steps / (self.greedysnake.SIZE ** 2)) * len(self.greedysnake.snake)
+                    r = (1 - survival_steps / len(self.greedysnake.snake)) * len(self.greedysnake.snake)
                     if r < 0.1:
                         r = 0.1
 
