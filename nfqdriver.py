@@ -230,9 +230,6 @@ class Driver:
         # define deep learning network
         model = self.critic_net()
 
-        # set step counter
-        total_steps = 0
-
         # statics
         scores = []
         hits = 0
@@ -261,10 +258,10 @@ class Driver:
                 # observe state and action at t = 0
                 if i == 0:
                     s_t = self.convert_to_state_action_arr()[0]
-                    a_t = self.choose_action_via_eps_greedy(self.epsilon_init*(self.epsilon_decay**total_steps), s_t, model)[1]
+                    a_t = self.choose_action_via_eps_greedy(self.epsilon_init*(self.epsilon_decay**self.total_steps), s_t, model)[1]
                 else: 
                     s_t = s_t_temp
-                    a_t = self.choose_action_via_eps_greedy(self.epsilon_init*(self.epsilon_decay**total_steps), s_t, model)[1]
+                    a_t = self.choose_action_via_eps_greedy(self.epsilon_init*(self.epsilon_decay**self.total_steps), s_t, model)[1]
                     
                 # combine state and action at t
                 s_a_t = self.combine_state_action_arr(s_t, a_t)
@@ -306,7 +303,7 @@ class Driver:
 
                 # accumulate index
                 i += 1
-                total_steps += 1
+                self.total_steps += 1
 
                 # store step info to file to retrain
                 a_print = str(a_t)
@@ -322,12 +319,12 @@ class Driver:
                 avg = sum(scores) / len(scores)
 
                 # print to debug
-                #print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(total_steps))
+                #print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps))
                 #print('action = ' + a_print + ' / reward = ' + r_print + ' / teacher = ' + t_print + '\n')
                 #print(display)
 
                 # print for linux
-                stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(total_steps))
+                stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(self.total_steps))
                 stdscr.addstr(1, 0, 'action = ' + a_print)
                 stdscr.addstr(2, 0, 'reward = ' + r_print)
                 stdscr.addstr(3, 0, 'teacher = ' + t_print)
@@ -336,8 +333,8 @@ class Driver:
                 stdscr.addstr(6, 0, 'critic net learn rate = ' + str(float(self.critic_net_learnrate)))
                 stdscr.addstr(7, 0, 'Score = ' + str(len(self.greedysnake.snake)))
                 stdscr.addstr(8, 0, 'Thousand steps average score = ' + str(avg))
-                stdscr.addstr(9, 0, 'Hit rate = ' + str(hits / total_steps))
-                stdscr.addstr(10, 0, 'Eat rate = ' + str(eats / total_steps))
+                stdscr.addstr(9, 0, 'Hit rate = ' + str(hits / self.total_steps))
+                stdscr.addstr(10, 0, 'Eat rate = ' + str(eats / self.total_steps))
                 stdscr.addstr(11, 0, display)
                 stdscr.refresh()
                 
