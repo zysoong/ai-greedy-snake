@@ -52,6 +52,7 @@ class Driver:
         model.add(keras.layers.Dense(15, input_dim = state_action_arr_dim, kernel_initializer='he_normal', activation = 'elu'))
         model.add(keras.layers.BatchNormalization())
         model.add(keras.layers.Dense(15, kernel_initializer='he_normal', activation = 'elu'))
+        model.add(keras.layers.BatchNormalization())
         model.add(keras.layers.Dense(1, activation = 'tanh'))
         opt = keras.optimizers.RMSprop(
             lr = lr, 
@@ -253,6 +254,9 @@ class Driver:
 
             # open file to record steps
             f = open(self.train_hist_file, 'a')
+
+            # survival steps
+            survival_steps = 0
             
             while i < self.max_steps:
 
@@ -271,16 +275,19 @@ class Driver:
                 signal = self.greedysnake.step(a_t)
                 r = None
                 if signal == Signal.HIT:
-                    #r = - (self.greedysnake.SIZE ** 2)
-                    r = -1
+                    survival_steps = 0
+                    r = - (self.greedysnake.SIZE ** 2)
                     hits += 1
                     self.greedysnake.reset()
                 elif signal == Signal.EAT:
-                    #r = len(self.greedysnake.snake)
-                    r = 1
+                    survival_steps += 1
+                    r = len(self.greedysnake.snake)
                     eats += 1
                 elif signal == Signal.NORMAL:
-                    r = 0
+                    survival_steps += 1
+                    r = (1 - survival_steps / (self.greedysnake.SIZE ** 2)) * len(self.greedysnake.snake)
+                    if r < 0.1:
+                        r = 0.1
 
                 # observe state after action
                 s_t_add_1, display = self.convert_to_state_action_arr()
@@ -351,7 +358,7 @@ class Driver:
             hist = model.fit(input, teacher, epochs=self.critic_net_epochs, batch_size = int(self.max_steps / 10), verbose=0)
 
             # record train history
-            f.write(str(hist.history))
+            f.write(str(hist.history)+'\n')
             f.close()
 
             # save model to file
