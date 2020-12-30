@@ -37,7 +37,7 @@ class Driver:
         self.train_hist_file = config[self.env]['train_hist_file']
         self.critic_model_file = config[self.env]['critic_model_file']
         self.policy_model_file = config[self.env]['policy_model_file']
-        self.timeslip_size = config[self.env]['timeslip_size']
+        self.timeslip_size = int(config[self.env]['timeslip_size'])
         self.timeslip = np.zeros(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
 
         # parameters
