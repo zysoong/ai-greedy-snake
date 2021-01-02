@@ -370,25 +370,24 @@ class Driver:
                 avg = sum(scores) / len(scores)
 
                 # print to debug
-                print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps))
-                print('action = ' + a_print + ' / reward = ' + r_print)
-                print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print + '\n')
-                print(display)
+                #print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps))
+                #print('action = ' + a_print + ' / reward = ' + r_print)
+                #print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print + '\n')
+                #print(display)
 
                 # print for linux
-                #stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(self.total_steps))
-                #stdscr.addstr(1, 0, 'action = ' + a_print)
-                #stdscr.addstr(2, 0, 'reward = ' + r_print)
-                #stdscr.addstr(3, 0, 'teacher(Q) = ' + t_print)
-                #stdscr.addstr(4, 0, 'predict(Q) = ' + str(float(predict_print)))
-                #stdscr.addstr(5, 0, 'beta = ' + str(float(self.beta)))
-                #stdscr.addstr(6, 0, 'critic net learn rate = ' + str(float(self.critic_net_learnrate)))
-                #stdscr.addstr(7, 0, 'Score = ' + str(len(self.greedysnake.snake)))
-                #stdscr.addstr(8, 0, 'Thousand steps average score = ' + str(avg))
-                #stdscr.addstr(9, 0, 'Hit rate = ' + str(hits / self.total_steps))
-                #stdscr.addstr(10, 0, 'Eat rate = ' + str(eats / self.total_steps))
-                #stdscr.addstr(11, 0, display)
-                #stdscr.refresh()
+                stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(self.total_steps))
+                stdscr.addstr(1, 0, 'action = ' + a_print)
+                stdscr.addstr(2, 0, 'reward = ' + r_print)
+                stdscr.addstr(3, 0, 'teacher(Q) = ' + t_print)
+                stdscr.addstr(4, 0, 'predict(Q) = ' + str(float(predict_print)))
+                stdscr.addstr(6, 0, 'critic net learn rate = ' + str(float(self.critic_net_learnrate)))
+                stdscr.addstr(7, 0, 'Score = ' + str(len(self.greedysnake.snake)))
+                stdscr.addstr(8, 0, 'Thousand steps average score = ' + str(avg))
+                stdscr.addstr(9, 0, 'Hit rate = ' + str(hits / self.total_steps))
+                stdscr.addstr(10, 0, 'Eat rate = ' + str(eats / self.total_steps))
+                stdscr.addstr(11, 0, display)
+                stdscr.refresh()
                 
             # train steps
             batch_size = 10
@@ -410,14 +409,14 @@ class Driver:
 
 if __name__ == "__main__":
     d = Driver()
-    #try:
-    d.drive()
-    #except:
-    #    curses.echo()
-    #    curses.nocbreak()
-    #    curses.endwin()
-    #finally:
-    #    curses.echo()
-    #    curses.nocbreak()
-    #    curses.endwin()
+    try:
+        d.drive()
+    except:
+        curses.echo()
+        curses.nocbreak()
+        curses.endwin()
+    finally:
+        curses.echo()
+        curses.nocbreak()
+        curses.endwin()
         
