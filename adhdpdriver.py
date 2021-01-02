@@ -1,7 +1,7 @@
 from greedysnake import GreedySnake, Direction, Signal
 import time
 import numpy as np
-#import curses
+import curses
 from threading import Thread
 import subprocess
 import tensorflow as tf
