@@ -259,9 +259,9 @@ class Driver:
     def drive(self):
 
         # define stdscr for linux
-        #stdscr = curses.initscr()
-        #curses.noecho()
-        #curses.cbreak()
+        stdscr = curses.initscr()
+        curses.noecho()
+        curses.cbreak()
         
         # define deep learning network
         critic_model, adhdp = self.get_adhdp()
