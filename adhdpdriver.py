@@ -12,12 +12,10 @@ import random
 import configparser
 import copy
 import sys
-#import warnings
-#warnings.filterwarnings("ignore")
-#tf.compat.v1.disable_eager_execution()
-np.set_printoptions(threshold=sys.maxsize) # TODO TEST
+import warnings
+warnings.filterwarnings("ignore")
+# np.set_printoptions(threshold=sys.maxsize)
 
-# TODO DELETE LOSS AND USE SELF DESIGNED ONE
 class ADHDP(keras.Model):
 
     def __init__(self, critic, actor):
@@ -30,10 +28,6 @@ class ADHDP(keras.Model):
         self.actor_optimizer = optimizer
         self.loss = loss
 
-    def update_critic_model(self, critic):
-        self.critic = critic
-
-    # Caution: only accept y_true?
     def train_step(self, data):
 
         state, teacher_critic = data
@@ -43,21 +37,13 @@ class ADHDP(keras.Model):
             tape.watch(self.actor.trainable_weights)
             action_map = self.actor(state)
             state_action = tf.concat([state, action_map], 3)
-            q = self.critic(state_action)   # BUG Gradient disappears
-            #tf.print('\n############################### TEST Q ############################')
-            #tf.print(q)
+            q = self.critic(state_action)
             t = tf.constant(1.0)
             actor_loss = self.loss(t, q)
         actor_grads = tape.gradient(actor_loss, self.actor.trainable_weights)
 
-        #tf.print('\n############################### TEST GRADIENTS ############################')
-        #test = tape.gradient(q, state_action)
-        #tf.print(test, summarize=-1)
-        #tf.print(test.shape)
-
-
         self.actor_optimizer.apply_gradients(
-            zip(actor_grads, self.actor.trainable_weights) # BUG Value update to weights not working
+            zip(actor_grads, self.actor.trainable_weights)
         )
         return {"ActorLoss": actor_loss}
 
@@ -81,8 +67,6 @@ class Driver:
         self.max_steps = int(config[self.env]['max_steps'])
         self.critic_net_epochs = int(config[self.env]['critic_net_epochs'])
         self.actor_net_epochs = int(config[self.env]['actor_net_epochs'])
-        self.beta_init = float(config[self.env]['beta_init'])
-        self.beta_decay = float(config[self.env]['beta_decay'])
         self.gamma = float(config[self.env]['gamma'])
         self.critic_net_learnrate_init = float(config[self.env]['critic_net_learnrate_init'])
         self.critic_net_learnrate_decay = float(config[self.env]['critic_net_learnrate_decay'])
@@ -98,7 +82,6 @@ class Driver:
 
         # parameters
         self.total_steps = 0
-        self.beta = self.beta_init * (self.beta_decay ** self.total_steps)
         self.critic_net_learnrate = self.critic_net_learnrate_init * (self.critic_net_learnrate_decay ** self.total_steps)
         self.actor_net_learnrate = self.actor_net_learnrate_init * (self.actor_net_learnrate_decay ** self.total_steps)
 
@@ -156,18 +139,17 @@ class Driver:
         
     def get_adhdp(self):
 
-        # TODO TESTING
         lr = self.critic_net_learnrate_init
         clipnorm = self.critic_net_clipnorm
 
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1)), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (5, 5), padding='same', activation='elu', kernel_initializer='he_normal'),
             keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
+            #keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
+            #keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
+            #keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
+            #keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
             keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
             keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
             keras.layers.Conv2D(1, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
@@ -180,34 +162,34 @@ class Driver:
         # actor layers
         actor_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (5, 5), padding='same', activation='elu', kernel_initializer='he_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
+            #keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
+            #keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
+            #keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
             keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
             keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
-            keras.layers.Conv2D(1, (3, 3), padding='same', activation='relu', kernel_initializer='he_normal'),
+            keras.layers.Conv2D(1, (3, 3), padding='same', activation='tanh', kernel_initializer='he_normal'),
         ], name = 'actor')        
 
         # optimizer
-        opt = keras.optimizers.RMSprop(
-            lr = 0.0001, 
-            clipnorm = clipnorm
+        c_opt = keras.optimizers.Adam(
+            lr = self.critic_net_learnrate, 
+            clipnorm = self.critic_net_clipnorm
         )
 
-        a_opt = keras.optimizers.RMSprop(
-            lr = 0.0001, 
-            clipnorm = clipnorm
+        a_opt = keras.optimizers.Adam(
+            lr = self.actor_net_learnrate, 
+            clipnorm = self.actor_net_clipnorm
         )
 
         # models
-        # BUG always the same value after fit
-        critic_model.compile(loss = keras.losses.MSE, optimizer = opt)
+        critic_model.compile(loss = keras.losses.MSE, optimizer = c_opt)
 
         # actor model
         adhdp = ADHDP(critic=critic_model, actor=actor_model)
         adhdp.compile(loss = keras.losses.MSE, optimizer = a_opt)
         return critic_model, adhdp
+
 
     def write_to_timeslip(self, action = None):
         display = ''
@@ -368,16 +350,15 @@ class Driver:
                 self.total_steps += 1
 
                 # update learn rate
-                #self.beta = self.beta_init * (self.beta_decay ** self.total_steps)
-                #self.critic_net_learnrate = self.critic_net_learnrate_init * (self.critic_net_learnrate_decay ** self.total_steps)
-                #self.actor_net_learnrate = self.actor_net_learnrate_init * (self.actor_net_learnrate_decay ** self.total_steps)
-                #K.set_value(critic_net.optimizer.learning_rate, self.critic_net_learnrate)
-                #K.set_value(actor_net.optimizer.learning_rate, self.actor_net_learnrate)
+                self.critic_net_learnrate = self.critic_net_learnrate_init * (self.critic_net_learnrate_decay ** self.total_steps)
+                self.actor_net_learnrate = self.actor_net_learnrate_init * (self.actor_net_learnrate_decay ** self.total_steps)
+                K.set_value(critic_model.optimizer.learning_rate, self.critic_net_learnrate)
+                K.set_value(adhdp.optimizer.learning_rate, self.actor_net_learnrate)
 
                 # display information
                 a_print = str(a_t_add_1)
                 r_print = str(float(r))
-                t_print = str(t)
+                t_print = str(np.array(t))
                 predict_print = str(q_t_add_1)
 
                 # calc stats
@@ -414,25 +395,17 @@ class Driver:
             s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
             s_a = np.array(s_a_arr, dtype=np.float32).reshape((len(s_a_arr), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
             t = np.array(t_arr, dtype=np.float32).reshape((len(t_arr), 1))
-            
-            #print('################ s_data in main steps ######################')
-            #print(s_data)
-            critic_model.fit(s_a, t, epochs=10, verbose=1, batch_size = 1) # deactive batch learning to prevent bug
-            #adhdp.update_critic_model(critic_model)
-            adhdp.fit(s, t, epochs=10, verbose=1, batch_size = 1)
-
-            #print('##################WEIGHT OF ACTOR############################')
-            #print(actor.get_weights())
-            #print('#############################################################')
-
+            critic_hist = critic_model.fit(s_a, t, epochs=self.critic_net_epochs, verbose=1, batch_size = 1) # deactive batch learning to prevent bug in tf
+            actor_hist = adhdp.fit(s, t, epochs=self.actor_net_epochs, verbose=1, batch_size = 1)
 
             # record train history
-            #f.write(str(hist_adhdp.history)+'\n')
+            f.write(str(critic_hist.history)+'\n')
+            f.write(str(actor_hist.history)+'\n')
             f.close()
 
             # save model to file
-            #critic_net.save(self.critic_model_file)
-            #actor_net.save(self.actor_model_file)
+            critic_model.save(self.critic_model_file)
+            #adhdp.save(self.actor_model_file) # BUG saving subclass model adhdp not succeed
 
 
 if __name__ == "__main__":
