@@ -156,10 +156,10 @@ class Driver:
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1)), 
             keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
             keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
             keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
             keras.layers.Conv2D(1, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
@@ -173,9 +173,9 @@ class Driver:
         actor_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)), 
             keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
             keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
             keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
             keras.layers.Conv2D(1, (3, 3), padding='same', activation='tanh', kernel_initializer='random_normal'),
@@ -269,7 +269,10 @@ class Driver:
         scores = []
         hits = 0
         eats = 0
+
         
+        
+
         for e in range(self.max_epochs):
 
             # execute steps for greedy snake
@@ -291,8 +294,14 @@ class Driver:
 
             # survival steps
             survival_steps = 0
+
+            # execute less for the first epoch
+            if e == 0:
+                max_steps = self.max_steps // 20
+            else:
+                max_steps = self.max_steps
             
-            for i in range(self.max_steps + 1):
+            for i in range(max_steps):
 
                 # observe state and action at t = 0
                 if i == 0:
