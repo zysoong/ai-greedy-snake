@@ -1,7 +1,7 @@
 from greedysnake import GreedySnake, Direction, Signal
 import time
 import numpy as np
-#import curses
+import curses
 from threading import Thread
 import subprocess
 import tensorflow as tf
@@ -258,9 +258,9 @@ class Driver:
     def drive(self):
 
         # define stdscr for linux
-        #stdscr = curses.initscr()
-        #curses.noecho()
-        #curses.cbreak()
+        stdscr = curses.initscr()
+        curses.noecho()
+        curses.cbreak()
         
         # define deep learning network
         critic_model, adhdp = self.get_adhdp()
@@ -384,18 +384,18 @@ class Driver:
                 print(display)
 
                 # print for linux
-                #stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(self.total_steps))
-                #stdscr.addstr(1, 0, 'action = ' + a_print)
-                #stdscr.addstr(2, 0, 'reward = ' + r_print)
-                #stdscr.addstr(3, 0, 'teacher(Q) = ' + t_print)
-                #stdscr.addstr(4, 0, 'predict(Q) = ' + str(float(predict_print)))
-                #stdscr.addstr(6, 0, 'critic net learn rate = ' + str(float(self.critic_net_learnrate)))
-                #stdscr.addstr(7, 0, 'Score = ' + str(len(self.greedysnake.snake)))
-                #stdscr.addstr(8, 0, 'Thousand steps average score = ' + str(avg))
-                #stdscr.addstr(9, 0, 'Hit rate = ' + str(hits / self.total_steps))
-                #stdscr.addstr(10, 0, 'Eat rate = ' + str(eats / self.total_steps))
-                #stdscr.addstr(11, 0, display)
-                #stdscr.refresh()
+                stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(self.total_steps))
+                stdscr.addstr(1, 0, 'action = ' + a_print)
+                stdscr.addstr(2, 0, 'reward = ' + r_print)
+                stdscr.addstr(3, 0, 'teacher(Q) = ' + t_print)
+                stdscr.addstr(4, 0, 'predict(Q) = ' + str(float(predict_print)))
+                stdscr.addstr(6, 0, 'critic net learn rate = ' + str(float(self.critic_net_learnrate)))
+                stdscr.addstr(7, 0, 'Score = ' + str(len(self.greedysnake.snake)))
+                stdscr.addstr(8, 0, 'Thousand steps average score = ' + str(avg))
+                stdscr.addstr(9, 0, 'Hit rate = ' + str(hits / self.total_steps))
+                stdscr.addstr(10, 0, 'Eat rate = ' + str(eats / self.total_steps))
+                stdscr.addstr(11, 0, display)
+                stdscr.refresh()
                 
             # train steps
             s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
@@ -416,14 +416,14 @@ class Driver:
 
 if __name__ == "__main__":
     d = Driver()
-    #try:
-    d.drive()
-    #except:
-    #    curses.echo()
-    #    curses.nocbreak()
-    #    curses.endwin()
-    #finally:
-    #    curses.echo()
-    #    curses.nocbreak()
-    #    curses.endwin()
+    try:
+        d.drive()
+    except:
+        curses.echo()
+        curses.nocbreak()
+        curses.endwin()
+    finally:
+        curses.echo()
+        curses.nocbreak()
+        curses.endwin()
         
