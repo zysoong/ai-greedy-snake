@@ -374,14 +374,13 @@ class Driver:
                 avg = sum(scores) / len(scores)
 
                 # print to debug
-                print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps))
-                print('action = ' + a_print + ' / reward = ' + r_print)
-                print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print + '\n')
-                print('Thousand steps average score = ' + str(avg))
-                print('Hit rate = ' + str(hits / self.total_steps))
-                print('Eat rate = ' + str(eats / self.total_steps))
-
-                print(display)
+                #print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps))
+                #print('action = ' + a_print + ' / reward = ' + r_print)
+                #print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print + '\n')
+                #print('Thousand steps average score = ' + str(avg))
+                #print('Hit rate = ' + str(hits / self.total_steps))
+                #print('Eat rate = ' + str(eats / self.total_steps))
+                #print(display)
 
                 # print for linux
                 stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(self.total_steps))
