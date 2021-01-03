@@ -1176,3 +1176,5 @@
 {'ActorLoss': [array([3.1264335e-05], dtype=float32), array([2.1158248e-05], dtype=float32), array([3.6311594e-05], dtype=float32)]}
 {'loss': [0.1379842907190323, 0.004734219517558813, 0.0022770946379750967]}
 {'ActorLoss': [array([0.00216906], dtype=float32), array([0.00025999], dtype=float32), array([6.1879975e-05], dtype=float32)]}
+{'loss': [0.07028625905513763, 0.06993112713098526, 0.06986009329557419, 0.06973482668399811, 0.0697546973824501, 0.06956903636455536, 0.06929679214954376, 0.06910267472267151, 0.06889516860246658, 0.06852438300848007]}
+{'ActorLoss': [array([1.0863358], dtype=float32), array([1.0020984], dtype=float32), array([1.0255692], dtype=float32), array([0.96990013], dtype=float32), array([0.947803], dtype=float32), array([0.942022], dtype=float32), array([0.92043877], dtype=float32), array([0.90192056], dtype=float32), array([0.84119445], dtype=float32), array([0.8852277], dtype=float32)]}
