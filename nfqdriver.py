@@ -53,7 +53,7 @@ class Driver:
         model.add(keras.layers.BatchNormalization())
         model.add(keras.layers.Dense(15, kernel_initializer='he_normal', activation = 'elu'))
         model.add(keras.layers.BatchNormalization())
-        model.add(keras.layers.Dense(1, activation = 'tanh'))
+        model.add(keras.layers.Dense(1))
         opt = keras.optimizers.RMSprop(
             lr = lr, 
             clipnorm = clipnorm

@@ -88,18 +88,6 @@ class Driver:
         self.actor_net_learnrate = self.actor_net_learnrate_init * (self.actor_net_learnrate_decay ** self.total_steps)
 
 
-    def generate_action_map(self, action):
-        map = np.negative(np.ones(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE)))
-        if action == Direction.UP:
-            map[0, self.greedysnake.SIZE // 2] = 1
-        elif action == Direction.DOWN:
-            map[self.greedysnake.SIZE - 1, self.greedysnake.SIZE // 2] = 1
-        elif action == Direction.LEFT:
-            map[self.greedysnake.SIZE // 2, 0] = 1
-        elif action == Direction.RIGHT:
-            map[self.greedysnake.SIZE // 2, self.greedysnake.SIZE - 1] = 1
-        return map
-
     def random_action(self):
         rand = random.randint(0, 3)
         action = None
@@ -143,11 +131,12 @@ class Driver:
                 action = Direction.DOWN
 
         # eps-greedy
-        rand = np.random.rand()
-        if rand <= (1-eps):
-            return action
-        else:
-            return self.random_action()
+        #rand = np.random.rand()
+        #if rand <= (1-eps):
+        #    return action
+        #else:
+        #    return self.random_action()
+        return action
 
     def concatenate_timeslip_and_actionmap(self, timeslip, action_map):
         res = np.zeros(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
@@ -166,30 +155,30 @@ class Driver:
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1)), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
             #keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
             #keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
             #keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
             #keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
-            keras.layers.Conv2D(1, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
+            keras.layers.Conv2D(1, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
             keras.layers.Flatten(),
-            keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'elu', kernel_initializer='he_normal'),
-            keras.layers.Dense((self.greedysnake.SIZE ** 2) // 2, activation = 'elu', kernel_initializer='he_normal'),
-            keras.layers.Dense(1, activation = 'tanh', kernel_initializer='he_normal'),
+            keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'elu', kernel_initializer='random_normal'),
+            keras.layers.Dense((self.greedysnake.SIZE ** 2) // 2, activation = 'elu', kernel_initializer='random_normal'),
+            keras.layers.Dense(1, kernel_initializer='random_normal'),
         ], name = 'critic')
 
         # actor layers
         actor_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
             #keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
             #keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
             #keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='he_normal'),
-            keras.layers.Conv2D(1, (3, 3), padding='same', activation='tanh', kernel_initializer='he_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
+            keras.layers.Conv2D(1, (3, 3), padding='same', kernel_initializer='random_normal'),
         ], name = 'actor')        
 
         # optimizer
@@ -318,7 +307,8 @@ class Driver:
                 else: 
                     s_t = s_t_temp
                     a_t = a_t_temp
-                s_a_t = self.concatenate_timeslip_and_actionmap(s_t, actmap_t)
+                #s_a_t = self.concatenate_timeslip_and_actionmap(s_t, actmap_t)
+                s_a_t = tf.concat([s_t, actmap_t[0]], axis = 2)
                 s_arr.append(s_t)
                 s_a_arr.append(s_a_t)
 
@@ -347,13 +337,17 @@ class Driver:
                 
                 # choose action at t+1 
                 actmap_t_add_1 = adhdp.predict_actor(np.array(s_t_add_1).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
-                a_t_add_1 = self.get_action(np.array(actmap_t_add_1).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE), self.epsilon_init*(self.epsilon_decay**self.total_steps))
+                if e >= 1:
+                    a_t_add_1 = self.get_action(np.array(actmap_t_add_1).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE), self.epsilon_init*(self.epsilon_decay**self.total_steps))
+                else:
+                    a_t_add_1 = self.random_action()
                 a_t_temp = a_t_add_1
 
                 # get teacher for critic net (online learning)
-                s_a_t_add_1 = self.concatenate_timeslip_and_actionmap(s_t_add_1, actmap_t_add_1)
+                #s_a_t_add_1 = self.concatenate_timeslip_and_actionmap(s_t_add_1, actmap_t_add_1)
+                s_a_t_add_1 = tf.concat([s_t_add_1, actmap_t_add_1[0]], axis=2)
                 q_t_add_1 = critic_model.predict(np.array(s_a_t_add_1).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
-                t = tf.tanh(r + self.gamma * q_t_add_1)
+                t = r + self.gamma * q_t_add_1
                 t_arr.append(t)
 
                 # accumulate index
@@ -404,7 +398,6 @@ class Driver:
                 #stdscr.refresh()
                 
             # train steps
-            batch_size = 10
             s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
             s_a = np.array(s_a_arr, dtype=np.float32).reshape((len(s_a_arr), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
             t = np.array(t_arr, dtype=np.float32).reshape((len(t_arr), 1))
