@@ -401,8 +401,8 @@ class Driver:
             s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
             s_a = np.array(s_a_arr, dtype=np.float32).reshape((len(s_a_arr), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
             t = np.array(t_arr, dtype=np.float32).reshape((len(t_arr), 1))
-            critic_hist = critic_model.fit(s_a, t, epochs=self.critic_net_epochs, verbose=1, batch_size = self.max_steps)
-            actor_hist = adhdp.fit(s, t, epochs=self.actor_net_epochs, verbose=1, batch_size = self.max_steps)
+            critic_hist = critic_model.fit(s_a, t, epochs=self.critic_net_epochs, verbose=1, batch_size = self.max_steps // 10)
+            actor_hist = adhdp.fit(s, t, epochs=self.actor_net_epochs, verbose=1, batch_size = self.max_steps // 10)
 
             # record train history
             f.write(str(critic_hist.history)+'\n')
