@@ -337,10 +337,8 @@ class Driver:
                 
                 # choose action at t+1 
                 actmap_t_add_1 = adhdp.predict_actor(np.array(s_t_add_1).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
-                if e >= 1:
-                    a_t_add_1 = self.get_action(np.array(actmap_t_add_1).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE), self.epsilon_init*(self.epsilon_decay**self.total_steps))
-                else:
-                    a_t_add_1 = self.random_action()
+                a_t_add_1 = self.get_action(np.array(actmap_t_add_1).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE), self.epsilon_init*(self.epsilon_decay**self.total_steps))
+                a_t_add_1 = self.random_action()
                 a_t_temp = a_t_add_1
 
                 # get teacher for critic net (online learning)
