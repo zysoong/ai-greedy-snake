@@ -1,7 +1,7 @@
 from greedysnake import GreedySnake, Direction, Signal
 import time
 import numpy as np
-import curses
+#import curses
 from threading import Thread
 import subprocess
 import tensorflow as tf
@@ -68,6 +68,8 @@ class Driver:
         self.critic_net_epochs = int(config[self.env]['critic_net_epochs'])
         self.actor_net_epochs = int(config[self.env]['actor_net_epochs'])
         self.gamma = float(config[self.env]['gamma'])
+        self.epsilon_init = float(config[self.env]['epsilon_init'])
+        self.epsilon_decay = float(config[self.env]['epsilon_decay'])
         self.critic_net_learnrate_init = float(config[self.env]['critic_net_learnrate_init'])
         self.critic_net_learnrate_decay = float(config[self.env]['critic_net_learnrate_decay'])
         self.critic_net_clipnorm = float(config[self.env]['critic_net_clipnorm'])
@@ -98,7 +100,20 @@ class Driver:
             map[self.greedysnake.SIZE // 2, self.greedysnake.SIZE - 1] = 1
         return map
 
-    def get_action(self, action_map):
+    def random_action(self):
+        rand = random.randint(0, 3)
+        action = None
+        if rand == 0:
+            action = Direction.UP
+        elif rand == 1:
+            action = Direction.DOWN
+        elif rand == 2:
+            action = Direction.LEFT
+        elif rand == 3:
+            action = Direction.RIGHT
+        return action
+
+    def get_action(self, action_map, eps):
         central = self.greedysnake.SIZE // 2
         maxindex = action_map.argmax()
         row = maxindex // self.greedysnake.SIZE
@@ -126,7 +141,13 @@ class Driver:
                 action = Direction.RIGHT
             else:
                 action = Direction.DOWN
-        return action
+
+        # eps-greedy
+        rand = np.random.rand()
+        if rand <= (1-eps):
+            return action
+        else:
+            return self.random_action()
 
     def concatenate_timeslip_and_actionmap(self, timeslip, action_map):
         res = np.zeros(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
@@ -243,25 +264,14 @@ class Driver:
 
         return display
 
-    def random_action(self):
-        rand = random.randint(0, 3)
-        action = None
-        if rand == 0:
-            action = Direction.UP
-        elif rand == 1:
-            action = Direction.DOWN
-        elif rand == 2:
-            action = Direction.LEFT
-        elif rand == 3:
-            action = Direction.RIGHT
-        return action
+
         
     def drive(self):
 
         # define stdscr for linux
-        stdscr = curses.initscr()
-        curses.noecho()
-        curses.cbreak()
+        #stdscr = curses.initscr()
+        #curses.noecho()
+        #curses.cbreak()
         
         # define deep learning network
         critic_model, adhdp = self.get_adhdp()
@@ -304,7 +314,7 @@ class Driver:
                 if i == 0:
                     s_t = self.timeslip
                     actmap_t = adhdp.predict_actor(s_t.reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
-                    a_t = self.get_action(np.array(actmap_t).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
+                    a_t = self.get_action(np.array(actmap_t).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE), self.epsilon_init*(self.epsilon_decay**self.total_steps))
                 else: 
                     s_t = s_t_temp
                     a_t = a_t_temp
@@ -337,7 +347,7 @@ class Driver:
                 
                 # choose action at t+1 
                 actmap_t_add_1 = adhdp.predict_actor(np.array(s_t_add_1).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
-                a_t_add_1 = self.get_action(np.array(actmap_t_add_1).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
+                a_t_add_1 = self.get_action(np.array(actmap_t_add_1).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE), self.epsilon_init*(self.epsilon_decay**self.total_steps))
                 a_t_temp = a_t_add_1
 
                 # get teacher for critic net (online learning)
@@ -370,24 +380,28 @@ class Driver:
                 avg = sum(scores) / len(scores)
 
                 # print to debug
-                #print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps))
-                #print('action = ' + a_print + ' / reward = ' + r_print)
-                #print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print + '\n')
-                #print(display)
+                print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps))
+                print('action = ' + a_print + ' / reward = ' + r_print)
+                print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print + '\n')
+                print('Thousand steps average score = ' + str(avg))
+                print('Hit rate = ' + str(hits / self.total_steps))
+                print('Eat rate = ' + str(eats / self.total_steps))
+
+                print(display)
 
                 # print for linux
-                stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(self.total_steps))
-                stdscr.addstr(1, 0, 'action = ' + a_print)
-                stdscr.addstr(2, 0, 'reward = ' + r_print)
-                stdscr.addstr(3, 0, 'teacher(Q) = ' + t_print)
-                stdscr.addstr(4, 0, 'predict(Q) = ' + str(float(predict_print)))
-                stdscr.addstr(6, 0, 'critic net learn rate = ' + str(float(self.critic_net_learnrate)))
-                stdscr.addstr(7, 0, 'Score = ' + str(len(self.greedysnake.snake)))
-                stdscr.addstr(8, 0, 'Thousand steps average score = ' + str(avg))
-                stdscr.addstr(9, 0, 'Hit rate = ' + str(hits / self.total_steps))
-                stdscr.addstr(10, 0, 'Eat rate = ' + str(eats / self.total_steps))
-                stdscr.addstr(11, 0, display)
-                stdscr.refresh()
+                #stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(self.total_steps))
+                #stdscr.addstr(1, 0, 'action = ' + a_print)
+                #stdscr.addstr(2, 0, 'reward = ' + r_print)
+                #stdscr.addstr(3, 0, 'teacher(Q) = ' + t_print)
+                #stdscr.addstr(4, 0, 'predict(Q) = ' + str(float(predict_print)))
+                #stdscr.addstr(6, 0, 'critic net learn rate = ' + str(float(self.critic_net_learnrate)))
+                #stdscr.addstr(7, 0, 'Score = ' + str(len(self.greedysnake.snake)))
+                #stdscr.addstr(8, 0, 'Thousand steps average score = ' + str(avg))
+                #stdscr.addstr(9, 0, 'Hit rate = ' + str(hits / self.total_steps))
+                #stdscr.addstr(10, 0, 'Eat rate = ' + str(eats / self.total_steps))
+                #stdscr.addstr(11, 0, display)
+                #stdscr.refresh()
                 
             # train steps
             batch_size = 10
@@ -409,14 +423,14 @@ class Driver:
 
 if __name__ == "__main__":
     d = Driver()
-    try:
-        d.drive()
-    except:
-        curses.echo()
-        curses.nocbreak()
-        curses.endwin()
-    finally:
-        curses.echo()
-        curses.nocbreak()
-        curses.endwin()
+    #try:
+    d.drive()
+    #except:
+    #    curses.echo()
+    #    curses.nocbreak()
+    #    curses.endwin()
+    #finally:
+    #    curses.echo()
+    #    curses.nocbreak()
+    #    curses.endwin()
         
