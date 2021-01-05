@@ -166,7 +166,8 @@ class Driver:
             keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
             keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
             keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
-            keras.layers.Conv2D(1, (3, 3), padding='same', activation='softmax', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(1, (3, 3), padding='same', kernel_initializer='glorot_normal'),
+            keras.layers.Activation('softmax')
         ], name = 'actor')        
 
         # optimizer
@@ -185,7 +186,7 @@ class Driver:
         # actor model
         adhdp = ADHDP(critic=critic_model, actor=actor_model)
         actor_loss = tf.keras.losses.categorical_crossentropy
-        assert actor_loss.shape = (self.timeslip_size, self.timeslip_size)
+        assert actor_loss.shape == (self.timeslip_size, self.timeslip_size)
         adhdp.compile(loss = actor_loss, optimizer = a_opt)
         return critic_model, adhdp
 
