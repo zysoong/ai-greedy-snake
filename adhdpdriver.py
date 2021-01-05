@@ -184,7 +184,7 @@ class Driver:
 
         # actor model
         adhdp = ADHDP(critic=critic_model, actor=actor_model)
-        adhdp.compile(loss = keras.losses.MSE, optimizer = a_opt)
+        adhdp.compile(loss = keras.losses.categorical_crossentropy, optimizer = a_opt)
         return critic_model, adhdp
 
 
