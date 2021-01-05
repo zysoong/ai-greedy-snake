@@ -160,9 +160,9 @@ class Driver:
         actor_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)), 
             #keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
-            #keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
-            #keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
-            #keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
+            #keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
             keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
             keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
             keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
