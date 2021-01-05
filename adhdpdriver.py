@@ -91,7 +91,7 @@ class Driver:
 
     def random_action_map(self):
         rand = random.randint(0, 3)
-        action_map = np.ones((self.greedysnake.SIZE, self.greedysnake.SIZE))
+        action_map = np.zeros((self.greedysnake.SIZE, self.greedysnake.SIZE))
         central = self.greedysnake.SIZE // 2
         if rand == 0.0:
             action_map[0, central] = 1.0
