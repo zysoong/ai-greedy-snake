@@ -45,6 +45,7 @@ class ADHDP(keras.Model):
             t = np.ones((self.batch_size, 1))              # TODO batch_size as ini parameter
             actor_loss = self.loss(t, q)
         actor_grads = tape.gradient(actor_loss, self.actor.trainable_weights)
+        #tf.print(tape.gradient(actor_loss, action_map))
         self.actor_optimizer.apply_gradients(
             zip(actor_grads, self.actor.trainable_weights)
         )
@@ -146,31 +147,31 @@ class Driver:
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1)), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
-            keras.layers.Conv2D(1, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(1, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
             keras.layers.Flatten(),
-            keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'relu', kernel_initializer='glorot_normal'),
-            keras.layers.Dense((self.greedysnake.SIZE ** 2) // 2, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'elu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense((self.greedysnake.SIZE ** 2) // 2, activation = 'elu', kernel_initializer='glorot_normal'),
             keras.layers.Dense(1, kernel_initializer='glorot_normal'),
         ], name = 'critic')
 
         # actor layers
         actor_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
-            keras.layers.Conv2D(1, (3, 3), padding='same', activation='softmax', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(1, (3, 3), padding='same', kernel_initializer='glorot_normal'),
         ], name = 'actor')        
 
         # optimizer
