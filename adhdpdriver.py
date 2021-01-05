@@ -19,9 +19,13 @@ warnings.filterwarnings("ignore")
 class ADHDP(keras.Model):
 
     def __init__(self, critic, actor):
+        config = configparser.ConfigParser()
+        config.read('adhdpdriver.ini')
+        self.env = config['ENV']['env']
         super(ADHDP, self).__init__()
         self.critic = critic
         self.actor = actor
+        self.batch_size = int(config[self.env]['batch_size'])
 
     def compile(self, optimizer, loss):
         super(ADHDP, self).compile()
@@ -38,10 +42,9 @@ class ADHDP(keras.Model):
             action_map = self.actor(state)
             state_action = tf.concat([state, action_map], 3)
             q = self.critic(state_action)
-            t = tf.constant(1.0)
+            t = np.ones((self.batch_size, 1))              # TODO batch_size as ini parameter
             actor_loss = self.loss(t, q)
         actor_grads = tape.gradient(actor_loss, self.actor.trainable_weights)
-
         self.actor_optimizer.apply_gradients(
             zip(actor_grads, self.actor.trainable_weights)
         )
@@ -65,6 +68,7 @@ class Driver:
         self.signal_in = Direction.STRAIGHT
         self.max_epochs = int(config[self.env]['max_epochs'])
         self.max_steps = int(config[self.env]['max_steps'])
+        self.batch_size = int(config[self.env]['batch_size'])
         self.critic_net_epochs = int(config[self.env]['critic_net_epochs'])
         self.actor_net_epochs = int(config[self.env]['actor_net_epochs'])
         self.gamma = float(config[self.env]['gamma'])
@@ -146,9 +150,9 @@ class Driver:
             #keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
             #keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
             #keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
-            keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
-            keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
-            keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
+            keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
             keras.layers.Conv2D(1, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
             keras.layers.Flatten(),
             keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'elu', kernel_initializer='random_normal'),
@@ -162,12 +166,11 @@ class Driver:
             #keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='random_normal'),
             #keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
             #keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
-            #keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
             keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
             keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
             keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
-            keras.layers.Conv2D(1, (3, 3), padding='same', kernel_initializer='glorot_normal'),
-            keras.layers.Activation('softmax')
+            keras.layers.Conv2D(self.timeslip_size, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(1, (3, 3), padding='same', activation='softmax', kernel_initializer='glorot_normal'),
         ], name = 'actor')        
 
         # optimizer
@@ -185,7 +188,7 @@ class Driver:
 
         # actor model
         adhdp = ADHDP(critic=critic_model, actor=actor_model)
-        adhdp.compile(loss = keras.losses.categorical_crossentropy, optimizer = a_opt)
+        adhdp.compile(loss = keras.losses.MSE, optimizer = a_opt) # loss is MSE to compare the Q values
         return critic_model, adhdp
 
 
@@ -379,8 +382,8 @@ class Driver:
             s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
             s_a = np.array(s_a_arr, dtype=np.float32).reshape((len(s_a_arr), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
             t = np.array(t_arr, dtype=np.float32).reshape((len(t_arr), 1))
-            critic_hist = critic_model.fit(s_a, t, epochs=self.critic_net_epochs, verbose=1, batch_size = 32)
-            actor_hist = adhdp.fit(s, t, epochs=self.actor_net_epochs, verbose=1, batch_size = 32)
+            critic_hist = critic_model.fit(s_a, t, epochs=self.critic_net_epochs, verbose=1, batch_size = self.batch_size)
+            actor_hist = adhdp.fit(s, t, epochs=self.actor_net_epochs, verbose=1, batch_size = self.batch_size)
 
             # record train history
             f.write(str(critic_hist.history)+'\n')
