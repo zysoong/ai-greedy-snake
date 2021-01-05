@@ -240,6 +240,11 @@ class Driver:
         #stdscr = curses.initscr()
         #curses.noecho()
         #curses.cbreak()
+
+        # record random initial steps
+        for i in self.max_steps + 1:
+            a = self.get_action(self.random_action_map)
+            self.write_to_timeslip(a)
         
         # define deep learning network
         critic_model, adhdp = self.get_adhdp()
