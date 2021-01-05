@@ -229,7 +229,7 @@ class Driver:
             # store frame to timeslip
         
             self.timeslip = np.insert(self.timeslip, 0, frame, axis=2)
-            self.timeslip = np.delete(self.timeslip, self.timeslip.shape[2]-1, axis=2)
+            self.timeslip = np.delete(self.timeslip, self.timeslip.shape[2]-2, axis=2)
         return display
 
 
