@@ -245,7 +245,8 @@ class Driver:
         for i in range(self.max_steps + 1):
             ram = self.random_action_map()
             a = self.get_action(ram)
-            self.write_to_timeslip(a)
+            self.greedysnake.step(a)
+            self.write_to_timeslip()
         
         # define deep learning network
         critic_model, adhdp = self.get_adhdp()
