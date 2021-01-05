@@ -242,7 +242,7 @@ class Driver:
         #curses.cbreak()
 
         # record random initial steps
-        for i in self.max_steps + 1:
+        for i in range(self.max_steps + 1):
             a = self.get_action(self.random_action_map)
             self.write_to_timeslip(a)
         
