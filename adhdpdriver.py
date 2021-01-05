@@ -340,6 +340,7 @@ class Driver:
                 r_print = str(float(r))
                 t_print = str(np.array(t))
                 predict_print = str(q_t_add_1)
+                diff_print = str(abs(t - q_t_add_1) / abs(t))
 
                 # calc stats
                 if len(scores) < 1000:
@@ -352,7 +353,7 @@ class Driver:
                 # print to debug
                 print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps) + ' / epsilon = ' + str(self.epsilon))
                 print('action = ' + a_print + ' / reward = ' + r_print)
-                print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print)
+                print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print +' / diff = ' + diff_print)
                 print('Thousand steps average score = ' + str(avg))
                 print('Hit rate = ' + str(hits / self.total_steps))
                 print('Eat rate = ' + str(eats / self.total_steps))
