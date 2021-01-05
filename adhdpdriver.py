@@ -184,7 +184,9 @@ class Driver:
 
         # actor model
         adhdp = ADHDP(critic=critic_model, actor=actor_model)
-        adhdp.compile(loss = keras.losses.categorical_crossentropy, optimizer = a_opt)
+        actor_loss = tf.keras.losses.categorical_crossentropy
+        assert actor_loss.shape = (self.timeslip_size, self.timeslip_size)
+        adhdp.compile(loss = actor_loss, optimizer = a_opt)
         return critic_model, adhdp
 
 
