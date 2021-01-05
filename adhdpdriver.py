@@ -244,7 +244,7 @@ class Driver:
         # record random initial steps
         for i in range(self.max_steps + 1):
             ram = self.random_action_map()
-            a = self.get_action()
+            a = self.get_action(ram)
             self.write_to_timeslip(a)
         
         # define deep learning network
