@@ -242,11 +242,13 @@ class Driver:
         #curses.cbreak()
 
         # record random initial steps
-        for i in range(self.max_steps + 1):
+        for i in range(self.timeslip_size + 1):
             ram = self.random_action_map()
             a = self.get_action(ram)
             self.greedysnake.step(a)
-            self.write_to_timeslip()
+            display = self.write_to_timeslip()
+            print('=========Initial Steps===========')
+            print(display)
         
         # define deep learning network
         critic_model, adhdp = self.get_adhdp()
