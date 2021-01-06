@@ -1,7 +1,7 @@
 /.vscode
 /.vs
 /.__pycache__
-/.train_hist_test.log
-/.train_hist.log
-/.train_hist_adhdp.log
+train_hist_test.log
+train_hist.log
+train_hist_adhdp.log
 workspace.code-workspace
