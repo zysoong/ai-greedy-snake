@@ -237,9 +237,9 @@ class Driver:
     def drive(self):
 
         # define stdscr for linux
-        #stdscr = curses.initscr()
-        #curses.noecho()
-        #curses.cbreak()
+        stdscr = curses.initscr()
+        curses.noecho()
+        curses.cbreak()
 
         # record random initial steps
         for i in range(self.timeslip_size + 1):
