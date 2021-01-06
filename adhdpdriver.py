@@ -43,7 +43,7 @@ class ADHDP(keras.Model):
             state_action = tf.concat([state, action_map], 3)
             q = self.critic(state_action)
             t = np.ones((self.batch_size, 1))              
-            t.fill(1.333333)                                             # theoretical maximal Q value
+            t.fill(1.0)                                             
             actor_loss = self.loss(t, q)
         actor_grads = tape.gradient(actor_loss, self.actor.trainable_weights)
         self.actor_optimizer.apply_gradients(
@@ -158,7 +158,7 @@ class Driver:
             keras.layers.Flatten(),
             keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'elu', kernel_initializer='glorot_normal'),
             keras.layers.Dense((self.greedysnake.SIZE ** 2) // 2, activation = 'elu', kernel_initializer='glorot_normal'),
-            keras.layers.Dense(1, kernel_initializer='glorot_normal'),
+            keras.layers.Dense(1, activation='tanh', kernel_initializer='glorot_normal'),
         ], name = 'critic')
 
         # actor layers
@@ -171,7 +171,7 @@ class Driver:
             keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
             keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
             keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
-            keras.layers.Conv2D(1, (3, 3), padding='same', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(1,(3, 3), activation='tanh', padding='same', kernel_initializer='glorot_normal'),
         ], name = 'actor')        
 
         # optimizer
@@ -320,7 +320,7 @@ class Driver:
                 signal = self.greedysnake.step(a_t)
                 r = None
                 if signal == Signal.HIT:
-                    r = -len(self.greedysnake.snake)
+                    r = -1
                     hits += 1
                     self.greedysnake.reset()
                 elif signal == Signal.EAT:
@@ -355,8 +355,11 @@ class Driver:
                 # get teacher for critic net (online learning)
                 #s_a_t_add_1 = self.concatenate_timeslip_and_actionmap(s_t_add_1, actmap_t_add_1)
                 s_a_t_add_1 = tf.concat([s_t_add_1, actmap_t_add_1[0,:,:,:]], axis=2)
+                q_t = critic_model.predict(np.array(s_a_t).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
                 q_t_add_1 = critic_model.predict(np.array(s_a_t_add_1).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
                 t = r + self.gamma * q_t_add_1
+                if signal == Signal.HIT:
+                    t = r
                 t_arr.append(t)
 
                 # accumulate index
@@ -373,8 +376,8 @@ class Driver:
                 a_print = str(a_t_add_1)
                 r_print = str(float(r))
                 t_print = str(np.array(t))
-                predict_print = str(q_t_add_1)
-                diff_print = str(abs(t - q_t_add_1) / abs(t))
+                predict_print = str(q_t)
+                diff_print = str(abs(t - q_t))
 
                 # calc stats
                 if len(scores) < 1000:
