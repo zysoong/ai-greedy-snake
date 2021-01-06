@@ -158,7 +158,7 @@ class Driver:
             keras.layers.Flatten(),
             keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'elu', kernel_initializer='glorot_normal'),
             keras.layers.Dense((self.greedysnake.SIZE ** 2) // 2, activation = 'elu', kernel_initializer='glorot_normal'),
-            keras.layers.Dense(1, kernel_initializer='glorot_normal'),
+            keras.layers.Dense(1, activation = 'tanh', kernel_initializer='glorot_normal'),
         ], name = 'critic')
 
         # actor layers
@@ -288,10 +288,10 @@ class Driver:
                     # eps greedy
                     rand = np.random.rand()
                     actmap_t = None
-                    if rand <= (1-self.epsilon):
-                        actmap_t = adhdp.predict_actor(s_t.reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
-                    else:
-                        actmap_t = self.random_action_map().reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 1))
+                    #if rand <= (1-self.epsilon):
+                    actmap_t = adhdp.predict_actor(s_t.reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
+                    #else:
+                    #    actmap_t = self.random_action_map().reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 1))
 
                     a_t = self.get_action(np.array(actmap_t).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
                 else: 
@@ -324,11 +324,11 @@ class Driver:
                 # choose action at t+1
                 # eps greedy
                 rand = np.random.rand()
-                actmap_t_add_1 = None
-                if rand <= (1-self.epsilon):
-                    actmap_t_add_1 = adhdp.predict_actor(np.array(s_t_add_1).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
-                else:
-                    actmap_t_add_1 = self.random_action_map().reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 1))
+                #actmap_t_add_1 = None
+                #if rand <= (1-self.epsilon):
+                actmap_t_add_1 = adhdp.predict_actor(np.array(s_t_add_1).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
+                #else:
+                #    actmap_t_add_1 = self.random_action_map().reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 1))
                 a_t_add_1 = self.get_action(np.array(actmap_t_add_1).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
                 a_t_temp = a_t_add_1
 
