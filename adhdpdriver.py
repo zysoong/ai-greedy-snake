@@ -14,7 +14,7 @@ import copy
 import sys
 import warnings
 warnings.filterwarnings("ignore")
-# np.set_printoptions(threshold=sys.maxsize)
+np.set_printoptions(threshold=sys.maxsize)
 
 class ADHDP(keras.Model):
 
@@ -37,7 +37,7 @@ class ADHDP(keras.Model):
         state, teacher_critic = data
 
         # train actor
-        with tf.GradientTape(watch_accessed_variables=False, persistent=True) as tape:
+        with tf.GradientTape(watch_accessed_variables=True, persistent=True) as tape:
             tape.watch(self.actor.trainable_weights)
             action_map = self.actor(state)
             state_action = tf.concat([state, action_map], 3)
@@ -46,7 +46,6 @@ class ADHDP(keras.Model):
             t.fill(1.333333)                                             # theoretical maximal Q value
             actor_loss = self.loss(t, q)
         actor_grads = tape.gradient(actor_loss, self.actor.trainable_weights)
-        #tf.print(tape.gradient(actor_loss, action_map))
         self.actor_optimizer.apply_gradients(
             zip(actor_grads, self.actor.trainable_weights)
         )
@@ -229,12 +228,11 @@ class Driver:
             if col == self.greedysnake.SIZE - 1:
                 display += '\n'
             # store frame to timeslip
-        
-            self.timeslip = np.insert(self.timeslip, 0, frame, axis=2)
-            self.timeslip = np.delete(self.timeslip, self.timeslip.shape[2]-2, axis=2)
+
+        self.timeslip = np.insert(self.timeslip, 0, frame, axis=2)
+        self.timeslip = np.delete(self.timeslip, self.timeslip_size, axis=2)
+
         return display
-
-
         
     def drive(self):
 
@@ -272,10 +270,7 @@ class Driver:
             # buffer
             s_t_temp = None
             a_t_temp = None
-            s_t = None
-            a_t = None
-            s_t_add_1 = None
-            a_t_add_1 = None
+            actmap_t_temp = None
 
             # open file to record steps
             f = open(self.train_hist_file, 'a')
@@ -288,7 +283,6 @@ class Driver:
 
                     # eps greedy
                     rand = np.random.rand()
-                    actmap_t = None
                     #if rand <= (1-self.epsilon):
                     actmap_t = adhdp.predict_actor(s_t.reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
                     #else:
@@ -298,7 +292,27 @@ class Driver:
                 else: 
                     s_t = s_t_temp
                     a_t = a_t_temp
-                s_a_t = tf.concat([s_t, actmap_t[0,:,:,:]], axis = 2)
+                    actmap_t = actmap_t_temp
+                s_a_t = tf.concat([s_t, np.array(actmap_t).reshape((self.greedysnake.SIZE, self.greedysnake.SIZE, 1))], axis=2)
+
+                # DEBUG
+                #print('============ s_a_t ===================')
+                #print(s_a_t.shape)
+                #print(s_a_t[:,:,0])
+                #print(s_a_t[:,:,1])
+                #print(s_a_t[:,:,2])
+                #print(s_a_t[:,:,3])
+                #print(s_a_t[:,:,4])
+                #print(s_a_t[:,:,5])
+                #print(s_a_t[:,:,6])
+                #print(s_a_t[:,:,7])
+                #print(s_a_t[:,:,8])
+                #print(s_a_t[:,:,9])
+                #print(s_a_t[:,:,10])
+                #print(s_a_t[:,:,11])
+                #print(s_a_t[:,:,12])
+                #print('========== s_a_t ==================')
+
                 s_arr.append(s_t)
                 s_a_arr.append(s_a_t)
 
@@ -328,9 +342,14 @@ class Driver:
                 #actmap_t_add_1 = None
                 #if rand <= (1-self.epsilon):
                 actmap_t_add_1 = adhdp.predict_actor(np.array(s_t_add_1).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
+                
                 #else:
                 #    actmap_t_add_1 = self.random_action_map().reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 1))
                 a_t_add_1 = self.get_action(np.array(actmap_t_add_1).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
+                actmap_t_temp = actmap_t_add_1
+                #print('=============== actmap(temp) ======================')
+                #print(actmap_t_temp)
+
                 a_t_temp = a_t_add_1
 
                 # get teacher for critic net (online learning)
