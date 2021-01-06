@@ -416,8 +416,8 @@ class Driver:
             actor_hist = adhdp.fit(s, t, epochs=self.actor_net_epochs, verbose=1, batch_size = self.batch_size)
 
             # record train history
-            f.write(str(critic_hist.history)+'\n')
-            f.write(str(actor_hist.history)+'\n')
+            #f.write(str(critic_hist.history)+'\n')
+            #f.write(str(actor_hist.history)+'\n')
             f.close()
 
             # save model to file
