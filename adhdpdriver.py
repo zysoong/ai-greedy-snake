@@ -42,7 +42,8 @@ class ADHDP(keras.Model):
             action_map = self.actor(state)
             state_action = tf.concat([state, action_map], 3)
             q = self.critic(state_action)
-            t = np.ones((self.batch_size, 1))              # TODO batch_size as ini parameter
+            t = np.ones((self.batch_size, 1))              
+            t.fill(1.333333)                                             # theoretical maximal Q value
             actor_loss = self.loss(t, q)
         actor_grads = tape.gradient(actor_loss, self.actor.trainable_weights)
         #tf.print(tape.gradient(actor_loss, action_map))
@@ -158,7 +159,7 @@ class Driver:
             keras.layers.Flatten(),
             keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'elu', kernel_initializer='glorot_normal'),
             keras.layers.Dense((self.greedysnake.SIZE ** 2) // 2, activation = 'elu', kernel_initializer='glorot_normal'),
-            keras.layers.Dense(1, activation = 'tanh', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(1, kernel_initializer='glorot_normal'),
         ], name = 'critic')
 
         # actor layers
