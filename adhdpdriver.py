@@ -79,6 +79,7 @@ class Driver:
         self.gamma = float(config[self.env]['gamma'])
         self.epsilon_init = float(config[self.env]['epsilon_init'])
         self.epsilon_decay = float(config[self.env]['epsilon_decay'])
+        self.beta_init = float(config[self.env]['beta_init'])
         self.critic_net_learnrate_init = float(config[self.env]['critic_net_learnrate_init'])
         self.critic_net_learnrate_decay = float(config[self.env]['critic_net_learnrate_decay'])
         self.critic_net_clipnorm = float(config[self.env]['critic_net_clipnorm'])
@@ -361,7 +362,7 @@ class Driver:
                 s_a_t_add_1 = tf.concat([s_t_add_1, actmap_t_add_1[0,:,:,:]], axis=2)
                 q_t = critic_model.predict(np.array(s_a_t).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
                 q_t_add_1 = critic_model.predict(np.array(s_a_t_add_1).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
-                t = q_t + self.beta * (r + self.gamma * q_t_add_1 - q_t)
+                t = q_t + self.beta_init * (r + self.gamma * q_t_add_1 - q_t)
                 if signal == Signal.HIT:
                     t = r
                 t_arr.append(t)
