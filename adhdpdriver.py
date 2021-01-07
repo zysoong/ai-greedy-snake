@@ -363,8 +363,6 @@ class Driver:
                 q_t = critic_model.predict(np.array(s_a_t).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
                 q_t_add_1 = critic_model.predict(np.array(s_a_t_add_1).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
                 t = q_t + self.beta_init * (r + self.gamma * q_t_add_1 - q_t)
-                if signal == Signal.HIT:
-                    t = r
                 t_arr.append(t)
 
                 # accumulate index
