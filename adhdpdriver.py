@@ -46,6 +46,10 @@ class ADHDP(keras.Model):
             t.fill(1.0)                                             
             actor_loss = self.loss(t, q)
         actor_grads = tape.gradient(actor_loss, self.actor.trainable_weights)
+
+        #print('============= test gradient ===================')
+        #tf.print(tape.gradient(actor_loss, action_map))
+
         self.actor_optimizer.apply_gradients(
             zip(actor_grads, self.actor.trainable_weights)
         )
@@ -171,7 +175,7 @@ class Driver:
             keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
             keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
             keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
-            keras.layers.Conv2D(1,(3, 3), activation='softmax', padding='same', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(1,(3, 3), padding='same', kernel_initializer='glorot_normal'),
         ], name = 'actor')        
 
         # optimizer
