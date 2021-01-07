@@ -43,7 +43,7 @@ class ADHDP(keras.Model):
             state_action = tf.concat([state, action_map], 3)
             q = self.critic(state_action)
             t = np.ones((self.batch_size, 1))              
-            t.fill(1.0)                                             
+            t.fill(1.333333)                                             
             actor_loss = self.loss(t, q)
         actor_grads = tape.gradient(actor_loss, self.actor.trainable_weights)
 
@@ -162,7 +162,7 @@ class Driver:
             keras.layers.Flatten(),
             keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'elu', kernel_initializer='glorot_normal'),
             keras.layers.Dense((self.greedysnake.SIZE ** 2) // 2, activation = 'elu', kernel_initializer='glorot_normal'),
-            keras.layers.Dense(1, activation='tanh', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(1, kernel_initializer='glorot_normal'),
         ], name = 'critic')
 
         # actor layers
@@ -361,7 +361,7 @@ class Driver:
                 s_a_t_add_1 = tf.concat([s_t_add_1, actmap_t_add_1[0,:,:,:]], axis=2)
                 q_t = critic_model.predict(np.array(s_a_t).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
                 q_t_add_1 = critic_model.predict(np.array(s_a_t_add_1).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
-                t = r + self.gamma * q_t_add_1
+                t = q_t + self.beta * (r + self.gamma * q_t_add_1 - q_t)
                 if signal == Signal.HIT:
                     t = r
                 t_arr.append(t)
