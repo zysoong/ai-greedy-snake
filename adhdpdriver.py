@@ -173,10 +173,10 @@ class Driver:
             #keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
             #keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
             #keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_normal'),
-            keras.layers.Conv2D(1, (3, 3), padding='same', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_uniform'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_uniform'),
+            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='elu', kernel_initializer='glorot_uniform'),
+            keras.layers.Conv2D(1, (3, 3), padding='same', kernel_initializer='glorot_uniform'),
         ], name = 'actor')        
 
         # optimizer
