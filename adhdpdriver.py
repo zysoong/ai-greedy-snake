@@ -417,6 +417,7 @@ class Driver:
                 print('Hit rate = ' + str(hits / self.total_steps))
                 print('Eat rate = ' + str(eats / self.total_steps))
                 print(display)
+                print(actmap_t.reshape((self.greedysnake.SIZE, self.greedysnake.SIZE)))
 
                 # print for linux
                 #stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(self.total_steps))
