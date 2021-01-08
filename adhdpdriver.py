@@ -41,9 +41,9 @@ class ADHDP(keras.Model):
             tape.watch(self.actor.trainable_weights)
             action_map = self.actor(state)
             state_action = tf.concat([state, action_map], 3)
-            q = self.critic(state_action)
+            q = self.critic(state_action, training = False)
             t = np.ones((self.batch_size, 1))              
-            t.fill(1.333333)                                             
+            t.fill(1.0)                                             
             actor_loss = self.loss(t, q)
         actor_grads = tape.gradient(actor_loss, self.actor.trainable_weights)
 
@@ -152,12 +152,12 @@ class Driver:
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1)), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
-            keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
-            keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
-            keras.layers.BatchNormalization(), 
+           # keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+           # keras.layers.BatchNormalization(), 
+           # keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+           # keras.layers.BatchNormalization(), 
+           # keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+           # keras.layers.BatchNormalization(), 
             keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
             keras.layers.BatchNormalization(), 
             keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
@@ -173,22 +173,22 @@ class Driver:
             keras.layers.BatchNormalization(), 
             keras.layers.Dense((self.greedysnake.SIZE ** 2) // 2, activation = 'relu', kernel_initializer='glorot_normal'),
             keras.layers.BatchNormalization(), 
-            keras.layers.Dense(1, kernel_initializer='glorot_normal'),
+            keras.layers.Dense(1, activation = 'tanh', kernel_initializer='glorot_normal'),
         ], name = 'critic')
 
         # actor layers
         actor_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
-            keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
-            keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
-            keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
-            keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
-            keras.layers.BatchNormalization(), 
+           # keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+           # keras.layers.BatchNormalization(), 
+           # keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+           # keras.layers.BatchNormalization(), 
+           # keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+           # keras.layers.BatchNormalization(), 
+           # keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+           # keras.layers.BatchNormalization(), 
+           # keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+           # keras.layers.BatchNormalization(), 
             keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
             keras.layers.BatchNormalization(), 
             keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
@@ -382,6 +382,8 @@ class Driver:
                 q_t = critic_model.predict(np.array(s_a_t).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
                 q_t_add_1 = critic_model.predict(np.array(s_a_t_add_1).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
                 t = r + self.gamma * q_t_add_1
+                if r == -1:
+                    t = r
                 t_arr.append(t)
 
                 # accumulate index
@@ -417,7 +419,7 @@ class Driver:
                 print('Hit rate = ' + str(hits / self.total_steps))
                 print('Eat rate = ' + str(eats / self.total_steps))
                 print(display)
-                print(actmap_t.reshape((self.greedysnake.SIZE, self.greedysnake.SIZE)))
+                print(np.array(actmap_t).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
 
                 # print for linux
                 #stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(self.total_steps))
@@ -437,8 +439,8 @@ class Driver:
             s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
             s_a = np.array(s_a_arr, dtype=np.float32).reshape((len(s_a_arr), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
             t = np.array(t_arr, dtype=np.float32).reshape((len(t_arr), 1))
-            critic_hist = critic_model.fit(s_a, t, epochs=self.critic_net_epochs, verbose=1, batch_size = self.batch_size)
-            actor_hist = adhdp.fit(s, t, epochs=self.actor_net_epochs, verbose=1, batch_size = self.batch_size)
+            critic_model.fit(s_a, t, epochs=self.critic_net_epochs, verbose=1, batch_size = self.batch_size)
+            adhdp.fit(s, t, epochs=self.actor_net_epochs, verbose=1, batch_size = self.batch_size)
 
             # record train history
             #f.write(str(critic_hist.history)+'\n')
