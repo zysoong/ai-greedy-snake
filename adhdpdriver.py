@@ -152,50 +152,185 @@ class Driver:
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1)), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
             keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
             keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
             keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
             keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
             keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
             keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
             keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(1, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(
+                1, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
             keras.layers.BatchNormalization(), 
             keras.layers.Flatten(),
             keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'relu', kernel_initializer='glorot_normal'),
             keras.layers.BatchNormalization(), 
             keras.layers.Dense((self.greedysnake.SIZE ** 2) // 2, activation = 'relu', kernel_initializer='glorot_normal'),
             keras.layers.BatchNormalization(), 
-            keras.layers.Dense(1, activation = 'tanh', kernel_initializer='glorot_normal')
+            keras.layers.Dense(1, kernel_initializer='glorot_normal')
         ], name = 'critic')
 
         # actor layers
         actor_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
             keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
             keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
             keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
             keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
             keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
             keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(self.timeslip_size * 4, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
             keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(self.timeslip_size * 1, (3, 3), padding='same', activation='relu', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
             keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(1, (1, 1), padding='same', kernel_initializer='glorot_normal'),
+            keras.layers.Conv2D(
+                1, (1, 1), 
+                padding='same', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
         ], name = 'actor')        
 
         # optimizer
