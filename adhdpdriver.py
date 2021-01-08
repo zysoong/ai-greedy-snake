@@ -297,7 +297,7 @@ class Driver:
             actmap_t_temp = None
 
             # open file to record steps
-            f = open(self.train_hist_file, 'a')
+            #f = open(self.train_hist_file, 'a')
             
             for i in range(self.max_steps):
 
@@ -443,10 +443,10 @@ class Driver:
             # record train history
             #f.write(str(critic_hist.history)+'\n')
             #f.write(str(actor_hist.history)+'\n')
-            f.close()
+            #f.close()
 
             # save model to file
-            critic_model.save(self.critic_model_file)
+            #critic_model.save(self.critic_model_file)
             #adhdp.save(self.actor_model_file) # BUG saving subclass model adhdp not succeed
 
 
