@@ -132,29 +132,20 @@ class Driver:
 
 
     def get_action(self, action_map):
-        sum_rows_arr = np.sum(action_map, axis=1)
-        rand_row = np.random.rand()
-        rows_prob = tf.nn.softmax(sum_rows_arr)
-        sum_row = 0.
-        row = None
-        for i in range(np.array(rows_prob).shape[0]):
-            if sum_row <= rand_row <= sum_row + rows_prob[i]:
-                row = i
+        map = np.array(action_map).reshape((self.greedysnake.SIZE ** 2))
+        map = tf.nn.softmax(map)
+        rand = np.random.rand()
+        index = 0
+        sum = 0.
+        for i in range(self.greedysnake.SIZE ** 2):
+            if sum <= rand <= sum + map[i]:
+                index = i
                 break
             else:
-                sum_row += rows_prob[i]
-        column = action_map[row, :]
-        col_prob = tf.nn.softmax(column)
-        rand_col = np.random.rand()
-        sum_col = 0.
-        col = None
-        for i in range(np.array(col_prob).shape[0]):
-            if sum_col <= rand_col <= sum_col + col_prob[i]:
-                col = i
-                break
-            else:
-                sum_col += col_prob[i]
+                sum += map[i]
 
+        row = index // self.greedysnake.SIZE
+        col = index % self.greedysnake.SIZE
         central = self.greedysnake.SIZE // 2
         x = col - central
         y = central - row
@@ -183,8 +174,7 @@ class Driver:
             action = Direction.RIGHT
         if x == 0 and y < 0:
             action = Direction.LEFT
-
-        return action, rows_prob, col_prob
+        return action, map
         
 
 
@@ -529,7 +519,6 @@ class Driver:
                 print('Eat rate = ' + str(eats / self.total_steps))
                 print(display)
                 print(gares[1])
-                print(gares[2])
 
                 # print for linux
                 #stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(self.total_steps))
