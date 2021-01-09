@@ -217,8 +217,8 @@ class Driver:
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1)), 
-            keras.layers.LocallyConnected2D(
-                self.timeslip_size, (1, 1), 
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
                 padding='valid', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
@@ -227,8 +227,8 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.BatchNormalization(), 
-            keras.layers.LocallyConnected2D(
-                self.timeslip_size, (1, 1), 
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
                 padding='valid', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
@@ -237,8 +237,8 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.BatchNormalization(), 
-            keras.layers.LocallyConnected2D(
-                self.timeslip_size, (1, 1), 
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
                 padding='valid', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
@@ -247,8 +247,8 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.BatchNormalization(), 
-            keras.layers.LocallyConnected2D(
-                1, (1, 1), 
+            keras.layers.Conv2D(
+                1, (3, 3), 
                 padding='valid', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
@@ -268,8 +268,8 @@ class Driver:
         # actor layers
         actor_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)), 
-            keras.layers.LocallyConnected2D(
-                self.timeslip_size, (1, 1), 
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
                 padding='valid', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
@@ -278,8 +278,8 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.BatchNormalization(), 
-            keras.layers.LocallyConnected2D(
-                self.timeslip_size, (1, 1), 
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
                 padding='valid', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
@@ -288,8 +288,8 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.BatchNormalization(), 
-            keras.layers.LocallyConnected2D(
-                self.timeslip_size, (1, 1), 
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
                 padding='valid', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
@@ -298,8 +298,8 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.BatchNormalization(), 
-            keras.layers.LocallyConnected2D(
-                1, (1, 1), 
+            keras.layers.Conv2D(
+                1, (3, 3), 
                 padding='valid', 
                 activation = 'sigmoid',
                 kernel_initializer='glorot_normal', 
