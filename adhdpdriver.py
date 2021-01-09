@@ -113,12 +113,28 @@ class Driver:
             action_map[central, self.greedysnake.SIZE - 1] = 1.0
         return action_map
 
+    def print_action_softmax(self, action_map):
+        sum_rows_arr = np.sum(action_map, axis=1)
+        rand_row = np.random.rand()
+        rows_prob = tf.nn.softmax(sum_rows_arr)
+        sum_row = 0.
+        row = None
+        for i in range(np.array(rows_prob).shape[0]):
+            if sum_row <= rand_row <= sum_row + rows_prob[i]:
+                row = i
+                break
+            else:
+                sum_row += rows_prob[i]
+        column = action_map[row, :]
+        col_prob = tf.nn.softmax(column)
+        print(rows_prob)
+        print(col_prob)
+
 
     def get_action(self, action_map):
         sum_rows_arr = np.sum(action_map, axis=1)
         rand_row = np.random.rand()
         rows_prob = tf.nn.softmax(sum_rows_arr)
-        
         sum_row = 0.
         row = None
         for i in range(np.array(rows_prob).shape[0]):
@@ -168,10 +184,7 @@ class Driver:
         if x == 0 and y < 0:
             action = Direction.LEFT
 
-        print(rows_prob)
-        print(col_prob)
-
-        return action
+        return action, rows_prob, col_prob
         
 
 
@@ -307,11 +320,11 @@ class Driver:
         ], name = 'actor')        
 
         # optimizer
-        c_opt = keras.optimizers.Adam(
+        c_opt = keras.optimizers.SGD(
             lr = self.critic_net_learnrate, 
             clipnorm = self.critic_net_clipnorm
         )
-        a_opt = keras.optimizers.Adam(
+        a_opt = keras.optimizers.SGD(
             lr = self.actor_net_learnrate, 
             clipnorm = self.actor_net_clipnorm
         )
@@ -377,7 +390,7 @@ class Driver:
         # record random initial steps
         for i in range(self.timeslip_size + 1):
             ram = self.random_action_map()
-            a = self.get_action(ram)
+            a = self.get_action(ram)[0]
             self.greedysnake.step(a)
             display = self.write_to_timeslip()
             print('=========Initial Steps===========')
@@ -414,7 +427,7 @@ class Driver:
                 if i == 0:
                     s_t = self.timeslip
                     actmap_t = adhdp.predict_actor(s_t.reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
-                    a_t = self.get_action(np.array(actmap_t).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
+                    a_t = self.get_action(np.array(actmap_t).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))[0]
                 else: 
                     s_t = s_t_temp
                     a_t = a_t_temp
@@ -464,7 +477,8 @@ class Driver:
                 
                 # choose action at t+1
                 actmap_t_add_1 = adhdp.predict_actor(np.array(s_t_add_1).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
-                a_t_add_1 = self.get_action(np.array(actmap_t_add_1).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
+                gares = self.get_action(np.array(actmap_t_add_1).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
+                a_t_add_1 = gares[0]
                 actmap_t_temp = actmap_t_add_1
                 #print('=============== actmap(temp) ======================')
                 #print(actmap_t_temp)
@@ -514,6 +528,8 @@ class Driver:
                 print('Hit rate = ' + str(hits / self.total_steps))
                 print('Eat rate = ' + str(eats / self.total_steps))
                 print(display)
+                print(gares[1])
+                print(gares[2])
 
                 # print for linux
                 #stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(self.total_steps))
