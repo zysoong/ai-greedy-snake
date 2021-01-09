@@ -207,9 +207,6 @@ class Driver:
         
     def get_adhdp(self):
 
-        lr = self.critic_net_learnrate_init
-        clipnorm = self.critic_net_clipnorm
-
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1)), 
@@ -516,7 +513,7 @@ class Driver:
                 print('Hit rate = ' + str(hits / self.total_steps))
                 print('Eat rate = ' + str(eats / self.total_steps))
                 print(display)
-                print(np.array(actmap_t).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
+                print(tf.nn.softmax(np.array(actmap_t).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE)))
 
                 # print for linux
                 #stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(self.total_steps))
