@@ -449,7 +449,7 @@ class Driver:
                     r = 1
                     eats += 1
                 elif signal == Signal.NORMAL:
-                    r = 0
+                    r = 0.1
                 r_arr.append(r)
 
                 # observe state after action
