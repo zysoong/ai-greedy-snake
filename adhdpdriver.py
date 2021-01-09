@@ -283,7 +283,7 @@ class Driver:
             keras.layers.BatchNormalization(), 
             keras.layers.LocallyConnected2D(
                 1, (1, 1), 
-                padding='same', 
+                padding='valid', 
                 activation = 'tanh',
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
