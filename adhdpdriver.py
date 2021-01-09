@@ -118,7 +118,7 @@ class Driver:
         sum_rows_arr = np.sum(action_map, axis=1)
         rand_row = np.random.rand()
         rows_prob = tf.nn.softmax(sum_rows_arr)
-        print(rows_prob)
+        
         sum_row = 0.
         row = None
         for i in range(np.array(rows_prob).shape[0]):
@@ -167,6 +167,10 @@ class Driver:
             action = Direction.RIGHT
         if x == 0 and y < 0:
             action = Direction.LEFT
+
+        print(rows_prob)
+        print(col_prob)
+
         return action
         
 
@@ -510,7 +514,6 @@ class Driver:
                 print('Hit rate = ' + str(hits / self.total_steps))
                 print('Eat rate = ' + str(eats / self.total_steps))
                 print(display)
-                print(tf.nn.softmax(np.array(actmap_t).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE)))
 
                 # print for linux
                 #stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(self.total_steps))
