@@ -221,7 +221,7 @@ class Driver:
                 self.timeslip_size * 4, (1, 1), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='random_normal', 
+                kernel_initializer='ones', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
                 activity_regularizer=keras.regularizers.l2(1e-5)
@@ -231,7 +231,7 @@ class Driver:
                 self.timeslip_size * 4, (1, 1), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='random_normal', 
+                kernel_initializer='ones', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
                 activity_regularizer=keras.regularizers.l2(1e-5)
@@ -241,7 +241,7 @@ class Driver:
                 self.timeslip_size * 4, (1, 1), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='random_normal', 
+                kernel_initializer='ones', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
                 activity_regularizer=keras.regularizers.l2(1e-5)
@@ -251,18 +251,18 @@ class Driver:
                 1, (1, 1), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='random_normal', 
+                kernel_initializer='ones', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.BatchNormalization(), 
             keras.layers.Flatten(),
-            keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'relu', kernel_initializer='random_normal'),
+            keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'relu', kernel_initializer='ones'),
             keras.layers.BatchNormalization(), 
-            keras.layers.Dense((self.greedysnake.SIZE ** 2) // 2, activation = 'relu', kernel_initializer='random_normal'),
+            keras.layers.Dense((self.greedysnake.SIZE ** 2) // 2, activation = 'relu', kernel_initializer='ones'),
             keras.layers.BatchNormalization(), 
-            keras.layers.Dense(1, activation = 'tanh', kernel_initializer='random_normal')
+            keras.layers.Dense(1, activation = 'tanh', kernel_initializer='ones')
         ], name = 'critic')
 
         # actor layers
@@ -272,7 +272,7 @@ class Driver:
                 self.timeslip_size * 4, (1, 1), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='random_normal', 
+                kernel_initializer='ones', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
                 activity_regularizer=keras.regularizers.l2(1e-5)
@@ -282,7 +282,7 @@ class Driver:
                 self.timeslip_size * 4, (1, 1), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='random_normal', 
+                kernel_initializer='ones', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
                 activity_regularizer=keras.regularizers.l2(1e-5)
@@ -292,7 +292,7 @@ class Driver:
                 self.timeslip_size * 4, (1, 1), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='random_normal', 
+                kernel_initializer='ones', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
                 activity_regularizer=keras.regularizers.l2(1e-5)
@@ -302,7 +302,7 @@ class Driver:
                 1, (1, 1), 
                 padding='same', 
                 activation = 'sigmoid',
-                kernel_initializer='random_normal', 
+                kernel_initializer='ones', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
                 activity_regularizer=keras.regularizers.l2(1e-5)
