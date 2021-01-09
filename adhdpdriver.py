@@ -217,96 +217,31 @@ class Driver:
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1)), 
-            keras.layers.Conv2D(
-                self.timeslip_size * 4, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
-            keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(
-                self.timeslip_size * 4, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
-            keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(
-                self.timeslip_size * 4, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
-            keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(
-                1, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
-            keras.layers.BatchNormalization(), 
+            #keras.layers.Conv2D(
+            #    self.timeslip_size * 4, (3, 3), 
+            #    padding='same', 
+            #    activation='relu', 
+            #    kernel_initializer='glorot_normal', 
+            #    kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+            #    bias_regularizer=keras.regularizers.l2(1e-4),
+            #    activity_regularizer=keras.regularizers.l2(1e-5)
+            #),
             keras.layers.Flatten(),
-            keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'relu', kernel_initializer='glorot_normal'),
-            keras.layers.BatchNormalization(), 
-            keras.layers.Dense((self.greedysnake.SIZE ** 2) // 2, activation = 'relu', kernel_initializer='glorot_normal'),
-            keras.layers.BatchNormalization(), 
+            keras.layers.Dense(self.greedysnake.SIZE ** 2 + 1, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense((self.greedysnake.SIZE ** 2 + 1) * 2 , activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense((self.greedysnake.SIZE ** 2 + 1) // 2, activation = 'relu', kernel_initializer='glorot_normal'),
             keras.layers.Dense(1, activation = 'tanh', kernel_initializer='glorot_normal')
         ], name = 'critic')
 
         # actor layers
         actor_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)), 
-            keras.layers.Conv2D(
-                self.timeslip_size * 4, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
-            keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(
-                self.timeslip_size * 4, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
-            keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(
-                self.timeslip_size * 4, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
-            keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(
-                1, (3, 3), 
-                padding='same', 
-                activation = 'sigmoid',
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
+            keras.layers.Flatten(),
+            keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(self.greedysnake.SIZE ** 2 * 2 , activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense((self.greedysnake.SIZE ** 2) // 2, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Reshape((self.greedysnake.SIZE, self.greedysnake.SIZE, 1))
         ], name = 'actor')        
 
         # optimizer
@@ -471,7 +406,7 @@ class Driver:
                 a_t_temp = a_t_add_1
 
                 # get teacher for critic net (online learning)
-                #s_a_t_add_1 = self.concatenate_timeslip_and_actionmap(s_t_add_1, actmap_t_add_1)
+                # tf.print(np.array(actmap_t_add_1).shape)
                 s_a_t_add_1 = tf.concat([s_t_add_1, actmap_t_add_1[0,:,:,:]], axis=2)
                 q_t = critic_model.predict(np.array(s_a_t).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
                 q_t_add_1 = critic_model.predict(np.array(s_a_t_add_1).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
