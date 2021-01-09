@@ -115,10 +115,10 @@ class Driver:
 
 
     def get_action(self, action_map):
-        map = tf.nn.softmax(action_map)
-        sum_rows_arr = np.sum(map, axis=1)
+        sum_rows_arr = np.sum(action_map, axis=1)
         rand_row = np.random.rand()
         rows_prob = tf.nn.softmax(sum_rows_arr)
+        print(rows_prob)
         sum_row = 0.
         row = None
         for i in range(np.array(rows_prob).shape[0]):
@@ -398,14 +398,7 @@ class Driver:
                 # observe state and action at t = 0
                 if i == 0:
                     s_t = self.timeslip
-
-                    # eps greedy
-                    rand = np.random.rand()
-                    #if rand <= (1-self.epsilon):
                     actmap_t = adhdp.predict_actor(s_t.reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
-                    #else:
-                    #    actmap_t = self.random_action_map().reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 1))
-
                     a_t = self.get_action(np.array(actmap_t).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
                 else: 
                     s_t = s_t_temp
@@ -455,14 +448,7 @@ class Driver:
                 s_t_temp = s_t_add_1
                 
                 # choose action at t+1
-                # eps greedy
-                rand = np.random.rand()
-                #actmap_t_add_1 = None
-                #if rand <= (1-self.epsilon):
                 actmap_t_add_1 = adhdp.predict_actor(np.array(s_t_add_1).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
-                
-                #else:
-                #    actmap_t_add_1 = self.random_action_map().reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 1))
                 a_t_add_1 = self.get_action(np.array(actmap_t_add_1).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
                 actmap_t_temp = actmap_t_add_1
                 #print('=============== actmap(temp) ======================')
@@ -514,7 +500,6 @@ class Driver:
                 print('Eat rate = ' + str(eats / self.total_steps))
                 print(display)
                 print(tf.nn.softmax(np.array(actmap_t).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE)))
-                print(tf.nn.softmax(np.sum(np.array(actmap_t), axis = 1)))
 
                 # print for linux
                 #stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(self.total_steps))
