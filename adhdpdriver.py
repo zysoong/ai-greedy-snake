@@ -217,9 +217,9 @@ class Driver:
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1)), 
-            keras.layers.Conv2D(
-                self.timeslip_size * 4, (1, 1), 
-                padding='same', 
+            keras.layers.LocallyConnected2D(
+                self.timeslip_size, (1, 1), 
+                padding='valid', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
@@ -227,9 +227,9 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(
-                self.timeslip_size * 4, (1, 1), 
-                padding='same', 
+            keras.layers.LocallyConnected2D(
+                self.timeslip_size, (1, 1), 
+                padding='valid', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
@@ -237,9 +237,9 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(
-                self.timeslip_size * 4, (1, 1), 
-                padding='same', 
+            keras.layers.LocallyConnected2D(
+                self.timeslip_size, (1, 1), 
+                padding='valid', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
@@ -247,9 +247,9 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(
+            keras.layers.LocallyConnected2D(
                 1, (1, 1), 
-                padding='same', 
+                padding='valid', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
@@ -268,9 +268,9 @@ class Driver:
         # actor layers
         actor_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)), 
-            keras.layers.Conv2D(
-                self.timeslip_size * 4, (1, 1), 
-                padding='same', 
+            keras.layers.LocallyConnected2D(
+                self.timeslip_size, (1, 1), 
+                padding='valid', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
@@ -278,9 +278,9 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(
-                self.timeslip_size * 4, (1, 1), 
-                padding='same', 
+            keras.layers.LocallyConnected2D(
+                self.timeslip_size, (1, 1), 
+                padding='valid', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
@@ -288,9 +288,9 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(
-                self.timeslip_size * 4, (1, 1), 
-                padding='same', 
+            keras.layers.LocallyConnected2D(
+                self.timeslip_size, (1, 1), 
+                padding='valid', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
@@ -298,9 +298,9 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(
+            keras.layers.LocallyConnected2D(
                 1, (1, 1), 
-                padding='same', 
+                padding='valid', 
                 activation = 'sigmoid',
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
