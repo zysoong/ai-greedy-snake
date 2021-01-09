@@ -281,7 +281,7 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.BatchNormalization(), 
-            keras.layers.Conv2D(
+            keras.layers.LocallyConnected2D(
                 1, (1, 1), 
                 padding='same', 
                 activation = 'tanh',
