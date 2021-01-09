@@ -113,6 +113,66 @@ class Driver:
             action_map[central, self.greedysnake.SIZE - 1] = 1.0
         return action_map
 
+
+    def get_action(self, action_map):
+        map = tf.nn.softmax(action_map)
+        sum_rows_arr = np.sum(map, axis=1)
+        rand_row = np.random.rand()
+        rows_prob = tf.nn.softmax(sum_rows_arr)
+        sum_row = 0.
+        row = None
+        for i in range(np.array(rows_prob).shape[0]):
+            if sum_row <= rand_row <= sum_row + rows_prob[i]:
+                row = i
+                break
+            else:
+                sum_row += rows_prob[i]
+        column = action_map[row, :]
+        col_prob = tf.nn.softmax(column)
+        rand_col = np.random.rand()
+        sum_col = 0.
+        col = None
+        for i in range(np.array(col_prob).shape[0]):
+            if sum_col <= rand_col <= sum_col + col_prob[i]:
+                col = i
+                break
+            else:
+                sum_col += col_prob[i]
+
+        central = self.greedysnake.SIZE // 2
+        x = col - central
+        y = central - row
+        action = None
+        if x > 0 and y >= 0:
+            if abs(y / x) < 1:
+                action = Direction.RIGHT
+            else:
+                action = Direction.UP
+        if x < 0 and y >= 0:
+            if abs(y / x) < 1:
+                action = Direction.UP
+            else:
+                action = Direction.LEFT
+        if x < 0 and y < 0:
+            if abs(y / x) < 1:
+                action = Direction.LEFT
+            else:
+                action = Direction.DOWN
+        if x > 0 and y < 0:
+            if abs(y / x) < 1:
+                action = Direction.RIGHT
+            else:
+                action = Direction.DOWN
+        if x == 0 and y >= 0:
+            action = Direction.RIGHT
+        if x == 0 and y < 0:
+            action = Direction.LEFT
+        return action
+        
+
+
+
+    '''
     def get_action(self, action_map):
         central = self.greedysnake.SIZE // 2
         maxindex = action_map.argmax()
@@ -142,6 +202,7 @@ class Driver:
             else:
                 action = Direction.DOWN
         return action
+    '''
 
         
     def get_adhdp(self):
@@ -153,7 +214,7 @@ class Driver:
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1)), 
             keras.layers.Conv2D(
-                self.timeslip_size * 4, (1, 1), 
+                self.timeslip_size * 4, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
@@ -161,68 +222,67 @@ class Driver:
                 bias_regularizer=keras.regularizers.l2(1e-4),
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
-           # keras.layers.BatchNormalization(), 
-           # keras.layers.Conv2D(
-           #     self.timeslip_size * 4, (3, 3), 
-           #     padding='same', 
-           #     activation='relu', 
-           #     kernel_initializer='glorot_normal', 
-          
-           #      kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-           #      bias_regularizer=keras.regularizers.l2(1e-4),
-           #     activity_regularizer=keras.regularizers.l2(1e-5)
-           # ),
-           # keras.layers.BatchNormalization(), 
-           # keras.layers.Conv2D(
-           #     self.timeslip_size * 4, (3, 3), 
-           #     padding='same', 
-           #     activation='relu', 
-           #     kernel_initializer='glorot_normal', 
-           #     kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-           #     bias_regularizer=keras.regularizers.l2(1e-4),
-           #     activity_regularizer=keras.regularizers.l2(1e-5)
-           # ),
-           # keras.layers.BatchNormalization(), 
-           # keras.layers.Conv2D(
-           #     self.timeslip_size * 4, (3, 3), 
-           #     padding='same', 
-           #     activation='relu', 
-           #     kernel_initializer='glorot_normal', 
-           #     kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-           #    bias_regularizer=keras.regularizers.l2(1e-4),
-           #     activity_regularizer=keras.regularizers.l2(1e-5)
-           # ),
-           # keras.layers.BatchNormalization(), 
-           # keras.layers.Conv2D(
-           #     self.timeslip_size * 4, (3, 3), 
-           #     padding='same', 
-           #     activation='relu', 
-           #     kernel_initializer='glorot_normal', 
-           #     kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-           #     bias_regularizer=keras.regularizers.l2(1e-4),
-           #     activity_regularizer=keras.regularizers.l2(1e-5)
-           # ),
-           # keras.layers.BatchNormalization(), 
-           # keras.layers.Conv2D(
-           #     self.timeslip_size * 4, (3, 3), 
-           #     padding='same', 
-           #     activation='relu', 
-           #     kernel_initializer='glorot_normal', 
-           #     kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-           #     bias_regularizer=keras.regularizers.l2(1e-4),
-           #     activity_regularizer=keras.regularizers.l2(1e-5)
-           # ),
-           # keras.layers.BatchNormalization(), 
-           # keras.layers.Conv2D(
-           #     self.timeslip_size * 4, (3, 3), 
-           #     padding='same', 
-           #     activation='relu', 
-           #     kernel_initializer='glorot_normal', 
-           #     kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-           #     bias_regularizer=keras.regularizers.l2(1e-4),
-           #     activity_regularizer=keras.regularizers.l2(1e-5)
-           # ),
-           # keras.layers.BatchNormalization(), 
+            keras.layers.BatchNormalization(), 
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
+            keras.layers.BatchNormalization(), 
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
+            keras.layers.BatchNormalization(), 
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
+            keras.layers.BatchNormalization(), 
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
+            keras.layers.BatchNormalization(), 
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
+            keras.layers.BatchNormalization(), 
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
+            keras.layers.BatchNormalization(), 
             keras.layers.Conv2D(
                 1, (3, 3), 
                 padding='same', 
@@ -248,7 +308,7 @@ class Driver:
                 self.timeslip_size * 4, (3, 3), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='random_normal', 
+                kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
                 activity_regularizer=keras.regularizers.l2(1e-5)
@@ -265,7 +325,7 @@ class Driver:
             ),
             keras.layers.BatchNormalization(), 
             keras.layers.Conv2D(
-                1, (3, 3), 
+                self.timeslip_size * 4, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
@@ -273,61 +333,61 @@ class Driver:
                 bias_regularizer=keras.regularizers.l2(1e-4),
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
-           # keras.layers.BatchNormalization(), 
-           # keras.layers.Conv2D(
-           #     self.timeslip_size * 4, (3, 3), 
-           #     padding='same', 
-           #     activation='relu', 
-           #     kernel_initializer='glorot_normal', 
-           #     kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-           #     bias_regularizer=keras.regularizers.l2(1e-4),
-           #     activity_regularizer=keras.regularizers.l2(1e-5)
-           # ),
-           # keras.layers.BatchNormalization(), 
-           # keras.layers.Conv2D(
-           #     self.timeslip_size * 4, (3, 3), 
-           #     padding='same', 
-           #     activation='relu', 
-           #     kernel_initializer='glorot_normal', 
-           #     kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-           #     bias_regularizer=keras.regularizers.l2(1e-4),
-           #     activity_regularizer=keras.regularizers.l2(1e-5)
-           # ),
-           # keras.layers.BatchNormalization(), 
-           # keras.layers.Conv2D(
-           #     self.timeslip_size * 4, (3, 3), 
-           #     padding='same', 
-           #     activation='relu', 
-           #     kernel_initializer='glorot_normal', 
-           #     kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-           #     bias_regularizer=keras.regularizers.l2(1e-4),
-           #     activity_regularizer=keras.regularizers.l2(1e-5)
-           # ),
-           # keras.layers.BatchNormalization(), 
-           # keras.layers.Conv2D(
-           #     self.timeslip_size * 4, (3, 3), 
-           #     padding='same', 
-           #     activation='relu', 
-           #     kernel_initializer='glorot_normal', 
-           #     kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-           #     bias_regularizer=keras.regularizers.l2(1e-4),
-           #     activity_regularizer=keras.regularizers.l2(1e-5)
-           # ),
-           # keras.layers.BatchNormalization(), 
-           # keras.layers.Conv2D(
-           #     self.timeslip_size * 4, (3, 3), 
-           #     padding='same', 
-           #     activation='relu', 
-           #     kernel_initializer='glorot_normal', 
-           #     kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-           #     bias_regularizer=keras.regularizers.l2(1e-4),
-           #     activity_regularizer=keras.regularizers.l2(1e-5)
-           # ),
-           # keras.layers.BatchNormalization(), 
+            keras.layers.BatchNormalization(), 
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
+            keras.layers.BatchNormalization(), 
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
+            keras.layers.BatchNormalization(), 
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
+            keras.layers.BatchNormalization(), 
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
+            keras.layers.BatchNormalization(), 
+            keras.layers.Conv2D(
+                self.timeslip_size * 4, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
+            keras.layers.BatchNormalization(), 
             keras.layers.Conv2D(
                 1, (1, 1), 
                 padding='same', 
-                activation='tanh',
+                activation = 'tanh',
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
