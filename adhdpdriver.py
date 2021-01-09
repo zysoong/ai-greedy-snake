@@ -301,7 +301,7 @@ class Driver:
             keras.layers.Conv2D(
                 1, (1, 1), 
                 padding='same', 
-                activation = 'tanh',
+                activation = 'sigmoid',
                 kernel_initializer='random_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
