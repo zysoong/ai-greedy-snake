@@ -372,11 +372,6 @@ class Driver:
         
     def drive(self):
 
-        # define stdscr for linux
-        #stdscr = curses.initscr()
-        #curses.noecho()
-        #curses.cbreak()
-
         # record random initial steps
         for i in range(self.timeslip_size + 1):
             ram = self.random_action_map()
@@ -407,10 +402,8 @@ class Driver:
             s_t_temp = None
             a_t_temp = None
             actmap_t_temp = None
-
-            # open file to record steps
-            #f = open(self.train_hist_file, 'a')
             
+            # start steps
             for i in range(self.max_steps):
 
                 # observe state and action at t = 0
@@ -440,7 +433,7 @@ class Driver:
                 #print(s_a_t[:,:,10])
                 #print(s_a_t[:,:,11])
                 #print(s_a_t[:,:,12])
-                #print('========== s_a_t ==================')
+                print('========== s_a_t ==================')
 
                 s_arr.append(s_t)
                 s_a_arr.append(s_a_t)
@@ -462,6 +455,8 @@ class Driver:
                 # observe state after action
                 s_t = np.copy(self.timeslip) #backup s_t
                 display = self.write_to_timeslip()
+                #print(np.array(s_t).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
+                #print(np.array(self.timeslip).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
                 s_t_add_1 = self.timeslip
                 s_t_temp = s_t_add_1
                 
