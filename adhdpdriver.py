@@ -324,7 +324,7 @@ class Driver:
             keras.layers.Conv2D(
                 self.timeslip_size * 4, (3, 3), 
                 padding='same', 
-                activation='sigmoid', 
+                activation='relu', 
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
@@ -334,7 +334,7 @@ class Driver:
             keras.layers.Conv2D(
                 self.timeslip_size * 4, (3, 3), 
                 padding='same', 
-                activation='sigmoid', 
+                activation='relu', 
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
@@ -344,7 +344,7 @@ class Driver:
             keras.layers.Conv2D(
                 self.timeslip_size * 4, (3, 3), 
                 padding='same', 
-                activation='sigmoid', 
+                activation='relu', 
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
@@ -354,7 +354,7 @@ class Driver:
             keras.layers.Conv2D(
                 self.timeslip_size * 4, (3, 3), 
                 padding='same', 
-                activation='sigmoid', 
+                activation='relu', 
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
@@ -364,7 +364,7 @@ class Driver:
             keras.layers.Conv2D(
                 self.timeslip_size * 4, (3, 3), 
                 padding='same', 
-                activation='sigmoid', 
+                activation='relu', 
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
@@ -374,7 +374,7 @@ class Driver:
             keras.layers.Conv2D(
                 self.timeslip_size * 4, (3, 3), 
                 padding='same', 
-                activation='sigmoid', 
+                activation='relu', 
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
@@ -384,7 +384,7 @@ class Driver:
             keras.layers.Conv2D(
                 self.timeslip_size * 4, (3, 3), 
                 padding='same', 
-                activation='sigmoid', 
+                activation='relu', 
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
@@ -394,7 +394,7 @@ class Driver:
             keras.layers.Conv2D(
                 self.timeslip_size * 4, (3, 3), 
                 padding='same', 
-                activation='sigmoid', 
+                activation='relu', 
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
@@ -404,7 +404,7 @@ class Driver:
             keras.layers.Conv2D(
                 self.timeslip_size * 4, (3, 3), 
                 padding='same', 
-                activation='sigmoid', 
+                activation='relu', 
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
@@ -414,7 +414,7 @@ class Driver:
             keras.layers.Conv2D(
                 self.timeslip_size * 4, (3, 3), 
                 padding='same', 
-                activation='sigmoid', 
+                activation='relu', 
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
@@ -424,7 +424,7 @@ class Driver:
             keras.layers.Conv2D(
                 self.timeslip_size * 4, (3, 3), 
                 padding='same', 
-                activation='sigmoid', 
+                activation='relu', 
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
@@ -434,7 +434,7 @@ class Driver:
             keras.layers.Conv2D(
                 self.timeslip_size * 4, (3, 3), 
                 padding='same', 
-                activation='sigmoid', 
+                activation='relu', 
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
@@ -444,7 +444,7 @@ class Driver:
             keras.layers.Conv2D(
                 self.timeslip_size * 4, (3, 3), 
                 padding='same', 
-                activation='sigmoid', 
+                activation='relu', 
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
