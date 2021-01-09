@@ -330,7 +330,7 @@ class Driver:
 
                 # snake body
                 else:
-                    frame[row, col] = 0.2
+                    frame[row, col] = 0.3
                     display += 'O'
 
             # food
@@ -340,6 +340,7 @@ class Driver:
             
             # block
             else: 
+                frame[row, col] = 0.1
                 display += '-'
 
             # switch line
