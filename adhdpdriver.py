@@ -514,6 +514,7 @@ class Driver:
                 print('Eat rate = ' + str(eats / self.total_steps))
                 print(display)
                 print(tf.nn.softmax(np.array(actmap_t).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE)))
+                print(tf.nn.softmax(np.sum(np.array(actmap_t), axis = 1)))
 
                 # print for linux
                 #stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(self.total_steps))
