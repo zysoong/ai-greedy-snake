@@ -19,21 +19,22 @@ class GreedySnake:
 
 
     def __init__(self):
-        self.config = configparser.ConfigParser()
-        self.config.read('greedysnake.ini')
-        self.env = 'DEFAULT'
-        self.snake_1_init_row = int(self.config[self.env]['snake_1_init_row'])
-        self.snake_1_init_col = int(self.config[self.env]['snake_1_init_col'])
-        self.snake_2_init_row = int(self.config[self.env]['snake_2_init_row'])
-        self.snake_2_init_col = int(self.config[self.env]['snake_2_init_col'])
-        self.food_row = int(self.config[self.env]['food_row'])
-        self.food_col = int(self.config[self.env]['food_col'])
-        self.SIZE = int(self.config[self.env]['size'])
-        if int(self.config[self.env]['food_row']) == -1 or int(self.config[self.env]['food_col']) == -1:
-            self.food_row = np.random.randint(0, self.SIZE)
-            self.food_col = np.random.randint(0, self.SIZE)
-        self.INIT_SNAKE = [np.array([self.snake_1_init_row, self.snake_1_init_col]), np.array([self.snake_2_init_row, self.snake_2_init_col])]
-        self.INIT_FOOD = np.array([self.food_row, self.food_col])
+        config = configparser.ConfigParser()
+        config.read('greedysnake.ini')
+        env = 'DEFAULT'
+        snake_1_init_row = int(config[env]['snake_1_init_row'])
+        snake_1_init_col = int(config[env]['snake_1_init_col'])
+        snake_2_init_row = int(config[env]['snake_2_init_row'])
+        snake_2_init_col = int(config[env]['snake_2_init_col'])
+        food_row = int(config[env]['food_row'])
+        food_col = int(config[env]['food_col'])
+        self.SIZE = int(config[env]['size'])
+        self.INIT_SNAKE = [np.array([snake_1_init_row, snake_1_init_col]), np.array([snake_2_init_row, snake_2_init_col])]
+        self.INIT_FOOD = np.array([food_row, food_col])
+        if int(config[env]['food_row']) == -1 or int(config[env]['food_col']) == -1:
+            rand_0 = np.random.randint(0, self.SIZE)
+            rand_1 = np.random.randint(0, self.SIZE)
+            self.INIT_FOOD = np.array([rand_0, rand_1])
         self.PICK_BLOCKS = list(range(0, self.SIZE*self.SIZE))
         self.snake = self.INIT_SNAKE
         self.food = self.INIT_FOOD
@@ -77,18 +78,10 @@ class GreedySnake:
 
         # Hit the wall
         if head[0] == -1 or head[1] == -1 or head[0] > self.SIZE - 1 or head[1] > self.SIZE - 1:
-            if int(self.config[self.env]['food_row']) == -1 or int(self.config[self.env]['food_col']) == -1:
-                self.food_row = np.random.randint(0, self.SIZE)
-                self.food_col = np.random.randint(0, self.SIZE)
-                self.INIT_FOOD = np.array([self.food_row, self.food_col])
             return Signal.HIT
 
         # Hit the snake
         if self.is_snake(head[0], head[1]) != -1:
-            if int(self.config[self.env]['food_row']) == -1 or int(self.config[self.env]['food_col']) == -1:
-                self.food_row = np.random.randint(0, self.SIZE)
-                self.food_col = np.random.randint(0, self.SIZE)
-                self.INIT_FOOD = np.array([self.food_row, self.food_col])
             return Signal.HIT
 
         # Eat the food
@@ -120,6 +113,10 @@ class GreedySnake:
         return Signal.NORMAL
 
     def reset(self):
+        if int(config[env]['food_row']) == -1 or int(config[env]['food_col']) == -1:
+            rand_0 = np.random.randint(0, self.SIZE)
+            rand_1 = np.random.randint(0, self.SIZE)
+            self.INIT_FOOD = np.array([rand_0, rand_1])
         self.snake = self.INIT_SNAKE
         self.food = self.INIT_FOOD
         self.head_direction = Direction.LEFT
