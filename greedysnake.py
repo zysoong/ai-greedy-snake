@@ -26,8 +26,8 @@ class GreedySnake:
         snake_1_init_col = int(config[env]['snake_1_init_col'])
         snake_2_init_row = int(config[env]['snake_2_init_row'])
         snake_2_init_col = int(config[env]['snake_2_init_col'])
-        food_row = int(config[env]['food_row'])
-        food_col = int(config[env]['food_col'])
+        self.food_row = int(config[env]['food_row'])
+        self.food_col = int(config[env]['food_col'])
         self.SIZE = int(config[env]['size'])
         if food_row == -1 or food_col == -1:
             food_row = np.random.randint(0, self.SIZE)
@@ -77,18 +77,18 @@ class GreedySnake:
 
         # Hit the wall
         if head[0] == -1 or head[1] == -1 or head[0] > self.SIZE - 1 or head[1] > self.SIZE - 1:
-            if food_row == -1 or food_col == -1:
-                food_row = np.random.randint(0, self.SIZE)
-                food_col = np.random.randint(0, self.SIZE)
-                self.INIT_FOOD = np.array([food_row, food_col])
+            if self.food_row == -1 or self.food_col == -1:
+                self.food_row = np.random.randint(0, self.SIZE)
+                self.food_col = np.random.randint(0, self.SIZE)
+                self.INIT_FOOD = np.array([self.food_row, self.food_col])
             return Signal.HIT
 
         # Hit the snake
         if self.is_snake(head[0], head[1]) != -1:
-            if food_row == -1 or food_col == -1:
-                food_row = np.random.randint(0, self.SIZE)
-                food_col = np.random.randint(0, self.SIZE)
-                self.INIT_FOOD = np.array([food_row, food_col])
+            if self.food_row == -1 or self.food_col == -1:
+                self.food_row = np.random.randint(0, self.SIZE)
+                self.food_col = np.random.randint(0, self.SIZE)
+                self.INIT_FOOD = np.array([self.food_row, self.food_col])
             return Signal.HIT
 
         # Eat the food
