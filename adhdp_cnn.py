@@ -67,7 +67,7 @@ class Driver:
 
     def __init__(self):
         config = configparser.ConfigParser()
-        config.read('adhdpdriver.ini')
+        config.read('adhdp_cnn.ini')
         self.env = config['ENV']['env']
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
