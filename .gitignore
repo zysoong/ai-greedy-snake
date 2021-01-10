@@ -1,6 +1,7 @@
 /.vscode
 /.vs
-/.__pycache__
+__pycache__/
+*.py[cod]
 train_hist_test.log
 train_hist.log
 train_hist_adhdp.log
