@@ -113,6 +113,9 @@ class GreedySnake:
         return Signal.NORMAL
 
     def reset(self):
+        config = configparser.ConfigParser()
+        config.read('greedysnake.ini')
+        env = 'DEFAULT'
         if int(config[env]['food_row']) == -1 or int(config[env]['food_col']) == -1:
             rand_0 = np.random.randint(0, self.SIZE)
             rand_1 = np.random.randint(0, self.SIZE)
