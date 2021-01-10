@@ -96,6 +96,7 @@ class GreedySnake:
             # Set new food
             new_food = random.choice(pick_pos)
             self.food = np.array([new_food // self.SIZE, new_food % self.SIZE])
+            self.INIT_FOOD = self.food
             return Signal.EAT
 
         # Else
@@ -110,16 +111,6 @@ class GreedySnake:
 
     def reset(self):
         self.snake = self.INIT_SNAKE
-
-        # Generate new food on a random position exclude snake positions
-        #pick_pos = self.PICK_BLOCKS.copy()
-        #for snake_part in self.snake:
-        #    index = snake_part[0] * self.SIZE + snake_part[1]
-        #    pick_pos.remove(index)
-
-        # Set new food
-        #new_food = random.choice(pick_pos)
-        #self.food = np.array([new_food // self.SIZE, new_food % self.SIZE])
         self.food = self.INIT_FOOD
         self.head_direction = Direction.LEFT
 
