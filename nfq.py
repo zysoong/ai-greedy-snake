@@ -278,7 +278,6 @@ class Driver:
                     survival_steps = 0
                     r = - (self.greedysnake.SIZE ** 2)
                     hits += 1
-                    self.greedysnake.reset()
                 elif signal == Signal.EAT:
                     survival_steps += 1
                     r = len(self.greedysnake.snake)

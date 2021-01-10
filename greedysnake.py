@@ -44,6 +44,7 @@ class GreedySnake:
 
     def step(self, action = Direction.STRAIGHT):
         
+        signal = None
         action_vec = np.array([0, 0])
 
         if (((self.head_direction == Direction.UP) or (self.head_direction == Direction.DOWN))
@@ -74,14 +75,14 @@ class GreedySnake:
 
         # Hit the wall
         if head[0] == -1 or head[1] == -1 or head[0] > self.SIZE - 1 or head[1] > self.SIZE - 1:
-            return Signal.HIT
+            signal = Signal.HIT
 
         # Hit the snake
-        if self.is_snake(head[0], head[1]) != -1:
-            return Signal.HIT
+        elif self.is_snake(head[0], head[1]) != -1:
+            signal = Signal.HIT
 
         # Eat the food
-        if (head == self.food).all():
+        elif (head == self.food).all():
 
             # Generate new food on a random position exclude last food and snake positions
             pick_pos = self.PICK_BLOCKS.copy()
@@ -97,17 +98,23 @@ class GreedySnake:
             new_food = random.choice(pick_pos)
             self.food = np.array([new_food // self.SIZE, new_food % self.SIZE])
             self.INIT_FOOD = self.food
-            return Signal.EAT
+            signal = Signal.EAT
+        
+        else:
+            # snake move
+            P_t = self.snake.copy()
+            P_t_add_one = self.snake.copy()
+            P_t_add_one[0] = head
+            for i in range(len(P_t_add_one)):
+                if i >= 1:
+                    P_t_add_one[i] = P_t[i] + (P_t[i-1] - P_t[i])
+            self.snake = P_t_add_one
+            signal = Signal.NORMAL
 
-        # Else
-        P_t = self.snake.copy()
-        P_t_add_one = self.snake.copy()
-        P_t_add_one[0] = head
-        for i in range(len(P_t_add_one)):
-            if i >= 1:
-                P_t_add_one[i] = P_t[i] + (P_t[i-1] - P_t[i])
-        self.snake = P_t_add_one
-        return Signal.NORMAL
+        if signal == Signal.HIT:
+            self.reset()
+
+        return signal
 
     def reset(self):
         self.snake = self.INIT_SNAKE

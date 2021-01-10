@@ -453,7 +453,6 @@ class Driver:
                 if signal == Signal.HIT:
                     r = -1
                     hits += 1
-                    self.greedysnake.reset()
                 elif signal == Signal.EAT:
                     r = 0.2
                     eats += 1

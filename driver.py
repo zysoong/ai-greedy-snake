@@ -69,7 +69,6 @@ class Driver:
             signal = self.greedysnake.step(self.signal_in)
             if signal == Signal.HIT: 
                 print('Game Over')
-                self.greedysnake.reset()
             time.sleep(self.flush_time)
 
 
