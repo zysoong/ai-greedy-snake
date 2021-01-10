@@ -455,10 +455,10 @@ class Driver:
                     hits += 1
                     self.greedysnake.reset()
                 elif signal == Signal.EAT:
-                    r = 1
+                    r = 0.2
                     eats += 1
                 elif signal == Signal.NORMAL:
-                    r = 0.1
+                    r = 0
                 r_arr.append(r)
 
                 # observe state after action
