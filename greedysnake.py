@@ -74,34 +74,10 @@ class GreedySnake:
 
         # Hit the wall
         if head[0] == -1 or head[1] == -1 or head[0] > self.SIZE - 1 or head[1] > self.SIZE - 1:
-
-            # Generate new food on a random position exclude last food and snake positions
-            pick_pos = self.PICK_BLOCKS.copy()
-            for snake_part in self.snake:
-                index = snake_part[0] * self.SIZE + snake_part[1]
-                pick_pos.remove(index)
-            pick_pos.remove(self.food[0] * self.SIZE + self.food[1])
-
-            # Set new food
-            new_food = random.choice(pick_pos)
-            self.INIT_FOOD = np.array([new_food // self.SIZE, new_food % self.SIZE])
-
             return Signal.HIT
 
         # Hit the snake
         if self.is_snake(head[0], head[1]) != -1:
-
-            # Generate new food on a random position exclude last food and snake positions
-            pick_pos = self.PICK_BLOCKS.copy()
-            for snake_part in self.snake:
-                index = snake_part[0] * self.SIZE + snake_part[1]
-                pick_pos.remove(index)
-            pick_pos.remove(self.food[0] * self.SIZE + self.food[1])
-
-            # Set new food
-            new_food = random.choice(pick_pos)
-            self.INIT_FOOD = np.array([new_food // self.SIZE, new_food % self.SIZE])
-
             return Signal.HIT
 
         # Eat the food
@@ -134,6 +110,16 @@ class GreedySnake:
 
     def reset(self):
         self.snake = self.INIT_SNAKE
+        # Generate new food on a random position exclude last food and snake positions
+        pick_pos = self.PICK_BLOCKS.copy()
+        for snake_part in self.snake:
+            index = snake_part[0] * self.SIZE + snake_part[1]
+            pick_pos.remove(index)
+        pick_pos.remove(self.food[0] * self.SIZE + self.food[1])
+
+        # Set new food
+        new_food = random.choice(pick_pos)
+        self.INIT_FOOD = np.array([new_food // self.SIZE, new_food % self.SIZE])
         self.food = self.INIT_FOOD
         self.head_direction = Direction.LEFT
 
