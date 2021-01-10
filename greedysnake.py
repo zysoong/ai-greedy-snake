@@ -29,11 +29,11 @@ class GreedySnake:
         self.food_row = int(config[env]['food_row'])
         self.food_col = int(config[env]['food_col'])
         self.SIZE = int(config[env]['size'])
-        if food_row == -1 or food_col == -1:
-            food_row = np.random.randint(0, self.SIZE)
-            food_col = np.random.randint(0, self.SIZE)
+        if self.food_row == -1 or self.food_col == -1:
+            self.food_row = np.random.randint(0, self.SIZE)
+            self.food_col = np.random.randint(0, self.SIZE)
         self.INIT_SNAKE = [np.array([snake_1_init_row, snake_1_init_col]), np.array([snake_2_init_row, snake_2_init_col])]
-        self.INIT_FOOD = np.array([food_row, food_col])
+        self.INIT_FOOD = np.array([self.food_row, self.food_col])
         self.PICK_BLOCKS = list(range(0, self.SIZE*self.SIZE))
         self.snake = self.INIT_SNAKE
         self.food = self.INIT_FOOD
