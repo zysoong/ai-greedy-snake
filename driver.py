@@ -31,20 +31,37 @@ class Driver:
     def monitor_game(self):
         while True:
             display = ''
-            for i in range(13): 
-                for j in range(13):
-                    if (self.greedysnake.food == np.array([i-1, j-1])).all():
-                        display += '#'
-                    elif self.greedysnake.is_snake(i-1, j-1):
+            for i in range(self.greedysnake.SIZE ** 2):
+                row = i // self.greedysnake.SIZE
+                col = i % self.greedysnake.SIZE
+                snake_index = self.greedysnake.is_snake(row, col)
+
+                # snake
+                if snake_index > -1:
+
+                    # snake head
+                    if snake_index == 0: 
                         display += '@'
-                    elif i == 0 or i == 12: 
-                        display += '*'
-                    elif j == 0 or j == 12: 
-                        display += '|'
+
+                    # snake body
                     else:
-                        display += '-'
-                display += '\n'
+                        display += 'O'
+
+                # food
+                elif (np.array([row, col]) == self.greedysnake.food).all():
+                    display += '#'
+                
+                # block
+                else: 
+                    display += '-'
+
+                # switch line
+                if col == self.greedysnake.SIZE - 1:
+                    display += '\n'
+
+            print('========================')
             print(display, end='\r', flush=True)
+            print('========================')
             time.sleep(self.display_delay)
 
     def drive(self):
