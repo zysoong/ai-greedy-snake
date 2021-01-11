@@ -297,7 +297,7 @@ class Driver:
                 cond1 = self.greedysnake.head_direction == Direction.RIGHT and a_t == Direction.LEFT
                 cond2 = self.greedysnake.head_direction == Direction.UP and a_t == Direction.DOWN
                 cond3 = self.greedysnake.head_direction == Direction.DOWN and a_t == Direction.UPS
-                if cond1 or cond2 or cond3 or cond4:
+                if cond0 or cond1 or cond2 or cond3:
                     r = -1
 
                 r_arr.append(r)
