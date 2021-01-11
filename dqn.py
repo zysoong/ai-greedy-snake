@@ -20,7 +20,7 @@ class Target(keras.Model):
 
     def __init__(self, critic):
         config = configparser.ConfigParser()
-        config.read('adhdp.ini')
+        config.read('dqn.ini')
         self.env = config['ENV']['env']
         self.gamma = float(config[self.env]['gamma'])
         super(Target, self).__init__()
