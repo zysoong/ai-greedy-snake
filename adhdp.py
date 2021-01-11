@@ -281,6 +281,8 @@ class Driver:
                 # take action via eps greedy, get reward
                 signal = self.greedysnake.step(a_t)
                 r = None
+
+                # signal reward
                 if signal == Signal.HIT:
                     r = -1
                     hits += 1
@@ -289,6 +291,15 @@ class Driver:
                     eats += 1
                 elif signal == Signal.NORMAL:
                     r = 0.1
+
+                # unvalid control reward (covers signal reward)
+                cond0 = self.greedysnake.head_direction == Direction.LEFT and a_t == Direction.RIGHT
+                cond1 = self.greedysnake.head_direction == Direction.RIGHT and a_t == Direction.LEFT
+                cond2 = self.greedysnake.head_direction == Direction.UP and a_t == Direction.DOWN
+                cond3 = self.greedysnake.head_direction == Direction.DOWN and a_t == Direction.UPS
+                if cond1 or cond2 or cond3 or cond4:
+                    r = -1
+
                 r_arr.append(r)
 
                 # observe state after action
