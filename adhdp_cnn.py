@@ -218,7 +218,7 @@ class Driver:
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1)), 
             keras.layers.Conv2D(
-                self.timeslip_size * 4, (3, 3), 
+                256, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
@@ -227,7 +227,7 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.Conv2D(
-                self.timeslip_size * 4, (3, 3), 
+                128, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
@@ -236,7 +236,7 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.Conv2D(
-                self.timeslip_size * 4, (3, 3), 
+                64, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
@@ -245,7 +245,7 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.Conv2D(
-                1, (3, 3), 
+                3, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
@@ -271,7 +271,7 @@ class Driver:
         actor_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)), 
             keras.layers.Conv2D(
-                self.timeslip_size * 4, (3, 3), 
+                256, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
@@ -280,7 +280,7 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.Conv2D(
-                self.timeslip_size * 4, (3, 3), 
+                128, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
@@ -289,7 +289,7 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.Conv2D(
-                self.timeslip_size * 4, (3, 3), 
+                64, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
@@ -298,7 +298,7 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.Conv2D(
-                1, (3, 3), 
+                3, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
