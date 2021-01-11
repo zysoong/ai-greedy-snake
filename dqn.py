@@ -277,8 +277,9 @@ class Driver:
                 # observe state and action at t = 0
                 if i == 0:
                     s_t = self.get_state()[0].reshape((1, self.greedysnake.SIZE ** 2))
-                    a_t = self.get_action(s_t, critic_model)[0]
-                    a_t_map = self.get_action(s_t, critic_model)[2].reshape((1, 4))
+                    gares = self.get_action(s_t, critic_model)
+                    a_t = gares[0]
+                    a_t_map = gares[2].reshape((1, 4))
                 else: 
                     s_t = s_t_temp
                     a_t = a_t_temp
