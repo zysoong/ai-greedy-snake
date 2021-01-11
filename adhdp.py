@@ -43,7 +43,7 @@ class ADHDP(keras.Model):
             state_action = tf.concat([state, action], 1)
             q = self.critic(state_action)
             t = np.ones((self.batch_size, 1))              
-            t.fill(1.333333)                                             
+            t.fill(1.0)                                             
             actor_loss = self.loss(t, q)
         actor_grads = tape.gradient(actor_loss, self.actor.trainable_weights)
 
