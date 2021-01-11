@@ -12,34 +12,85 @@ import configparser
 import warnings
 warnings.filterwarnings("ignore")
 
+class Target(keras.Model):
+
+    def __init__(self, critic):
+        config = configparser.ConfigParser()
+        config.read('adhdp.ini')
+        self.env = config['ENV']['env']
+        self.gamma = float(config[self.env]['gamma'])
+        super(Target, self).__init__()
+        self.critic = critic
+        self.target = keras.models.clone_model(critic)
+        self.batch_size = int(config[self.env]['batch_size'])
+
+    def compile(self, optimizer, loss):
+        super(Target, self).compile()
+        self.target_optimizer = optimizer
+        self.loss = loss
+
+    def train_step(self, data):
+
+        state_t_add_1, q, reward = data[0]
+
+        # train target
+        with tf.GradientTape(watch_accessed_variables=True, persistent=True) as tape:
+            tape.watch(self.target.trainable_weights)
+            ts_ = self.target(state_t_add_1)
+            y = reward + self.gamma * ts_ - q
+            t = np.zeros((self.batch_size, 1))                                                        
+            target_loss = self.loss(t, y)
+        target_grads = tape.gradient(target_loss, self.target.trainable_weights)
+
+        #print('============= test gradient ===================')
+        #tf.print(tape.gradient(target_loss, y))
+
+        self.target_optimizer.apply_gradients(
+            zip(target_grads, self.target.trainable_weights)
+        )
+        return {"TargetLoss": target_loss}
+
+    def call(self, state):
+        return self.target(state)
+
+    def predict_target(self, state):
+        return self.target(state)
+
+
 class Driver:
 
     def __init__(self):
         config = configparser.ConfigParser()
-        config.read('nfq.ini')
+        config.read('adhdp.ini')
         self.env = config['ENV']['env']
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
         self.max_epochs = int(config[self.env]['max_epochs'])
         self.max_steps = int(config[self.env]['max_steps'])
+        self.batch_size = int(config[self.env]['batch_size'])
         self.critic_net_epochs = int(config[self.env]['critic_net_epochs'])
-        self.beta_init = float(config[self.env]['beta_init'])
-        self.beta_decay = float(config[self.env]['beta_decay'])
+        self.actor_net_epochs = int(config[self.env]['actor_net_epochs'])
+        self.actor_update_freq = int(config[self.env]['actor_update_freq'])
         self.gamma = float(config[self.env]['gamma'])
+        self.beta_init = float(config[self.env]['beta_init'])
         self.critic_net_learnrate_init = float(config[self.env]['critic_net_learnrate_init'])
         self.critic_net_learnrate_decay = float(config[self.env]['critic_net_learnrate_decay'])
         self.critic_net_clipnorm = float(config[self.env]['critic_net_clipnorm'])
-        self.epsilon_init = float(config[self.env]['epsilon_init'])
-        self.epsilon_decay = float(config[self.env]['epsilon_decay'])
+        self.actor_net_learnrate_init = float(config[self.env]['actor_net_learnrate_init'])
+        self.actor_net_learnrate_decay = float(config[self.env]['actor_net_learnrate_decay'])
+        self.actor_net_clipnorm = float(config[self.env]['actor_net_clipnorm'])
         self.train_hist_file = config[self.env]['train_hist_file']
-        self.keras_model_file = config[self.env]['keras_model_file']
+        self.critic_model_file = config[self.env]['critic_model_file']
+        self.actor_model_file = config[self.env]['actor_model_file']
 
         # parameters
         self.total_steps = 0
-        self.beta = self.beta_init * (self.beta_decay ** self.total_steps)
         self.critic_net_learnrate = self.critic_net_learnrate_init * (self.critic_net_learnrate_decay ** self.total_steps)
+        self.actor_net_learnrate = self.actor_net_learnrate_init * (self.actor_net_learnrate_decay ** self.total_steps)
 
 
+
+    
     def critic_net(self):
 
         lr = self.critic_net_learnrate
