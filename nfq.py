@@ -47,58 +47,13 @@ class Driver:
 
         # define deep learning network
         state_action_arr = self.convert_to_state_action_arr()[0]
-        model = keras.Sequential([
-            keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1)), 
-            keras.layers.Conv2D(
-                4, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
-            keras.layers.Conv2D(
-                4, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
-            keras.layers.Conv2D(
-                4, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
-            keras.layers.Conv2D(
-                4, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
-            keras.layers.Conv2D(
-                1, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
-            keras.layers.Flatten(),
-            keras.layers.Dense(self.greedysnake.SIZE ** 2 + 1, activation = 'relu', kernel_initializer='glorot_normal'),
-            keras.layers.Dense(self.greedysnake.SIZE ** 2 // 2, activation = 'relu', kernel_initializer='glorot_normal'),
-            keras.layers.Dense(1, activation = 'tanh', kernel_initializer='glorot_normal')
-        ], name = 'critic')
+        state_action_arr_dim = len(state_action_arr)
+        model = keras.models.Sequential()
+        model.add(keras.layers.Dense(15, input_dim = state_action_arr_dim, kernel_initializer='he_normal', activation = 'elu'))
+        model.add(keras.layers.BatchNormalization())
+        model.add(keras.layers.Dense(15, kernel_initializer='he_normal', activation = 'elu'))
+        model.add(keras.layers.BatchNormalization())
+        model.add(keras.layers.Dense(1))
         opt = keras.optimizers.RMSprop(
             lr = lr, 
             clipnorm = clipnorm
