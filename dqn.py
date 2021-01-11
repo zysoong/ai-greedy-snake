@@ -365,8 +365,8 @@ class Driver:
             t = np.array(t_arr, dtype=np.float32).reshape((len(t_arr), 1))
             q = np.array(q_arr, dtype=np.float32).reshape((len(q_arr), 1))
             r = np.array(r_arr, dtype=np.float32).reshape((len(r_arr), 1))
-            critic_model.fit(s_a, t, epochs=self.critic_net_epochs, verbose=1, batch_size = self.batch_size)
-            target.fit([s_a_, q, r], epochs=self.actor_net_epochs, verbose=1, batch_size = self.batch_size)
+            critic_model.fit(s_a, t, epochs=self.critic_net_epochs, verbose=0, batch_size = self.batch_size)
+            target.fit([s_a_, q, r], epochs=self.actor_net_epochs, verbose=0, batch_size = self.batch_size)
 
             if e % 20 == 0:
                 target.target.set_weights(critic_model.get_weights())
