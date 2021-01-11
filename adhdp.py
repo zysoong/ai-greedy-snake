@@ -296,7 +296,7 @@ class Driver:
                 cond0 = self.greedysnake.head_direction == Direction.LEFT and a_t == Direction.RIGHT
                 cond1 = self.greedysnake.head_direction == Direction.RIGHT and a_t == Direction.LEFT
                 cond2 = self.greedysnake.head_direction == Direction.UP and a_t == Direction.DOWN
-                cond3 = self.greedysnake.head_direction == Direction.DOWN and a_t == Direction.UPS
+                cond3 = self.greedysnake.head_direction == Direction.DOWN and a_t == Direction.UP
                 if cond0 or cond1 or cond2 or cond3:
                     r = -1
 
