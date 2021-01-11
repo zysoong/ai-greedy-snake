@@ -97,7 +97,7 @@ class GreedySnake:
             # Set new food
             new_food = random.choice(pick_pos)
             self.food = np.array([new_food // self.SIZE, new_food % self.SIZE])
-            self.INIT_FOOD = self.food
+            #self.INIT_FOOD = self.food                       # BUG
             signal = Signal.EAT
         
         else:
