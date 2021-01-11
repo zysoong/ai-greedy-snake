@@ -129,25 +129,25 @@ class Driver:
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE ** 2 + 4)), 
-            keras.layers.Dense(self.greedysnake.SIZE ** 2 * 2, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(1024, activation = 'relu', kernel_initializer='glorot_normal'),
             keras.layers.BatchNormalization(),
-            #keras.layers.Dense(self.greedysnake.SIZE ** 2 * 2 , activation = 'relu', kernel_initializer='glorot_normal'),
-            #keras.layers.BatchNormalization(),
-            #keras.layers.Dense(self.greedysnake.SIZE ** 2 * 2 , activation = 'relu', kernel_initializer='glorot_normal'),
-            #keras.layers.BatchNormalization(),
-            #keras.layers.Dense(self.greedysnake.SIZE ** 2 * 2 , activation = 'relu', kernel_initializer='glorot_normal'),
-            #keras.layers.BatchNormalization(),
-            keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(1024, activation = 'relu', kernel_initializer='glorot_normal'),
             keras.layers.BatchNormalization(),
-            #keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'relu', kernel_initializer='glorot_normal'),
-            #keras.layers.BatchNormalization(),
-            #keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'relu', kernel_initializer='glorot_normal'),
-            #keras.layers.BatchNormalization(),
-            #keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'relu', kernel_initializer='glorot_normal'),
-            #keras.layers.BatchNormalization(),
-            #keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'relu', kernel_initializer='glorot_normal'),
-            #keras.layers.BatchNormalization(),
-            keras.layers.Dense(self.greedysnake.SIZE ** 2 // 2, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(512, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dense(512, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dense(256, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dense(256, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dense(128, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dense(128, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dense(64, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dense(64, activation = 'relu', kernel_initializer='glorot_normal'),
             keras.layers.BatchNormalization(),
             keras.layers.Dense(1, activation = 'tanh', kernel_initializer='glorot_normal')
         ], name = 'critic')
@@ -155,25 +155,25 @@ class Driver:
         # actor layers
         actor_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE ** 2)), 
-            keras.layers.Dense(self.greedysnake.SIZE ** 2 * 2, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(1024, activation = 'relu', kernel_initializer='glorot_normal'),
             keras.layers.BatchNormalization(),
-            #keras.layers.Dense(self.greedysnake.SIZE ** 2 * 2 , activation = 'relu', kernel_initializer='glorot_normal'),
-            #keras.layers.BatchNormalization(),
-            #keras.layers.Dense(self.greedysnake.SIZE ** 2 * 2 , activation = 'relu', kernel_initializer='glorot_normal'),
-            #keras.layers.BatchNormalization(),
-            #keras.layers.Dense(self.greedysnake.SIZE ** 2 * 2 , activation = 'relu', kernel_initializer='glorot_normal'),
-            #keras.layers.BatchNormalization(),
-            keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(1024, activation = 'relu', kernel_initializer='glorot_normal'),
             keras.layers.BatchNormalization(),
-            #keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'relu', kernel_initializer='glorot_normal'),
-            #keras.layers.BatchNormalization(),
-            #keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'relu', kernel_initializer='glorot_normal'),
-            #keras.layers.BatchNormalization(),
-            #keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'relu', kernel_initializer='glorot_normal'),
-            #keras.layers.BatchNormalization(),
-            #keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'relu', kernel_initializer='glorot_normal'),
-            #keras.layers.BatchNormalization(),
-            keras.layers.Dense(self.greedysnake.SIZE ** 2 // 2, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(512, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dense(512, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dense(256, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dense(256, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dense(128, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dense(128, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dense(64, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dense(64, activation = 'relu', kernel_initializer='glorot_normal'),
             keras.layers.BatchNormalization(),
             keras.layers.Dense(4, activation = 'softmax', kernel_initializer='glorot_normal'),
         ], name = 'actor')        
@@ -291,14 +291,6 @@ class Driver:
                     eats += 1
                 elif signal == Signal.NORMAL:
                     r = 0.1
-
-                # unvalid control reward (covers signal reward)
-                cond0 = self.greedysnake.head_direction == Direction.LEFT and a_t == Direction.RIGHT
-                cond1 = self.greedysnake.head_direction == Direction.RIGHT and a_t == Direction.LEFT
-                cond2 = self.greedysnake.head_direction == Direction.UP and a_t == Direction.DOWN
-                cond3 = self.greedysnake.head_direction == Direction.DOWN and a_t == Direction.UP
-                if cond0 or cond1 or cond2 or cond3:
-                    r = -1
 
                 r_arr.append(r)
 
