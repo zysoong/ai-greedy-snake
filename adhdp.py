@@ -1,7 +1,6 @@
 from greedysnake import GreedySnake, Direction, Signal
 import time
 import numpy as np
-#import curses
 from threading import Thread
 import subprocess
 import tensorflow as tf
@@ -16,25 +15,26 @@ import warnings
 warnings.filterwarnings("ignore")
 np.set_printoptions(threshold=sys.maxsize)
 
-class ADHDP(keras.Model):
+class Actor(keras.Model):
 
     def __init__(self, critic, actor):
         config = configparser.ConfigParser()
         config.read('adhdp.ini')
         self.env = config['ENV']['env']
-        super(ADHDP, self).__init__()
+        super(Actor, self).__init__()
         self.critic = critic
         self.actor = actor
         self.batch_size = int(config[self.env]['batch_size'])
 
     def compile(self, optimizer, loss):
-        super(ADHDP, self).compile()
+        super(Actor, self).compile()
         self.actor_optimizer = optimizer
         self.loss = loss
 
     def train_step(self, data):
 
         state, teacher_critic = data
+        
 
         # train actor
         with tf.GradientTape(watch_accessed_variables=True, persistent=True) as tape:
@@ -62,6 +62,50 @@ class ADHDP(keras.Model):
         return self.actor(state)
 
 
+class Target(keras.Model):
+
+    def __init__(self, critic):
+        config = configparser.ConfigParser()
+        config.read('adhdp.ini')
+        self.env = config['ENV']['env']
+        self.gamma = float(config[self.env]['gamma'])
+        super(Target, self).__init__()
+        self.critic = critic
+        self.target = keras.models.clone_model(critic)
+        self.batch_size = int(config[self.env]['batch_size'])
+
+    def compile(self, optimizer, loss):
+        super(Target, self).compile()
+        self.target_optimizer = optimizer
+        self.loss = loss
+
+    def train_step(self, data):
+
+        state_t_add_1, q, reward = data[0]
+
+        # train target
+        with tf.GradientTape(watch_accessed_variables=True, persistent=True) as tape:
+            tape.watch(self.target.trainable_weights)
+            ts_ = self.target(state_t_add_1)
+            y = reward + self.gamma * ts_ - q
+            t = np.zeros((self.batch_size, 1))                                                        
+            target_loss = self.loss(t, y)
+        target_grads = tape.gradient(target_loss, self.target.trainable_weights)
+
+        #print('============= test gradient ===================')
+        #tf.print(tape.gradient(target_loss, y))
+
+        self.target_optimizer.apply_gradients(
+            zip(target_grads, self.target.trainable_weights)
+        )
+        return {"TargetLoss": target_loss}
+
+    def call(self, state):
+        return self.target(state)
+
+    def predict_target(self, state):
+        return self.target(state)
+
 
 class Driver:
 
@@ -76,6 +120,7 @@ class Driver:
         self.batch_size = int(config[self.env]['batch_size'])
         self.critic_net_epochs = int(config[self.env]['critic_net_epochs'])
         self.actor_net_epochs = int(config[self.env]['actor_net_epochs'])
+        self.actor_update_freq = int(config[self.env]['actor_update_freq'])
         self.gamma = float(config[self.env]['gamma'])
         self.beta_init = float(config[self.env]['beta_init'])
         self.critic_net_learnrate_init = float(config[self.env]['critic_net_learnrate_init'])
@@ -176,10 +221,14 @@ class Driver:
             keras.layers.Dense(64, activation = 'relu', kernel_initializer='glorot_normal'),
             keras.layers.BatchNormalization(),
             keras.layers.Dense(4, activation = 'softmax', kernel_initializer='glorot_normal'),
-        ], name = 'actor')        
+        ], name = 'actor')      
 
         # optimizer
         c_opt = keras.optimizers.SGD(
+            lr = self.critic_net_learnrate, 
+            clipnorm = self.critic_net_clipnorm
+        )
+        t_opt = keras.optimizers.SGD(
             lr = self.critic_net_learnrate, 
             clipnorm = self.critic_net_clipnorm
         )
@@ -187,14 +236,20 @@ class Driver:
             lr = self.actor_net_learnrate, 
             clipnorm = self.actor_net_clipnorm
         )
-
-        # models
+        
+        # critic model
         critic_model.compile(loss = keras.losses.MSE, optimizer = c_opt)
 
         # actor model
-        adhdp = ADHDP(critic=critic_model, actor=actor_model)
-        adhdp.compile(loss = keras.losses.MSE, optimizer = a_opt) # loss is MSE to compare the Q values
-        return critic_model, adhdp
+        actor = Actor(critic=critic_model, actor=actor_model)
+        actor.compile(loss = keras.losses.MSE, optimizer = a_opt) # loss is MSE to compare the Q values
+
+        # target model
+        target = Target(critic=critic_model)
+        target.target.set_weights(critic_model.get_weights())
+        target.compile(loss = keras.losses.MSE, optimizer = t_opt)
+
+        return critic_model, actor, target
 
 
     def get_state(self):
@@ -239,7 +294,7 @@ class Driver:
     def run(self):
         
         # define deep learning network
-        critic_model, adhdp = self.get_adhdp()
+        critic_model, actor, target = self.get_adhdp()
         
         # statics
         scores = []
@@ -251,9 +306,11 @@ class Driver:
 
             # execute steps for greedy snake
             s_arr = []
+            s_a_t_add_1_arr = []
             s_a_arr = []
             r_arr = []
             t_arr = []
+            q_arr = []
 
             # buffer
             s_t_temp = None
@@ -266,7 +323,7 @@ class Driver:
                 # observe state and action at t = 0
                 if i == 0:
                     s_t = self.get_state()[0].reshape((1, self.greedysnake.SIZE ** 2))
-                    actmap_t = adhdp.predict_actor(s_t)
+                    actmap_t = actor.predict_actor(s_t)
                     a_t = self.get_action(np.array(actmap_t).reshape(4))[0]
                 else: 
                     s_t = s_t_temp
@@ -301,7 +358,7 @@ class Driver:
                 s_t_temp = s_t_add_1
                 
                 # choose action at t+1
-                actmap_t_add_1 = adhdp.predict_actor(np.array(s_t_add_1).reshape(1, self.greedysnake.SIZE ** 2))
+                actmap_t_add_1 = actor.predict_actor(np.array(s_t_add_1).reshape(1, self.greedysnake.SIZE ** 2))
                 gares = self.get_action(np.array(actmap_t_add_1).reshape(4))
                 a_t_add_1 = gares[0]
                 actmap_t_temp = actmap_t_add_1
@@ -309,11 +366,13 @@ class Driver:
 
                 # get teacher for critic net (online learning)
                 s_a_t_add_1 = np.array(tf.concat([s_t_add_1, actmap_t_add_1], axis=1))
+                s_a_t_add_1_arr.append(s_a_t_add_1)
                 q_t = critic_model.predict(s_a_t)
-                q_t_add_1 = critic_model.predict(s_a_t_add_1)
-                t = r + self.gamma * q_t_add_1
+                target_sa = target.predict(s_a_t_add_1)
+                t = r + self.gamma * target_sa
                 if r == -1:
                     t = r
+                q_arr.append(q_t)
                 t_arr.append(t)
 
                 # accumulate index
@@ -323,7 +382,7 @@ class Driver:
                 self.critic_net_learnrate = self.critic_net_learnrate_init * (self.critic_net_learnrate_decay ** self.total_steps)
                 self.actor_net_learnrate = self.actor_net_learnrate_init * (self.actor_net_learnrate_decay ** self.total_steps)
                 K.set_value(critic_model.optimizer.learning_rate, self.critic_net_learnrate)
-                K.set_value(adhdp.optimizer.learning_rate, self.actor_net_learnrate)
+                K.set_value(actor.optimizer.learning_rate, self.actor_net_learnrate)
 
                 # display information
                 a_print = str(a_t_add_1)
@@ -353,9 +412,16 @@ class Driver:
             # train steps
             s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), self.greedysnake.SIZE**2))
             s_a = np.array(s_a_arr, dtype=np.float32).reshape((len(s_a_arr), self.greedysnake.SIZE**2 + 4))
+            s_a_ = np.array(s_a_t_add_1_arr, dtype=np.float32).reshape((len(s_a_t_add_1_arr), self.greedysnake.SIZE**2 + 4))
             t = np.array(t_arr, dtype=np.float32).reshape((len(t_arr), 1))
+            q = np.array(q_arr, dtype=np.float32).reshape((len(q_arr), 1))
+            r = np.array(r_arr, dtype=np.float32).reshape((len(r_arr), 1))
             critic_model.fit(s_a, t, epochs=self.critic_net_epochs, verbose=1, batch_size = self.batch_size)
-            adhdp.fit(s, t, epochs=self.actor_net_epochs, verbose=1, batch_size = self.batch_size)
+            actor.fit(s, t, epochs=self.actor_net_epochs, verbose=1, batch_size = self.batch_size)
+            target.fit([s_a_, q, r], epochs=self.actor_net_epochs, verbose=1, batch_size = self.batch_size)
+
+            if e % 20 == 0:
+                target.target.set_weights(critic_model.get_weights())
 
             # record train history
             #f.write(str(critic_hist.history)+'\n')
@@ -364,7 +430,7 @@ class Driver:
 
             # save model to file
             #critic_model.save(self.critic_model_file)
-            #adhdp.save(self.actor_model_file) # BUG saving subclass model adhdp not succeed
+            #actor.save(self.actor_model_file) # BUG saving subclass model actor not succeed
 
 
 if __name__ == "__main__":
