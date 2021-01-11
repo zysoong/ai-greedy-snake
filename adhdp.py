@@ -238,7 +238,7 @@ class Driver:
             keras.layers.BatchNormalization(),
             keras.layers.Dense(self.greedysnake.SIZE ** 2 // 2, activation = 'relu', kernel_initializer='glorot_normal'),
             keras.layers.BatchNormalization(),
-            keras.layers.Dense(1, activation = 'tanh', kernel_initializer='glorot_normal')
+            keras.layers.Dense(1, kernel_initializer='glorot_normal')
         ], name = 'critic')
 
         # actor layers
