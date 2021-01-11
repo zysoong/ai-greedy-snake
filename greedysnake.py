@@ -118,6 +118,6 @@ class GreedySnake:
 
     def reset(self):
         self.snake = self.INIT_SNAKE
-        self.food = self.INIT_FOOD
+        #self.food = self.INIT_FOOD
         self.head_direction = Direction.LEFT
 
