@@ -43,7 +43,7 @@ class ADHDP(keras.Model):
             state_action = tf.concat([state, action_map], 3)
             q = self.critic(state_action)
             t = np.ones((self.batch_size, 1))              
-            t.fill(1.333333)                                             
+            t.fill(2.)                                             
             actor_loss = self.loss(t, q)
         actor_grads = tape.gradient(actor_loss, self.actor.trainable_weights)
 
@@ -176,42 +176,6 @@ class Driver:
             action = Direction.LEFT
         return action, map
         
-
-
-
-    '''
-    def get_action(self, action_map):
-        central = self.greedysnake.SIZE // 2
-        maxindex = action_map.argmax()
-        row = maxindex // self.greedysnake.SIZE
-        col = maxindex % self.greedysnake.SIZE - 1
-        x = col - central
-        y = central - row
-        action = None
-        if x >= 0 and y >= 0:
-            if abs(y / x) < 1 or x == 0:
-                action = Direction.RIGHT
-            else:
-                action = Direction.UP
-        if x < 0 and y >= 0:
-            if abs(y / x) < 1:
-                action = Direction.UP
-            else:
-                action = Direction.LEFT
-        if x < 0 and y < 0:
-            if abs(y / x) < 1:
-                action = Direction.LEFT
-            else:
-                action = Direction.DOWN
-        if x >= 0 and y < 0:
-            if abs(y / x) < 1 or x == 0:
-                action = Direction.RIGHT
-            else:
-                action = Direction.DOWN
-        return action
-    '''
-
-        
     def get_adhdp(self):
 
         # critic layers
@@ -238,7 +202,7 @@ class Driver:
             keras.layers.BatchNormalization(),
             keras.layers.Dense(self.greedysnake.SIZE ** 2 // 2, activation = 'relu', kernel_initializer='glorot_normal'),
             keras.layers.BatchNormalization(),
-            keras.layers.Dense(1, kernel_initializer='glorot_normal')
+            keras.layers.Dense(1, activation = 'tanh', kernel_initializer='glorot_normal')
         ], name = 'critic')
 
         # actor layers
@@ -255,7 +219,7 @@ class Driver:
             keras.layers.BatchNormalization(),
             keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'relu', kernel_initializer='glorot_normal'),
             keras.layers.BatchNormalization(),
-            keras.layers.Dense(self.greedysnake.SIZE ** 2, kernel_initializer='glorot_normal'),
+            keras.layers.Dense(self.greedysnake.SIZE ** 2, activation = 'tanh', kernel_initializer='glorot_normal'),
             keras.layers.BatchNormalization(),
             keras.layers.Reshape((self.greedysnake.SIZE, self.greedysnake.SIZE, 1))
         ], name = 'actor')        
@@ -384,7 +348,8 @@ class Driver:
                 #print(s_a_t[:,:,10])
                 #print(s_a_t[:,:,11])
                 #print(s_a_t[:,:,12])
-                print('========== s_a_t ==================')
+                # print('========== s_a_t ==================')
+                print('#############################################')
 
                 s_arr.append(s_t)
                 s_a_arr.append(s_a_t)
