@@ -65,7 +65,7 @@ class Driver:
 
     def __init__(self):
         config = configparser.ConfigParser()
-        config.read('adhdp.ini')
+        config.read('dqn.ini')
         self.env = config['ENV']['env']
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
@@ -172,17 +172,17 @@ class Driver:
             #keras.layers.BatchNormalization(),
             #keras.layers.Dense(512, activation = 'relu', kernel_initializer='glorot_normal'),
             #keras.layers.BatchNormalization(),
-            keras.layers.Dense(256, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(100, activation = 'relu', kernel_initializer='glorot_normal'),
             keras.layers.BatchNormalization(),
-            keras.layers.Dense(256, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(100, activation = 'relu', kernel_initializer='glorot_normal'),
             keras.layers.BatchNormalization(),
-            keras.layers.Dense(128, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(50, activation = 'relu', kernel_initializer='glorot_normal'),
             keras.layers.BatchNormalization(),
-            keras.layers.Dense(128, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(50, activation = 'relu', kernel_initializer='glorot_normal'),
             keras.layers.BatchNormalization(),
-            keras.layers.Dense(64, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(10, activation = 'relu', kernel_initializer='glorot_normal'),
             keras.layers.BatchNormalization(),
-            keras.layers.Dense(64, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(10, activation = 'relu', kernel_initializer='glorot_normal'),
             keras.layers.BatchNormalization(),
             keras.layers.Dense(1, activation = 'tanh', kernel_initializer='glorot_normal')
         ], name = 'critic')   
