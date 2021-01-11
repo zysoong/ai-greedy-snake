@@ -141,9 +141,10 @@ class GreedySnake:
                 pass
 
         # Set new food
-        new_food = random.choice(pick_pos)
-        self.food = np.array([new_food // self.SIZE, new_food % self.SIZE])
-        signal = Signal.EAT
-
+        if len(pick_pos) == 0:
+            self.food = self.INIT_FOOD
+        else:
+            new_food = random.choice(pick_pos)
+            self.food = np.array([new_food // self.SIZE, new_food % self.SIZE])
         self.head_direction = Direction.LEFT
 
