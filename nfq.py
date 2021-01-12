@@ -240,7 +240,7 @@ class Driver:
                 print('Hit rate = ' + str(hits / self.total_steps))
                 print('Eat rate = ' + str(eats / self.total_steps))
                 print(display)
-                print(get_action_result[1])
+                print(tf.nn.softmax(get_action_result[1]))
                 
             # train steps
             s_minibatch = random.sample(s_memory, self.batch_size)
