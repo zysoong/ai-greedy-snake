@@ -91,9 +91,19 @@ class Driver:
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE ** 2)), 
+            keras.layers.Dense(128, activation = 'relu', kernel_initializer='zeros'),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dense(128, activation = 'relu', kernel_initializer='zeros'),
+            keras.layers.BatchNormalization(),
             keras.layers.Dense(64, activation = 'relu', kernel_initializer='zeros'),
             keras.layers.BatchNormalization(),
             keras.layers.Dense(64, activation = 'relu', kernel_initializer='zeros'),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dense(32, activation = 'relu', kernel_initializer='zeros'),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dense(32, activation = 'relu', kernel_initializer='zeros'),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dense(10, activation = 'relu', kernel_initializer='zeros'),
             keras.layers.BatchNormalization(),
             keras.layers.Dense(4, kernel_initializer='zeros')
         ], name = 'critic')
