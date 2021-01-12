@@ -129,7 +129,7 @@ class Driver:
 
                 # snake body
                 else:
-                    frame[row, col] = 0.3
+                    frame[row, col] = 0.1
                     display += 'O'
 
             # food
@@ -139,7 +139,7 @@ class Driver:
             
             # block
             else: 
-                frame[row, col] = 0.1
+                frame[row, col] = 0.
                 display += '-'
 
             # switch line
@@ -191,10 +191,13 @@ class Driver:
                     r = -1
                     hits += 1
                 elif signal == Signal.EAT:
-                    r = 1
+                    r = 0
                     eats += 1
                 elif signal == Signal.NORMAL:
-                    r = 0.1
+                    r = -0.5
+
+
+                
                 r_memory.append(r)
 
                 # observe state after action
