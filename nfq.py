@@ -46,7 +46,7 @@ class Driver:
     def get_action(self, state, critic_model, epsilon):
 
         rand_strategy = np.random.rand()
-        if 0 <= rand <= rand_strategy:
+        if 0 <= rand_strategy <= epsilon:
             q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE ** 2)))
             sm = np.array(tf.nn.softmax(q)).reshape((4))
             rand = np.random.rand()
