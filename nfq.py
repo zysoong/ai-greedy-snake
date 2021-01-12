@@ -129,7 +129,7 @@ class Driver:
 
                 # snake body
                 else:
-                    frame[row, col] = 0.1
+                    frame[row, col] = 0.3
                     display += 'O'
 
             # food
@@ -139,7 +139,7 @@ class Driver:
             
             # block
             else: 
-                frame[row, col] = 0.
+                frame[row, col] = 0.1
                 display += '-'
 
             # switch line
@@ -166,13 +166,20 @@ class Driver:
 
         for e in range(self.max_epochs):
 
+            # buffer
+            s_current_temp = None
+            a_current_temp = None
             
             # start steps
             for i in range(self.max_steps):
 
                 # observe state and action at t = 0
-                s_current = self.get_state()[0].reshape((1, self.greedysnake.SIZE ** 2))
-                a_current = self.get_action(s_current, critic_model, self.epsilon)[0]
+                if i == 0:
+                    s_current = self.get_state()[0].reshape((1, self.greedysnake.SIZE ** 2))
+                    a_current = self.get_action(s_current, critic_model, self.epsilon)[0]
+                else: 
+                    s_current = s_current_temp
+                    a_current = a_current_temp
                 s_memory.append(s_current)
 
                 # take action via eps greedy, get reward
@@ -184,21 +191,23 @@ class Driver:
                     r = -1
                     hits += 1
                 elif signal == Signal.EAT:
-                    r = 0
+                    r = 1
                     eats += 1
                 elif signal == Signal.NORMAL:
-                    r = -0.5                
+                    r = 0.1
                 r_memory.append(r)
 
                 # observe state after action
                 s_current = np.copy(s_current) #backup s_current
                 display = self.get_state()[1]
                 s_future = self.get_state()[0].reshape((1, self.greedysnake.SIZE ** 2))
+                s_current_temp = s_future
                 s_a_future_memory.append(s_future)
                 
                 # choose action at t+1
                 get_action_result = self.get_action(s_future, critic_model, self.epsilon)
                 a_future = get_action_result[0]
+                a_current_temp = a_future
 
                 # get teacher for critic net (online learning)
                 q_current = critic_model.predict(s_current)
