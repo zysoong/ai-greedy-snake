@@ -91,16 +91,7 @@ class Driver:
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE ** 2)), 
-            keras.layers.Dense(1280, activation = 'elu', kernel_initializer='random_normal'),
-            keras.layers.BatchNormalization(),
-            keras.layers.Dropout(0.4),
-            keras.layers.Dense(1280, activation = 'elu', kernel_initializer='random_normal'),
-            keras.layers.BatchNormalization(),
-            keras.layers.Dropout(0.4),
-            keras.layers.Dense(640, activation = 'elu', kernel_initializer='random_normal'),
-            keras.layers.BatchNormalization(),
-            keras.layers.Dropout(0.4),
-            keras.layers.Dense(640, activation = 'elu', kernel_initializer='random_normal'),
+            keras.layers.Dense(64, activation = 'elu', kernel_initializer='random_normal'),
             keras.layers.BatchNormalization(),
             keras.layers.Dropout(0.4),
             keras.layers.Dense(128, activation = 'elu', kernel_initializer='random_normal'),
@@ -109,8 +100,15 @@ class Driver:
             keras.layers.Dense(128, activation = 'elu', kernel_initializer='random_normal'),
             keras.layers.BatchNormalization(),
             keras.layers.Dropout(0.4),
-            keras.layers.Dense(10, activation = 'elu', kernel_initializer='random_normal'),
+            keras.layers.Dense(128, activation = 'elu', kernel_initializer='random_normal'),
             keras.layers.BatchNormalization(),
+            keras.layers.Dropout(0.4),
+            keras.layers.Dense(640, activation = 'elu', kernel_initializer='random_normal'),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dropout(0.4),
+            keras.layers.Dense(640, activation = 'elu', kernel_initializer='random_normal'),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dropout(0.4),
             keras.layers.Dense(4, kernel_initializer='random_normal')
         ], name = 'critic')
 
