@@ -91,11 +91,11 @@ class Driver:
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE ** 2)), 
-            keras.layers.Dense(64, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(64, activation = 'relu', kernel_initializer='zeros'),
             keras.layers.BatchNormalization(),
-            keras.layers.Dense(64, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(64, activation = 'relu', kernel_initializer='zeros'),
             keras.layers.BatchNormalization(),
-            keras.layers.Dense(4, activation = 'tanh', kernel_initializer='glorot_normal')
+            keras.layers.Dense(4, kernel_initializer='zeros')
         ], name = 'critic')
 
         # optimizer
@@ -196,7 +196,7 @@ class Driver:
                     r = 1
                     eats += 1
                 elif signal == Signal.NORMAL:
-                    r = -0.1
+                    r = 0.5
                 r_memory.append(r)
 
                 # observe state after action
