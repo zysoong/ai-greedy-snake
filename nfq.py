@@ -26,18 +26,15 @@ class Driver:
         self.signal_in = Direction.STRAIGHT
         self.max_epochs = int(config[self.env]['max_epochs'])
         self.max_steps = int(config[self.env]['max_steps'])
+        self.epsilon_init = float(config[self.env]['epsilon_init'])
+        self.epsilon_decay = float(config[self.env]['epsilon_decay'])
         self.batch_size = int(config[self.env]['batch_size'])
         self.critic_net_epochs = int(config[self.env]['critic_net_epochs'])
-        self.actor_net_epochs = int(config[self.env]['actor_net_epochs'])
-        self.actor_update_freq = int(config[self.env]['actor_update_freq'])
         self.gamma = float(config[self.env]['gamma'])
         self.beta_init = float(config[self.env]['beta_init'])
         self.critic_net_learnrate_init = float(config[self.env]['critic_net_learnrate_init'])
         self.critic_net_learnrate_decay = float(config[self.env]['critic_net_learnrate_decay'])
         self.critic_net_clipnorm = float(config[self.env]['critic_net_clipnorm'])
-        self.actor_net_learnrate_init = float(config[self.env]['actor_net_learnrate_init'])
-        self.actor_net_learnrate_decay = float(config[self.env]['actor_net_learnrate_decay'])
-        self.actor_net_clipnorm = float(config[self.env]['actor_net_clipnorm'])
         self.train_hist_file = config[self.env]['train_hist_file']
         self.critic_model_file = config[self.env]['critic_model_file']
         self.actor_model_file = config[self.env]['actor_model_file']
@@ -45,22 +42,40 @@ class Driver:
         # parameters
         self.total_steps = 0
         self.critic_net_learnrate = self.critic_net_learnrate_init * (self.critic_net_learnrate_decay ** self.total_steps)
-        self.actor_net_learnrate = self.actor_net_learnrate_init * (self.actor_net_learnrate_decay ** self.total_steps)
+        self.epsilon = self.epsilon_init * (self.epsilon_decay ** self.total_steps)
 
-    def get_action(self, state, critic_model):
-        q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE ** 2)))
-        sm = np.array(tf.nn.softmax(q)).reshape((4))
-        rand = np.random.rand()
-        action = None
-        if 0 <= rand < sm[0]:
-            action = Direction.UP
-        elif sm[0] <= rand < sm[0] + sm[1]:
-            action = Direction.DOWN
-        elif sm[0] + sm[1] <= rand < sm[0] + sm[1] + sm[2]:
-            action = Direction.LEFT
-        elif sm[0] + sm[1] + sm[2] <= rand <= 1.0:
-            action = Direction.RIGHT
-        return action, q, sm
+    def get_action(self, state, critic_model, epsilon):
+
+        rand_strategy = np.random.rand()
+        if 0 <= rand <= rand_strategy:
+            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE ** 2)))
+            sm = np.array(tf.nn.softmax(q)).reshape((4))
+            rand = np.random.rand()
+            action = None
+            if 0 <= rand < sm[0]:
+                action = Direction.UP
+            elif sm[0] <= rand < sm[0] + sm[1]:
+                action = Direction.DOWN
+            elif sm[0] + sm[1] <= rand < sm[0] + sm[1] + sm[2]:
+                action = Direction.LEFT
+            elif sm[0] + sm[1] + sm[2] <= rand <= 1.0:
+                action = Direction.RIGHT
+            return action, q, sm
+        else:
+            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE ** 2)))
+            sm = np.array(tf.nn.softmax(q)).reshape((4))
+            q_np = np.array(q).reshape((4))
+            argmax = np.argmax(q_np)
+            action = None
+            if argmax == 0:
+                action = Direction.UP
+            elif argmax == 1:
+                action = Direction.DOWN
+            elif argmax == 2:
+                action = Direction.LEFT
+            elif argmax == 3:
+                action = Direction.RIGHT
+            return action, q, sm
 
     def get_action_index(self, action):
         if action == Direction.UP:
@@ -191,7 +206,7 @@ class Driver:
                 s_a_future_memory.append(s_future)
                 
                 # choose action at t+1
-                get_action_result = self.get_action(s_future, critic_model)
+                get_action_result = self.get_action(s_future, critic_model, self.epsilon)
                 a_future = get_action_result[0]
                 a_current_temp = a_future
 
@@ -201,7 +216,8 @@ class Driver:
                 t = [0,0,0,0]
                 for j in range(len(t)):
                     if j == self.get_action_index(a_current):
-                        t[j] = r + self.gamma * q_future_max
+                        q_temp = np.array(q_current).reshape((4))[j]
+                        t[j] = q_temp + self.beta_init * (r + self.gamma * q_future_max - q_temp)
                         if r == -1:
                             t[j] = r
                     else:
@@ -213,8 +229,8 @@ class Driver:
                 self.total_steps += 1
 
                 # update learn rate and eps
+                self.epsilon = self.epsilon_init * (self.epsilon_decay ** self.total_steps)
                 self.critic_net_learnrate = self.critic_net_learnrate_init * (self.critic_net_learnrate_decay ** self.total_steps)
-                self.actor_net_learnrate = self.actor_net_learnrate_init * (self.actor_net_learnrate_decay ** self.total_steps)
                 K.set_value(critic_model.optimizer.learning_rate, self.critic_net_learnrate)
 
                 # display information
