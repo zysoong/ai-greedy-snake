@@ -37,7 +37,6 @@ class Driver:
         self.critic_net_clipnorm = float(config[self.env]['critic_net_clipnorm'])
         self.train_hist_file = config[self.env]['train_hist_file']
         self.critic_model_file = config[self.env]['critic_model_file']
-        self.actor_model_file = config[self.env]['actor_model_file']
 
         # parameters
         self.total_steps = 0
