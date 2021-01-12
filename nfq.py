@@ -144,11 +144,11 @@ class Driver:
         eats = 0
 
         # database
-        s_memory = deque(maxlen=10000)
-        s_a_future_memory = deque(maxlen=10000)
-        r_memory = deque(maxlen=10000)
-        t_memory = deque(maxlen=10000)
-        q_memory = deque(maxlen=10000)
+        s_memory = deque(maxlen=1000)
+        s_a_future_memory = deque(maxlen=1000)
+        r_memory = deque(maxlen=1000)
+        t_memory = deque(maxlen=1000)
+        q_memory = deque(maxlen=1000)
 
         for e in range(self.max_epochs):
 
@@ -191,8 +191,8 @@ class Driver:
                 s_a_future_memory.append(s_future)
                 
                 # choose action at t+1
-                gares = self.get_action(s_future, critic_model)
-                a_future = gares[0]
+                get_action_result = self.get_action(s_future, critic_model)
+                a_future = get_action_result[0]
                 a_current_temp = a_future
 
                 # get teacher for critic net (online learning)
@@ -240,7 +240,7 @@ class Driver:
                 print('Hit rate = ' + str(hits / self.total_steps))
                 print('Eat rate = ' + str(eats / self.total_steps))
                 print(display)
-                print(gares[1])
+                print(get_action_result[1])
                 
             # train steps
             s_minibatch = random.sample(s_memory, self.batch_size)
