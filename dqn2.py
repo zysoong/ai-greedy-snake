@@ -43,6 +43,7 @@ class Target(keras.Model):
             ts_ = self.target(state_t_add_1)
             y = reward + self.gamma * ts_ - q
             t = np.zeros((self.batch_size, 4))                                                        
+            t = np.zeros((self.batch_size, 4))                                                        
             target_loss = self.loss(t, y)
         target_grads = tape.gradient(target_loss, self.target.trainable_weights)
 
