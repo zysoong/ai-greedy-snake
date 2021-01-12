@@ -250,7 +250,7 @@ class Driver:
                 # print to debug
                 print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps))
                 print('action = ' + a_print + ' / reward = ' + r_print)
-                print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print +' / diff = ' + diff_print)
+                print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print +' / diff = ' + diff_print + ' / epsilon = ' + str(self.epsilon))
                 print('Thousand steps average score = ' + str(avg))
                 print('Hit rate = ' + str(hits / self.total_steps))
                 print('Eat rate = ' + str(eats / self.total_steps))
