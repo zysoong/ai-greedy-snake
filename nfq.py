@@ -190,11 +190,12 @@ class Driver:
                 if signal == Signal.HIT:
                     r = -1
                     hits += 1
+                    i = self.max_steps - 1                    # learn on hit
                 elif signal == Signal.EAT:
                     r = 1
                     eats += 1
                 elif signal == Signal.NORMAL:
-                    r = 0.1
+                    r = -0.1
                 r_memory.append(r)
 
                 # observe state after action
