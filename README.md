@@ -6,5 +6,5 @@ Current status: configuring NFQ model\
 # Plan
 Explore Actor-Critic model (coding)\
 Explore DQN model (coding)\
-Explore Actor-Critic-Target model (coding)\
+Explore Actor-Critic-Target model (coding)
 
