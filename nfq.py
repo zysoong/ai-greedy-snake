@@ -7,6 +7,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import backend as K
 from collections import OrderedDict
+from collections import deque
 import random
 import configparser
 import copy
@@ -76,16 +77,12 @@ class Driver:
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE ** 2)), 
-            keras.layers.Dense(50, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(64, activation = 'relu', kernel_initializer='glorot_normal'),
             keras.layers.BatchNormalization(),
-            keras.layers.Dense(50, activation = 'relu', kernel_initializer='glorot_normal'),
-            keras.layers.BatchNormalization(),
-            keras.layers.Dense(10, activation = 'relu', kernel_initializer='glorot_normal'),
-            keras.layers.BatchNormalization(),
-            keras.layers.Dense(10, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(64, activation = 'relu', kernel_initializer='glorot_normal'),
             keras.layers.BatchNormalization(),
             keras.layers.Dense(4, activation = 'tanh', kernel_initializer='glorot_normal')
-        ], name = 'critic')   
+        ], name = 'critic')
 
         # optimizer
         c_opt = keras.optimizers.SGD(
@@ -146,33 +143,33 @@ class Driver:
         hits = 0
         eats = 0
 
+        # database
+        s_memory = deque(maxlen=10000)
+        s_a_future_memory = deque(maxlen=10000)
+        r_memory = deque(maxlen=10000)
+        t_memory = deque(maxlen=10000)
+        q_memory = deque(maxlen=10000)
+
         for e in range(self.max_epochs):
 
-            # execute steps for greedy snake
-            s_arr = []
-            s_a_t_add_1_arr = []
-            r_arr = []
-            t_arr = []
-            q_arr = []
-
             # buffer
-            s_t_temp = None
-            a_t_temp = None
+            s_current_temp = None
+            a_current_temp = None
             
             # start steps
             for i in range(self.max_steps):
 
                 # observe state and action at t = 0
                 if i == 0:
-                    s_t = self.get_state()[0].reshape((1, self.greedysnake.SIZE ** 2))
-                    a_t = self.get_action(s_t, critic_model)[0]
+                    s_current = self.get_state()[0].reshape((1, self.greedysnake.SIZE ** 2))
+                    a_current = self.get_action(s_current, critic_model)[0]
                 else: 
-                    s_t = s_t_temp
-                    a_t = a_t_temp
-                s_arr.append(s_t)
+                    s_current = s_current_temp
+                    a_current = a_current_temp
+                s_memory.append(s_current)
 
                 # take action via eps greedy, get reward
-                signal = self.greedysnake.step(a_t)
+                signal = self.greedysnake.step(a_current)
                 r = None
 
                 # signal reward
@@ -184,34 +181,33 @@ class Driver:
                     eats += 1
                 elif signal == Signal.NORMAL:
                     r = 0.1
-
-                r_arr.append(r)
+                r_memory.append(r)
 
                 # observe state after action
-                s_t = np.copy(s_t) #backup s_t
+                s_current = np.copy(s_current) #backup s_current
                 display = self.get_state()[1]
-                s_t_add_1 = self.get_state()[0].reshape((1, self.greedysnake.SIZE ** 2))
-                s_t_temp = s_t_add_1
-                s_a_t_add_1_arr.append(s_t_add_1)
+                s_future = self.get_state()[0].reshape((1, self.greedysnake.SIZE ** 2))
+                s_current_temp = s_future
+                s_a_future_memory.append(s_future)
                 
                 # choose action at t+1
-                gares = self.get_action(s_t_add_1, critic_model)
-                a_t_add_1 = gares[0]
-                a_t_temp = a_t_add_1
+                gares = self.get_action(s_future, critic_model)
+                a_future = gares[0]
+                a_current_temp = a_future
 
                 # get teacher for critic net (online learning)
-                q_t = critic_model.predict(s_t)
-                q_t_add_1_max = np.amax(np.array(critic_model.predict(s_t_add_1)))
+                q_current = critic_model.predict(s_current)
+                q_future_max = np.amax(np.array(critic_model.predict(s_future)))
                 t = [0,0,0,0]
                 for j in range(len(t)):
-                    if j == self.get_action_index(a_t):
-                        t[j] = r + self.gamma * q_t_add_1_max
+                    if j == self.get_action_index(a_current):
+                        t[j] = r + self.gamma * q_future_max
                         if r == -1:
                             t[j] = r
                     else:
-                        t[j] = np.array(q_t).reshape((4))[j]
-                q_arr.append(q_t)
-                t_arr.append(t)
+                        t[j] = np.array(q_current).reshape((4))[j]
+                q_memory.append(q_current)
+                t_memory.append(t)
 
                 # accumulate index
                 self.total_steps += 1
@@ -222,11 +218,11 @@ class Driver:
                 K.set_value(critic_model.optimizer.learning_rate, self.critic_net_learnrate)
 
                 # display information
-                a_print = str(a_t_add_1)
+                a_print = str(a_future)
                 r_print = str(float(r))
                 t_print = str(np.array(t))
-                predict_print = str(q_t)
-                diff_print = str(abs(t - q_t))
+                predict_print = str(q_current)
+                diff_print = str(abs(t - q_current))
 
                 # calc stats
                 if len(scores) < 1000:
@@ -247,8 +243,10 @@ class Driver:
                 print(gares[1])
                 
             # train steps
-            s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), self.greedysnake.SIZE**2))
-            t = np.array(t_arr, dtype=np.float32).reshape((len(t_arr), 4))
+            s_minibatch = random.sample(s_memory, self.batch_size)
+            t_minibatch = random.sample(t_memory, self.batch_size)
+            s = np.array(list(s_minibatch), dtype=np.float32).reshape((len(list(s_minibatch)), self.greedysnake.SIZE**2))
+            t = np.array(list(t_minibatch), dtype=np.float32).reshape((len(t_minibatch), 4))
             critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=1, batch_size = self.batch_size)
 
 
