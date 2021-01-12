@@ -177,7 +177,7 @@ class Driver:
                 # observe state and action at t = 0
                 if i == 0:
                     s_current = self.get_state()[0].reshape((1, self.greedysnake.SIZE ** 2))
-                    a_current = self.get_action(s_current, critic_model)[0]
+                    a_current = self.get_action(s_current, critic_model, self.epsilon)[0]
                 else: 
                     s_current = s_current_temp
                     a_current = a_current_temp
