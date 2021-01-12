@@ -271,7 +271,7 @@ class Driver:
             t_minibatch = random.sample(t_memory, batch_size)
             s = np.array(list(s_minibatch), dtype=np.float32).reshape((len(list(s_minibatch)), self.greedysnake.SIZE**2))
             t = np.array(list(t_minibatch), dtype=np.float32).reshape((len(t_minibatch), 4))
-            critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=1, batch_size = batch_size)
+            critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=0, batch_size = batch_size)
 
 
             # record train history
