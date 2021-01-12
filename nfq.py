@@ -171,7 +171,8 @@ class Driver:
             a_current_temp = None
             
             # start steps
-            for i in range(self.max_steps):
+            i = 0
+            while i < self.max_steps:
 
                 # observe state and action at t = 0
                 if i == 0:
@@ -257,6 +258,9 @@ class Driver:
                 print('Eat rate = ' + str(eats / self.total_steps))
                 print(display)
                 print(tf.nn.softmax(get_action_result[1]))
+
+                # inc step counter
+                i += 1
                 
             # train steps
             s_minibatch = random.sample(s_memory, self.batch_size)
