@@ -91,22 +91,22 @@ class Driver:
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE ** 2)), 
+            keras.layers.Dense(256, activation = 'elu', kernel_initializer='random_normal'),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dropout(0.4),
+            keras.layers.Dense(256, activation = 'elu', kernel_initializer='random_normal'),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dropout(0.4),
+            keras.layers.Dense(128, activation = 'elu', kernel_initializer='random_normal'),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dropout(0.4),
+            keras.layers.Dense(128, activation = 'elu', kernel_initializer='random_normal'),
+            keras.layers.BatchNormalization(),
+            keras.layers.Dropout(0.4),
             keras.layers.Dense(64, activation = 'elu', kernel_initializer='random_normal'),
             keras.layers.BatchNormalization(),
             keras.layers.Dropout(0.4),
-            keras.layers.Dense(128, activation = 'elu', kernel_initializer='random_normal'),
-            keras.layers.BatchNormalization(),
-            keras.layers.Dropout(0.4),
-            keras.layers.Dense(128, activation = 'elu', kernel_initializer='random_normal'),
-            keras.layers.BatchNormalization(),
-            keras.layers.Dropout(0.4),
-            keras.layers.Dense(128, activation = 'elu', kernel_initializer='random_normal'),
-            keras.layers.BatchNormalization(),
-            keras.layers.Dropout(0.4),
-            keras.layers.Dense(640, activation = 'elu', kernel_initializer='random_normal'),
-            keras.layers.BatchNormalization(),
-            keras.layers.Dropout(0.4),
-            keras.layers.Dense(640, activation = 'elu', kernel_initializer='random_normal'),
+            keras.layers.Dense(32, activation = 'elu', kernel_initializer='random_normal'),
             keras.layers.BatchNormalization(),
             keras.layers.Dropout(0.4),
             keras.layers.Dense(4, kernel_initializer='random_normal')
@@ -172,11 +172,11 @@ class Driver:
         eats = 0
 
         # database
-        s_memory = deque(maxlen=1000)
-        s_a_future_memory = deque(maxlen=1000)
-        r_memory = deque(maxlen=1000)
-        t_memory = deque(maxlen=1000)
-        q_memory = deque(maxlen=1000)
+        s_memory = deque(maxlen=10000)
+        s_a_future_memory = deque(maxlen=10000)
+        r_memory = deque(maxlen=10000)
+        t_memory = deque(maxlen=10000)
+        q_memory = deque(maxlen=10000)
 
         for e in range(self.max_epochs):
 
@@ -205,7 +205,7 @@ class Driver:
                 if signal == Signal.HIT:
                     r = -1
                     hits += 1
-                    i = self.max_steps - 1                    # learn on hit
+                   # i = self.max_steps - 1                    # learn on hit
                 elif signal == Signal.EAT:
                     r = 1
                     eats += 1
@@ -233,8 +233,8 @@ class Driver:
                     if j == self.get_action_index(a_current):
                         q_temp = np.array(q_current).reshape((4))[j]
                         t[j] = q_temp + self.beta_init * (r + self.gamma * q_future_max - q_temp)
-                        #if r == -1:
-                        #    t[j] = r
+                       #if r == -1:
+                        #   t[j] = r
                     else:
                         t[j] = np.array(q_current).reshape((4))[j]
                 q_memory.append(q_current)
