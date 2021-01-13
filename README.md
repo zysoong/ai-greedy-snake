@@ -1,5 +1,5 @@
-# ai-greedy-snake
-Experimental project: Greedy snake AI using reinforcement learning (ongoing, not functional status)\
+# AI Greedy Snake (ongoing)
+Experimental project: Snake game AI using reinforcement learning (ongoing, not functional status)\
 The agent runs purely with console, which makes it extremely easy to be trained with a cloud server\
 Current status: configuring NFQ model\
 The agent managed itself to rotate forever in a purpose of avoiding hitting the walls, which is not a optimal convergence buts still shows that the NFQ model is working.\
