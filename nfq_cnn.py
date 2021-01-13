@@ -173,7 +173,7 @@ class Driver:
             keras.layers.Flatten(),
             keras.layers.Dense(256, activation = 'relu', kernel_initializer='ones'),
             keras.layers.Dense(64, activation = 'relu', kernel_initializer='ones'),
-            keras.layers.Dense(4, kernel_initializer='ones')
+            keras.layers.Dense(4, activation = 'tanh', kernel_initializer='ones')
         ], name = 'critic')
 
         # optimizer
