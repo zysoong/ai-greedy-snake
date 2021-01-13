@@ -302,8 +302,8 @@ class Driver:
                     if j == self.get_action_index(a_current):
                         q_temp = np.array(q_current).reshape((4))[j]
                         t[j] = q_temp + self.beta_init * (r + self.gamma * q_future_max - q_temp)
-                    if r == -1:
-                        t[j] = r
+                        if r == -1:
+                            t[j] = r
                     else:
                         t[j] = np.array(q_current).reshape((4))[j]
                 q_memory.append(q_current)
