@@ -177,7 +177,7 @@ class Driver:
         ], name = 'critic')
 
         # optimizer
-        c_opt = keras.optimizers.SGD(
+        c_opt = keras.optimizers.Adam(
             lr = self.critic_net_learnrate, 
             clipnorm = self.critic_net_clipnorm
         )
