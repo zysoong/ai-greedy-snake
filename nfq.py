@@ -91,24 +91,24 @@ class Driver:
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE ** 2)), 
-            keras.layers.Dense(256, activation = 'elu', kernel_initializer='random_normal'),
-            keras.layers.BatchNormalization(),
-            keras.layers.Dropout(0.4),
-            keras.layers.Dense(256, activation = 'elu', kernel_initializer='random_normal'),
-            keras.layers.BatchNormalization(),
-            keras.layers.Dropout(0.4),
-            keras.layers.Dense(128, activation = 'elu', kernel_initializer='random_normal'),
-            keras.layers.BatchNormalization(),
-            keras.layers.Dropout(0.4),
-            keras.layers.Dense(128, activation = 'elu', kernel_initializer='random_normal'),
-            keras.layers.BatchNormalization(),
-            keras.layers.Dropout(0.4),
-            keras.layers.Dense(64, activation = 'elu', kernel_initializer='random_normal'),
-            keras.layers.BatchNormalization(),
-            keras.layers.Dropout(0.4),
-            keras.layers.Dense(32, activation = 'elu', kernel_initializer='random_normal'),
-            keras.layers.BatchNormalization(),
-            keras.layers.Dropout(0.4),
+            keras.layers.Dense(1000, activation = 'elu', kernel_initializer='random_normal'),
+           # keras.layers.BatchNormalization(),
+           # keras.layers.Dropout(0.4),
+            keras.layers.Dense(1000, activation = 'elu', kernel_initializer='random_normal'),
+           # keras.layers.BatchNormalization(),
+           # keras.layers.Dropout(0.4),
+            keras.layers.Dense(1000, activation = 'elu', kernel_initializer='random_normal'),
+           # keras.layers.BatchNormalization(),
+           # keras.layers.Dropout(0.4),
+           # keras.layers.Dense(100, activation = 'elu', kernel_initializer='random_normal'),
+           # keras.layers.BatchNormalization(),
+           # keras.layers.Dropout(0.4),
+           # keras.layers.Dense(, activation = 'elu', kernel_initializer='random_normal'),
+           # keras.layers.BatchNormalization(),
+           # keras.layers.Dropout(0.4),
+           # keras.layers.Dense(32, activation = 'elu', kernel_initializer='random_normal'),
+           # keras.layers.BatchNormalization(),
+           # keras.layers.Dropout(0.4),
             keras.layers.Dense(4, kernel_initializer='random_normal')
         ], name = 'critic')
 
@@ -153,7 +153,7 @@ class Driver:
             
             # block
             else: 
-                frame[row, col] = 0.1
+                frame[row, col] = 0.
                 display += '-'
 
             # switch line
@@ -205,12 +205,12 @@ class Driver:
                 if signal == Signal.HIT:
                     r = -1
                     hits += 1
-                   # i = self.max_steps - 1                    # learn on hit
+                    i = self.max_steps - 1                    # learn on hit
                 elif signal == Signal.EAT:
                     r = 1
                     eats += 1
                 elif signal == Signal.NORMAL:
-                    r = 0.5
+                    r = 0.
                 r_memory.append(r)
 
                 # observe state after action
