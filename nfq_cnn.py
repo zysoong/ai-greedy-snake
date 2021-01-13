@@ -96,7 +96,7 @@ class Driver:
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, 3)), 
             keras.layers.Conv2D(
-                32, (3, 3), 
+                8, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer='random_normal', 
@@ -105,17 +105,7 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.Conv2D(
-                32, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='random_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
-            keras.layers.MaxPooling2D((2, 2)), 
-            keras.layers.Conv2D(
-                64, (3, 3), 
+                8, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer='random_normal', 
@@ -124,7 +114,7 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.Conv2D(
-                64, (3, 3), 
+                12, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer='random_normal', 
@@ -132,10 +122,20 @@ class Driver:
                 bias_regularizer=keras.regularizers.l2(1e-4),
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
-            keras.layers.MaxPooling2D((2, 2)), 
+            keras.layers.Conv2D(
+                12, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='random_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
             keras.layers.Flatten(),
-            keras.layers.Dense(1600, activation = 'relu', kernel_initializer='random_normal'),
-            keras.layers.Dense(400, activation = 'relu', kernel_initializer='random_normal'),
+            keras.layers.Dense(4332, activation = 'relu', kernel_initializer='random_normal'),
+            keras.layers.Dense(2000, activation = 'relu', kernel_initializer='random_normal'),
+            keras.layers.Dense(500, activation = 'relu', kernel_initializer='random_normal'),
+            keras.layers.Dense(150, activation = 'relu', kernel_initializer='random_normal'),
             keras.layers.Dense(4, kernel_initializer='random_normal')
         ], name = 'critic')
 
