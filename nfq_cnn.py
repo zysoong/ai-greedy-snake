@@ -20,7 +20,7 @@ class Driver:
 
     def __init__(self):
         config = configparser.ConfigParser()
-        config.read('nfq.ini')
+        config.read('nfq_cnn.ini')
         self.env = config['ENV']['env']
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
