@@ -49,7 +49,7 @@ class Driver:
 
         # random action
         if 0 <= rand_strategy <= epsilon:
-            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE ** 2)))
+            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE)))
             sm = np.array(tf.nn.softmax(q)).reshape((4))
             rand = np.random.randint(0, 4)
             action = None
@@ -65,7 +65,7 @@ class Driver:
 
         # greedy
         else:
-            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE ** 2)))
+            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE)))
             sm = np.array(tf.nn.softmax(q)).reshape((4))
             q_np = np.array(q).reshape((4))
             argmax = np.argmax(q_np)
@@ -94,7 +94,7 @@ class Driver:
 
         # critic layers
         critic_model = keras.Sequential([
-            keras.layers.Input(shape = (self.greedysnake.SIZE ** 2)), 
+            keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE)), 
             keras.layers.Conv2D(
                 20, (3, 3), 
                 padding='same', 
@@ -235,7 +235,7 @@ class Driver:
 
                 # observe state and action at t = 0
                 if i == 0:
-                    s_current = self.get_state()[0].reshape((1, self.greedysnake.SIZE ** 2))
+                    s_current = self.get_state()[0].reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE))
                     a_current = self.get_action(s_current, critic_model, self.epsilon)[0]
                 else: 
                     s_current = s_current_temp
@@ -261,7 +261,7 @@ class Driver:
                 # observe state after action
                 s_current = np.copy(s_current) #backup s_current
                 display = self.get_state()[1]
-                s_future = self.get_state()[0].reshape((1, self.greedysnake.SIZE ** 2))
+                s_future = self.get_state()[0].reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE))
                 s_current_temp = s_future
                 s_a_future_memory.append(s_future)
                 
@@ -328,7 +328,7 @@ class Driver:
                 batch_size = len_memory
             s_minibatch = random.sample(s_memory, batch_size)
             t_minibatch = random.sample(t_memory, batch_size)
-            s = np.array(list(s_minibatch), dtype=np.float32).reshape((len(list(s_minibatch)), self.greedysnake.SIZE**2))
+            s = np.array(list(s_minibatch), dtype=np.float32).reshape((len(list(s_minibatch)), self.greedysnake.SIZE, self.greedysnake.SIZE))
             t = np.array(list(t_minibatch), dtype=np.float32).reshape((len(t_minibatch), 4))
             critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=1, batch_size = batch_size)
 
