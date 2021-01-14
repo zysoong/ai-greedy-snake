@@ -52,7 +52,7 @@ class Driver:
             q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 3)))
             sm = np.array(tf.nn.softmax(q)).reshape((4))
             action = None
-            food_smell_map = np.array(state)[:,:,:,3].reshape((self.greedysnake.SIZE, self.greedysnake.SIZE))
+            food_smell_map = np.array(state)[:,:,:,2].reshape((self.greedysnake.SIZE, self.greedysnake.SIZE))
             smells = [0,0,0,0]
             for i in range(self.greedysnake.SIZE ** 2):
                 row = i // self.greedysnake.SIZE
