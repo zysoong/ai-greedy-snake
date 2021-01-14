@@ -319,7 +319,7 @@ class Driver:
                     r = 1.
                     eats += 1
                 elif signal == Signal.NORMAL:
-                    r = -0.1
+                    r = 0.
                 r_memory.append(r)
 
                 # observe state after action
