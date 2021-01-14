@@ -53,17 +53,20 @@ class Driver:
             sm = np.array(tf.nn.softmax(q)).reshape((4))
             action = None
             food_smell_map = np.array(state)[:,:,:,2].reshape((self.greedysnake.SIZE, self.greedysnake.SIZE))
-            smells = [0,0,0,0]
+            smells = [0.,0.,0.,0.]
             for i in range(self.greedysnake.SIZE ** 2):
                 row = i // self.greedysnake.SIZE
                 col = i % self.greedysnake.SIZE
                 snake_index = self.greedysnake.is_snake(row, col)
                 # snake head
                 if snake_index == 0:
-                    smells[0] = food_smell_map[row-1, col]
-                    smells[1] = food_smell_map[row+1, col]
-                    smells[2] = food_smell_map[row, col-1]
-                    smells[3] = food_smell_map[row-1, col+1]
+                    try:
+                        smells[0] = food_smell_map[row-1, col]
+                        smells[1] = food_smell_map[row+1, col]
+                        smells[2] = food_smell_map[row, col-1]
+                        smells[3] = food_smell_map[row-1, col+1]
+                    except IndexError:
+                        pass
             argmax = np.argmax(np.array(smells))
             if argmax == 0:
                 action = Direction.UP
