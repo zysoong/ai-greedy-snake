@@ -128,75 +128,51 @@ class Driver:
                 64, (3, 3), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
+                kernel_initializer='glorot_normal'
             ),
             keras.layers.Conv2D(
                 64, (3, 3), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
+                kernel_initializer='glorot_normal'
             ),
             keras.layers.MaxPooling2D((2, 2)), 
             keras.layers.Conv2D(
                 128, (3, 3), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
+                kernel_initializer='glorot_normal'
             ),
             keras.layers.Conv2D(
                 128, (3, 3), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
+                kernel_initializer='glorot_normal'
             ),
             keras.layers.Conv2D(
                 128, (3, 3), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
+                kernel_initializer='glorot_normal'
             ),
             keras.layers.MaxPooling2D((2, 2)), 
             keras.layers.Conv2D(
                 256, (3, 3), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
+                kernel_initializer='glorot_normal'
             ),
             keras.layers.Conv2D(
                 256, (3, 3), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
+                kernel_initializer='glorot_normal'
             ),
             keras.layers.Conv2D(
                 256, (3, 3), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
+                kernel_initializer='glorot_normal'
             ),
             keras.layers.MaxPooling2D((2, 2)), 
             keras.layers.Flatten(),
