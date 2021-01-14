@@ -257,6 +257,9 @@ class Driver:
             i = 0
             while i < self.max_steps:
 
+                s_current = None
+                a_current = None
+
                 # observe state and action at t = 0
                 if i == 0:
                     s_current = self.get_state()[0].reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 3))
@@ -265,6 +268,7 @@ class Driver:
                     s_current = s_current_temp
                     a_current = a_current_temp
                 s_memory.append(s_current)
+                display = self.get_state()[1]
 
                 # take action via eps greedy, get reward
                 signal = self.greedysnake.step(a_current)
@@ -272,19 +276,17 @@ class Driver:
 
                 # signal reward
                 if signal == Signal.HIT:
-                    r = -1
+                    r = -1.
                     hits += 1
-                    i = self.max_steps - 1                    # learn on hit
+                    i = self.max_steps - 1    #  learn on hit
                 elif signal == Signal.EAT:
-                    r = 1
+                    r = 1.
                     eats += 1
                 elif signal == Signal.NORMAL:
-                    r = 0.
+                    r = -0.1
                 r_memory.append(r)
 
                 # observe state after action
-                s_current = np.copy(s_current) #backup s_current
-                display = self.get_state()[1]
                 s_future = self.get_state()[0].reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 3))
                 s_current_temp = s_future
                 s_a_future_memory.append(s_future)
