@@ -32,6 +32,7 @@ class Driver:
         self.critic_net_epochs = int(config[self.env]['critic_net_epochs'])
         self.gamma = float(config[self.env]['gamma'])
         self.beta_init = float(config[self.env]['beta_init'])
+        self.beta_decay = float(config[self.env]['beta_decay'])
         self.critic_net_learnrate_init = float(config[self.env]['critic_net_learnrate_init'])
         self.critic_net_learnrate_decay = float(config[self.env]['critic_net_learnrate_decay'])
         self.critic_net_clipnorm = float(config[self.env]['critic_net_clipnorm'])
@@ -41,6 +42,7 @@ class Driver:
         # parameters
         self.total_steps = 0
         self.critic_net_learnrate = self.critic_net_learnrate_init * (self.critic_net_learnrate_decay ** self.total_steps)
+        self.beta = self.beta_init * (self.beta_decay ** self.total_steps)
         self.epsilon = self.epsilon_init * (self.epsilon_decay ** self.total_steps)
 
     def get_action(self, state, critic_model, epsilon):
@@ -351,6 +353,7 @@ class Driver:
                 # update learn rate and eps
                 self.epsilon = self.epsilon_init * (self.epsilon_decay ** self.total_steps)
                 self.critic_net_learnrate = self.critic_net_learnrate_init * (self.critic_net_learnrate_decay ** self.total_steps)
+                self.beta = self.beta_init * (self.beta_decay ** self.total_steps)
                 K.set_value(critic_model.optimizer.learning_rate, self.critic_net_learnrate)
 
                 # display information
