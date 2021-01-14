@@ -55,7 +55,7 @@ class Driver:
             food_smell_map = np.array(state)[:,:,:,2].reshape((self.greedysnake.SIZE, self.greedysnake.SIZE))
 
             # BUG print to test
-            print(food_smell_map)
+            # print(food_smell_map)
 
             smells = [0.,0.,0.,0.]
             for i in range(self.greedysnake.SIZE ** 2):
@@ -73,13 +73,25 @@ class Driver:
                         pass
             argmax = np.argmax(np.array(smells))
             if argmax == 0:
-                action = Direction.UP
+                if self.greedysnake.head_direction != Direction.DOWN:
+                    action = Direction.UP
+                else:
+                    action = Direction.RIGHT
             elif argmax == 1:
-                action = Direction.DOWN
+                if self.greedysnake.head_direction != Direction.UP:
+                    action = Direction.DOWN
+                else:
+                    action = Direction.LEFT
             elif argmax == 2:
-                action = Direction.LEFT
+                if self.greedysnake.head_direction != Direction.RIGHT:
+                    action = Direction.LEFT
+                else:
+                    action = Direction.UP
             elif argmax == 3:
-                action = Direction.RIGHT
+                if self.greedysnake.head_direction != Direction.LEFT:
+                    action = Direction.RIGHT
+                else:
+                    action = Direction.DOWN
             return action, q, sm
 
         # greedy
