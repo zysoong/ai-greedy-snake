@@ -53,6 +53,10 @@ class Driver:
             sm = np.array(tf.nn.softmax(q)).reshape((4))
             action = None
             food_smell_map = np.array(state)[:,:,:,2].reshape((self.greedysnake.SIZE, self.greedysnake.SIZE))
+
+            # BUG print to test
+            print(food_smell_map)
+
             smells = [0.,0.,0.,0.]
             for i in range(self.greedysnake.SIZE ** 2):
                 row = i // self.greedysnake.SIZE
