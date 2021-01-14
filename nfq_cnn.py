@@ -241,11 +241,11 @@ class Driver:
         eats = 0
 
         # database
-        s_memory = deque(maxlen=10000)
-        s_a_future_memory = deque(maxlen=10000)
-        r_memory = deque(maxlen=10000)
-        t_memory = deque(maxlen=10000)
-        q_memory = deque(maxlen=10000)
+        s_memory = deque(maxlen=1000)
+        s_a_future_memory = deque(maxlen=1000)
+        r_memory = deque(maxlen=1000)
+        t_memory = deque(maxlen=1000)
+        q_memory = deque(maxlen=1000)
 
         for e in range(self.max_epochs):
 
