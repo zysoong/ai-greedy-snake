@@ -201,7 +201,8 @@ class Driver:
             keras.layers.MaxPooling2D((2, 2)), 
             keras.layers.Flatten(),
             keras.layers.Dense(256, activation = 'relu', kernel_initializer='glorot_normal'),
-            keras.layers.Dense(64, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(256, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(256, activation = 'relu', kernel_initializer='glorot_normal'),
             keras.layers.Dense(4, kernel_initializer='glorot_normal')
         ], name = 'critic')
 
