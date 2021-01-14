@@ -358,7 +358,7 @@ class Driver:
                 K.set_value(critic_model.optimizer.learning_rate, self.critic_net_learnrate)
 
                 # display information
-                a_print = str(a_future)
+                a_print = str(a_current)
                 r_print = str(float(r))
                 t_print = str(np.array(t))
                 predict_print = str(q_current)
