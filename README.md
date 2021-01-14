@@ -6,9 +6,11 @@ The agent managed itself to rotate forever in a purpose of avoiding hitting the 
 Planned improvement: Use epsilong Greedy and try to adapt the model and its parameters\
 ![](https://github.com/zysoong/ai-greedy-snake/blob/master/images/nfq_1.gif?raw=true)
 
-# Plan
-Explore NFQ model(testing)\
-Explore Actor-Critic model (ongoing, coding)\
-Explore DQN model (ongoing, coding)\
-Explore Actor-Critic-Target model (ongoing, coding)
+# Current status
+Model | Coding completed | Significant movements | Clever snake
+--- | --- | --- | ---
+NFQ (DQN) | Yes | Yes | No
+DDQN | No | No | No
+Actor-Critic (ADHDP) | No | No | No
+Actor-Critic-Target | No | No | No
 
