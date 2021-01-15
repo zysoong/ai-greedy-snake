@@ -408,8 +408,8 @@ class Driver:
             t_arr = []
 
             # buffer
-            s_t_temp = None
-            a_t_temp = None
+            s_current_temp = None
+            a_current_temp = None
             actmap_t_temp = None
             
             # start steps
@@ -417,38 +417,38 @@ class Driver:
 
                 # observe state and action at t = 0
                 if i == 0:
-                    s_t = self.timeslip
-                    actmap_t = adhdp.predict_actor(s_t.reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
-                    a_t = self.get_action(np.array(actmap_t).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))[0]
+                    s_current = self.timeslip
+                    actmap_t = adhdp.predict_actor(s_current.reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
+                    a_current = self.get_action(np.array(actmap_t).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))[0]
                 else: 
-                    s_t = s_t_temp
-                    a_t = a_t_temp
+                    s_current = s_current_temp
+                    a_current = a_current_temp
                     actmap_t = actmap_t_temp
-                s_a_t = tf.concat([s_t, np.array(actmap_t).reshape((self.greedysnake.SIZE, self.greedysnake.SIZE, 1))], axis=2)
+                s_a_current = tf.concat([s_current, np.array(actmap_t).reshape((self.greedysnake.SIZE, self.greedysnake.SIZE, 1))], axis=2)
 
                 # DEBUG
-                #print('============ s_a_t ===================')
-                #print(s_a_t.shape)
-                #print(s_a_t[:,:,0])
-                #print(s_a_t[:,:,1])
-                #print(s_a_t[:,:,2])
-                #print(s_a_t[:,:,3])
-                #print(s_a_t[:,:,4])
-                #print(s_a_t[:,:,5])
-                #print(s_a_t[:,:,6])
-                #print(s_a_t[:,:,7])
-                #print(s_a_t[:,:,8])
-                #print(s_a_t[:,:,9])
-                #print(s_a_t[:,:,10])
-                #print(s_a_t[:,:,11])
-                #print(s_a_t[:,:,12])
-                print('========== s_a_t ==================')
+                #print('============ s_a_current ===================')
+                #print(s_a_current.shape)
+                #print(s_a_current[:,:,0])
+                #print(s_a_current[:,:,1])
+                #print(s_a_current[:,:,2])
+                #print(s_a_current[:,:,3])
+                #print(s_a_current[:,:,4])
+                #print(s_a_current[:,:,5])
+                #print(s_a_current[:,:,6])
+                #print(s_a_current[:,:,7])
+                #print(s_a_current[:,:,8])
+                #print(s_a_current[:,:,9])
+                #print(s_a_current[:,:,10])
+                #print(s_a_current[:,:,11])
+                #print(s_a_current[:,:,12])
+                print('========== s_a_current ==================')
 
-                s_arr.append(s_t)
-                s_a_arr.append(s_a_t)
+                s_arr.append(s_current)
+                s_a_arr.append(s_a_current)
 
                 # take action via eps greedy, get reward
-                signal = self.greedysnake.step(a_t)
+                signal = self.greedysnake.step(a_current)
                 r = None
                 if signal == Signal.HIT:
                     r = -1
@@ -461,29 +461,29 @@ class Driver:
                 r_arr.append(r)
 
                 # observe state after action
-                s_t = np.copy(self.timeslip) #backup s_t
+                s_current = np.copy(self.timeslip) #backup s_current
                 display = self.write_to_timeslip()
-                #print(np.array(s_t).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
+                #print(np.array(s_current).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
                 #print(np.array(self.timeslip).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
-                s_t_add_1 = self.timeslip
-                s_t_temp = s_t_add_1
+                s_future = self.timeslip
+                s_current_temp = s_future
                 
                 # choose action at t+1
-                actmap_t_add_1 = adhdp.predict_actor(np.array(s_t_add_1).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
-                gares = self.get_action(np.array(actmap_t_add_1).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
-                a_t_add_1 = gares[0]
-                actmap_t_temp = actmap_t_add_1
+                actmap_future = adhdp.predict_actor(np.array(s_future).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
+                gares = self.get_action(np.array(actmap_future).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
+                a_future = gares[0]
+                actmap_t_temp = actmap_future
                 #print('=============== actmap(temp) ======================')
                 #print(actmap_t_temp)
 
-                a_t_temp = a_t_add_1
+                a_current_temp = a_future
 
                 # get teacher for critic net (online learning)
-                # tf.print(np.array(actmap_t_add_1).shape)
-                s_a_t_add_1 = tf.concat([s_t_add_1, actmap_t_add_1[0,:,:,:]], axis=2)
-                q_t = critic_model.predict(np.array(s_a_t).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
-                q_t_add_1 = critic_model.predict(np.array(s_a_t_add_1).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
-                t = r + self.gamma * q_t_add_1
+                # tf.print(np.array(actmap_future).shape)
+                s_a_future = tf.concat([s_future, actmap_future[0,:,:,:]], axis=2)
+                q_current = critic_model.predict(np.array(s_a_current).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
+                q_future = critic_model.predict(np.array(s_a_future).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
+                t = r + self.gamma * q_future
                 if r == -1:
                     t = r
                 t_arr.append(t)
@@ -499,11 +499,11 @@ class Driver:
                 K.set_value(adhdp.optimizer.learning_rate, self.actor_net_learnrate)
 
                 # display information
-                a_print = str(a_t_add_1)
+                a_print = str(a_future)
                 r_print = str(float(r))
                 t_print = str(np.array(t))
-                predict_print = str(q_t)
-                diff_print = str(abs(t - q_t))
+                predict_print = str(q_current)
+                diff_print = str(abs(t - q_current))
 
                 # calc stats
                 if len(scores) < 1000:
@@ -521,7 +521,7 @@ class Driver:
                 print('Hit rate = ' + str(hits / self.total_steps))
                 print('Eat rate = ' + str(eats / self.total_steps))
                 print(display)
-                print(gares[1])
+                #print(gares[1])
 
             # train steps
             s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
