@@ -14,7 +14,7 @@ import copy
 import sys
 import warnings
 warnings.filterwarnings("ignore")
-np.set_printoptions(threshold=sys.maxsize, precision=2)
+np.set_printoptions(threshold=sys.maxsize)
 
 class Driver:
 
