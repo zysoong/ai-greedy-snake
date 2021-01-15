@@ -73,6 +73,8 @@ class Driver:
         self.max_epochs = int(config[self.env]['max_epochs'])
         self.max_steps = int(config[self.env]['max_steps'])
         self.batch_size = int(config[self.env]['batch_size'])
+        self.memory_size = int(config[self.env]['memory_size'])
+        self.mini_batch_size = int(config[self.env]['mini_batch_size'])
         self.critic_net_epochs = int(config[self.env]['critic_net_epochs'])
         self.target_net_epochs = int(config[self.env]['target_net_epochs'])
         self.gamma = float(config[self.env]['gamma'])
@@ -221,7 +223,6 @@ class Driver:
             # execute steps for greedy snake
             s_arr = []
             s_a_t_add_1_arr = []
-            s_a_arr = []
             r_arr = []
             t_arr = []
             q_arr = []

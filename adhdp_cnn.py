@@ -74,6 +74,8 @@ class Driver:
         self.max_epochs = int(config[self.env]['max_epochs'])
         self.max_steps = int(config[self.env]['max_steps'])
         self.batch_size = int(config[self.env]['batch_size'])
+        self.memory_size = int(config[self.env]['memory_size'])
+        self.mini_batch_size = int(config[self.env]['mini_batch_size'])
         self.critic_net_epochs = int(config[self.env]['critic_net_epochs'])
         self.actor_net_epochs = int(config[self.env]['actor_net_epochs'])
         self.gamma = float(config[self.env]['gamma'])
@@ -175,42 +177,6 @@ class Driver:
         if x == 0 and y < 0:
             action = Direction.LEFT
         return action, map
-        
-
-
-
-    '''
-    def get_action(self, action_map):
-        central = self.greedysnake.SIZE // 2
-        maxindex = action_map.argmax()
-        row = maxindex // self.greedysnake.SIZE
-        col = maxindex % self.greedysnake.SIZE - 1
-        x = col - central
-        y = central - row
-        action = None
-        if x >= 0 and y >= 0:
-            if abs(y / x) < 1 or x == 0:
-                action = Direction.RIGHT
-            else:
-                action = Direction.UP
-        if x < 0 and y >= 0:
-            if abs(y / x) < 1:
-                action = Direction.UP
-            else:
-                action = Direction.LEFT
-        if x < 0 and y < 0:
-            if abs(y / x) < 1:
-                action = Direction.LEFT
-            else:
-                action = Direction.DOWN
-        if x >= 0 and y < 0:
-            if abs(y / x) < 1 or x == 0:
-                action = Direction.RIGHT
-            else:
-                action = Direction.DOWN
-        return action
-    '''
-
         
     def get_adhdp(self):
 
@@ -319,11 +285,11 @@ class Driver:
         ], name = 'actor')        
 
         # optimizer
-        c_opt = keras.optimizers.SGD(
+        c_opt = keras.optimizers.Adam(
             lr = self.critic_net_learnrate, 
             clipnorm = self.critic_net_clipnorm
         )
-        a_opt = keras.optimizers.SGD(
+        a_opt = keras.optimizers.Adam(
             lr = self.actor_net_learnrate, 
             clipnorm = self.actor_net_clipnorm
         )
@@ -401,6 +367,12 @@ class Driver:
 
         for e in range(self.max_epochs):
 
+            # database
+            s_memory = deque(maxlen=self.memory_size)
+            s_a_memory = deque(maxlen=self.memory_size)
+            r_memory = deque(maxlen=self.memory_size)
+            t_memory = deque(maxlen=self.memory_size)
+
             # execute steps for greedy snake
             s_arr = []
             s_a_arr = []
@@ -410,7 +382,7 @@ class Driver:
             # buffer
             s_current_temp = None
             a_current_temp = None
-            actmap_t_temp = None
+            actmap_current_temp = None
             
             # start steps
             for i in range(self.max_steps):
@@ -418,13 +390,13 @@ class Driver:
                 # observe state and action at t = 0
                 if i == 0:
                     s_current = self.timeslip
-                    actmap_t = adhdp.predict_actor(s_current.reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
-                    a_current = self.get_action(np.array(actmap_t).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))[0]
+                    actmap_current = adhdp.predict_actor(s_current.reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
+                    a_current = self.get_action(np.array(actmap_current).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))[0]
                 else: 
                     s_current = s_current_temp
                     a_current = a_current_temp
-                    actmap_t = actmap_t_temp
-                s_a_current = tf.concat([s_current, np.array(actmap_t).reshape((self.greedysnake.SIZE, self.greedysnake.SIZE, 1))], axis=2)
+                    actmap_current = actmap_current_temp
+                s_a_current = tf.concat([s_current, np.array(actmap_current).reshape((self.greedysnake.SIZE, self.greedysnake.SIZE, 1))], axis=2)
 
                 # DEBUG
                 #print('============ s_a_current ===================')
@@ -444,8 +416,8 @@ class Driver:
                 #print(s_a_current[:,:,12])
                 print('========== s_a_current ==================')
 
-                s_arr.append(s_current)
-                s_a_arr.append(s_a_current)
+                s_memory.append(s_current)
+                s_a_memory.append(s_a_current)
 
                 # take action via eps greedy, get reward
                 signal = self.greedysnake.step(a_current)
@@ -458,7 +430,7 @@ class Driver:
                     eats += 1
                 elif signal == Signal.NORMAL:
                     r = 0
-                r_arr.append(r)
+                r_memory.append(r)
 
                 # observe state after action
                 s_current = np.copy(self.timeslip) #backup s_current
@@ -472,9 +444,9 @@ class Driver:
                 actmap_future = adhdp.predict_actor(np.array(s_future).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
                 gares = self.get_action(np.array(actmap_future).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
                 a_future = gares[0]
-                actmap_t_temp = actmap_future
+                actmap_current_temp = actmap_future
                 #print('=============== actmap(temp) ======================')
-                #print(actmap_t_temp)
+                #print(actmap_current_temp)
 
                 a_current_temp = a_future
 
@@ -484,9 +456,9 @@ class Driver:
                 q_current = critic_model.predict(np.array(s_a_current).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
                 q_future = critic_model.predict(np.array(s_a_future).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
                 t = r + self.gamma * q_future
-                if r == -1:
+                if signal == Signal.HIT:
                     t = r
-                t_arr.append(t)
+                t_memory.append(t)
 
                 # accumulate index
                 self.total_steps += 1
@@ -524,9 +496,16 @@ class Driver:
                 #print(gares[1])
 
             # train steps
-            s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
-            s_a = np.array(s_a_arr, dtype=np.float32).reshape((len(s_a_arr), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
-            t = np.array(t_arr, dtype=np.float32).reshape((len(t_arr), 1))
+            mini_batch_size = self.mini_batch_size
+            len_memory = len(list(s_memory))
+            if len_memory < mini_batch_size:
+                mini_batch_size = len_memory
+            s_minibatch = random.sample(s_memory, mini_batch_size)
+            s_a_minibatch = random.sample(s_a_memory, mini_batch_size)
+            t_minibatch = random.sample(t_memory, mini_batch_size)
+            s = np.array(list(s_minibatch), dtype=np.float32).reshape((len(list(s_minibatch)), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
+            s_a = np.array(list(s_a_minibatch), dtype=np.float32).reshape((len(list(s_a_minibatch)), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
+            t = np.array(list(t_minibatch), dtype=np.float32).reshape((len(list(t_minibatch)), 1))
             critic_model.fit(s_a, t, epochs=self.critic_net_epochs, verbose=1, batch_size = self.batch_size)
             adhdp.fit(s, t, epochs=self.actor_net_epochs, verbose=1, batch_size = self.batch_size)
 
