@@ -14,7 +14,7 @@ import copy
 import sys
 import warnings
 warnings.filterwarnings("ignore")
-np.set_printoptions(threshold=sys.maxsize)
+np.set_printoptions(threshold=sys.maxsize, precision=2)
 
 class Driver:
 
@@ -46,6 +46,50 @@ class Driver:
         self.critic_net_learnrate = self.critic_net_learnrate_init * (self.critic_net_learnrate_decay ** self.total_steps)
         self.beta = self.beta_init * (self.beta_decay ** self.total_steps)
         self.epsilon = self.epsilon_init * (self.epsilon_decay ** self.total_steps)
+
+
+
+        def get_state(self):
+            display = ''
+            frame_head = np.zeros(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE, 1), dtype=np.float32)
+            frame_body = np.zeros(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE, 1), dtype=np.float32)
+            frame_food = np.zeros(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE, 1), dtype=np.float32)
+            # generate states for N(s, a)
+            for i in range(self.greedysnake.SIZE ** 2):
+                row = i // self.greedysnake.SIZE
+                col = i % self.greedysnake.SIZE
+                snake_index = self.greedysnake.is_snake(row, col)
+
+                # snake
+                if snake_index > -1:
+
+                    # snake head
+                    if snake_index == 0: 
+                        frame_head[row, col] = 1.
+                        display += '@'
+
+                    # snake body
+                    else:
+                        frame_body[row, col] = 1.
+                        display += 'O'
+
+                # food
+                elif (np.array([row, col]) == self.greedysnake.food).all():
+                    frame_food[row, col] = 1.
+                    display += '#'
+                
+                # block
+                else: 
+                    display += '-'
+
+                # switch line
+                if col == self.greedysnake.SIZE - 1:
+                    display += '\n'
+
+            # concat frames
+            frame = np.concatenate((frame_head, frame_body, frame_food), axis=2)
+                
+            return frame, display
 
 
     '''
@@ -97,6 +141,7 @@ class Driver:
             sm = np.array(tf.nn.softmax(q)).reshape((4))
             action = None
             food_smell_map = np.array(state)[:,:,:,2].reshape((self.greedysnake.SIZE, self.greedysnake.SIZE))
+            print(food_smell_map)
             smells = [0.,0.,0.,0.]
             for i in range(self.greedysnake.SIZE ** 2):
                 row = i // self.greedysnake.SIZE
@@ -221,49 +266,6 @@ class Driver:
         critic_model.compile(loss = keras.losses.MSE, optimizer = c_opt)
 
         return critic_model
-
-
-    def get_state(self):
-        display = ''
-        frame_head = np.zeros(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE, 1), dtype=np.float32)
-        frame_body = np.zeros(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE, 1), dtype=np.float32)
-        frame_food = np.zeros(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE, 1), dtype=np.float32)
-        # generate states for N(s, a)
-        for i in range(self.greedysnake.SIZE ** 2):
-            row = i // self.greedysnake.SIZE
-            col = i % self.greedysnake.SIZE
-            snake_index = self.greedysnake.is_snake(row, col)
-
-            # snake
-            if snake_index > -1:
-
-                # snake head
-                if snake_index == 0: 
-                    frame_head[row, col] = 1.
-                    display += '@'
-
-                # snake body
-                else:
-                    frame_body[row, col] = 1.
-                    display += 'O'
-
-            # food
-            elif (np.array([row, col]) == self.greedysnake.food).all():
-                frame_food[row, col] = 1.
-                display += '#'
-            
-            # block
-            else: 
-                display += '-'
-
-            # switch line
-            if col == self.greedysnake.SIZE - 1:
-                display += '\n'
-
-        # concat frames
-        frame = np.concatenate((frame_head, frame_body, frame_food), axis=2)
-            
-        return frame, display
         
     def run(self):
         
