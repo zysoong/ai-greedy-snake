@@ -29,6 +29,7 @@ class Driver:
         self.epsilon_init = float(config[self.env]['epsilon_init'])
         self.epsilon_decay = float(config[self.env]['epsilon_decay'])
         self.batch_size = int(config[self.env]['batch_size'])
+        self.memory_size = int(config[self.env]['memory_size'])
         self.critic_net_epochs = int(config[self.env]['critic_net_epochs'])
         self.gamma = float(config[self.env]['gamma'])
         self.beta_init = float(config[self.env]['beta_init'])
@@ -243,11 +244,11 @@ class Driver:
         eats = 0
 
         # database
-        s_memory = deque(maxlen=1000)
-        s_a_future_memory = deque(maxlen=1000)
-        r_memory = deque(maxlen=1000)
-        t_memory = deque(maxlen=1000)
-        q_memory = deque(maxlen=1000)
+        s_memory = deque(maxlen=self.memory_size)
+        s_a_future_memory = deque(maxlen=self.memory_size)
+        r_memory = deque(maxlen=self.memory_size)
+        t_memory = deque(maxlen=self.memory_size)
+        q_memory = deque(maxlen=self.memory_size)
 
         for e in range(self.max_epochs):
 
