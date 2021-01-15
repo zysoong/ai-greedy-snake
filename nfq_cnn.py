@@ -30,6 +30,7 @@ class Driver:
         self.epsilon_decay = float(config[self.env]['epsilon_decay'])
         self.batch_size = int(config[self.env]['batch_size'])
         self.memory_size = int(config[self.env]['memory_size'])
+        self.mini_batch_size = int(config[self.env]['mini_batch_size'])
         self.critic_net_epochs = int(config[self.env]['critic_net_epochs'])
         self.gamma = float(config[self.env]['gamma'])
         self.beta_init = float(config[self.env]['beta_init'])
@@ -352,15 +353,15 @@ class Driver:
                 i += 1
                 
             # train steps
-            batch_size = self.batch_size
+            mini_batch_size = self.mini_batch_size
             len_memory = len(list(s_memory))
-            if len_memory < self.batch_size:
-                batch_size = len_memory
-            s_minibatch = random.sample(s_memory, batch_size)
-            t_minibatch = random.sample(t_memory, batch_size)
+            if len_memory < mini_batch_size:
+                mini_batch_size = len_memory
+            s_minibatch = random.sample(s_memory, mini_batch_size)
+            t_minibatch = random.sample(t_memory, mini_batch_size)
             s = np.array(list(s_minibatch), dtype=np.float32).reshape((len(list(s_minibatch)), self.greedysnake.SIZE, self.greedysnake.SIZE, 3))
             t = np.array(list(t_minibatch), dtype=np.float32).reshape((len(t_minibatch), 4))
-            critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=1, batch_size = batch_size)
+            critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=1, batch_size = self.batch_size)
 
 
             # record train history
