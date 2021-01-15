@@ -49,47 +49,47 @@ class Driver:
 
 
 
-        def get_state(self):
-            display = ''
-            frame_head = np.zeros(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE, 1), dtype=np.float32)
-            frame_body = np.zeros(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE, 1), dtype=np.float32)
-            frame_food = np.zeros(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE, 1), dtype=np.float32)
-            # generate states for N(s, a)
-            for i in range(self.greedysnake.SIZE ** 2):
-                row = i // self.greedysnake.SIZE
-                col = i % self.greedysnake.SIZE
-                snake_index = self.greedysnake.is_snake(row, col)
+    def get_state(self):
+        display = ''
+        frame_head = np.zeros(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE, 1), dtype=np.float32)
+        frame_body = np.zeros(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE, 1), dtype=np.float32)
+        frame_food = np.zeros(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE, 1), dtype=np.float32)
+        # generate states for N(s, a)
+        for i in range(self.greedysnake.SIZE ** 2):
+            row = i // self.greedysnake.SIZE
+            col = i % self.greedysnake.SIZE
+            snake_index = self.greedysnake.is_snake(row, col)
 
-                # snake
-                if snake_index > -1:
+            # snake
+            if snake_index > -1:
 
-                    # snake head
-                    if snake_index == 0: 
-                        frame_head[row, col] = 1.
-                        display += '@'
+                # snake head
+                if snake_index == 0: 
+                    frame_head[row, col] = 1.
+                    display += '@'
 
-                    # snake body
-                    else:
-                        frame_body[row, col] = 1.
-                        display += 'O'
+                # snake body
+                else:
+                    frame_body[row, col] = 1.
+                    display += 'O'
 
-                # food
-                elif (np.array([row, col]) == self.greedysnake.food).all():
-                    frame_food[row, col] = 1.
-                    display += '#'
-                
-                # block
-                else: 
-                    display += '-'
+            # food
+            elif (np.array([row, col]) == self.greedysnake.food).all():
+                frame_food[row, col] = 1.
+                display += '#'
+            
+            # block
+            else: 
+                display += '-'
 
-                # switch line
-                if col == self.greedysnake.SIZE - 1:
-                    display += '\n'
+            # switch line
+            if col == self.greedysnake.SIZE - 1:
+                display += '\n'
 
-            # concat frames
-            frame = np.concatenate((frame_head, frame_body, frame_food), axis=2)
-                
-            return frame, display
+        # concat frames
+        frame = np.concatenate((frame_head, frame_body, frame_food), axis=2)
+            
+        return frame, display
 
 
     '''
