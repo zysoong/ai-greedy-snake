@@ -421,7 +421,6 @@ class Driver:
                 if signal == Signal.HIT:
                     r = -1
                     hits += 1
-                    i = self.max_steps - 1         # learn on hit
                 elif signal == Signal.EAT:
                     r = 0.2
                     eats += 1
