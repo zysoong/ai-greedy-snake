@@ -136,47 +136,10 @@ class Driver:
                 bias_regularizer=keras.regularizers.l2(1e-4),
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
-            keras.layers.Conv2D(
-                128, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='random_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
-            keras.layers.MaxPooling2D((2, 2)), 
-            keras.layers.Conv2D(
-                256, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='random_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
-            keras.layers.Conv2D(
-                256, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='random_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
-            keras.layers.Conv2D(
-                256, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='random_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
             keras.layers.MaxPooling2D((2, 2)), 
             keras.layers.Flatten(),
-            keras.layers.Dense(256, activation = 'relu', kernel_initializer='random_normal'),
-            keras.layers.Dense(64, activation = 'relu', kernel_initializer='random_normal'),
+            keras.layers.Dense(800, activation = 'relu', kernel_initializer='random_normal'),
+            keras.layers.Dense(400, activation = 'relu', kernel_initializer='random_normal'),
             keras.layers.Dense(4, kernel_initializer='random_normal')
         ], name = 'critic')
 
