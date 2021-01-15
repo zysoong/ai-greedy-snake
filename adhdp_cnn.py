@@ -374,19 +374,14 @@ class Driver:
             r_memory = deque(maxlen=self.memory_size)
             t_memory = deque(maxlen=self.memory_size)
 
-            # execute steps for greedy snake
-            s_arr = []
-            s_a_arr = []
-            r_arr = []
-            t_arr = []
-
             # buffer
             s_current_temp = None
             a_current_temp = None
             actmap_current_temp = None
             
             # start steps
-            for i in range(self.max_steps):
+            i = 0
+            while i < self.max_steps:
 
                 # observe state and action at t = 0
                 if i == 0:
@@ -426,7 +421,7 @@ class Driver:
                 if signal == Signal.HIT:
                     r = -1
                     hits += 1
-                    i = self.max_steps - 1                    # learn on hit
+                    i = self.max_steps - 1         # learn on hit
                 elif signal == Signal.EAT:
                     r = 0.2
                     eats += 1
@@ -435,10 +430,7 @@ class Driver:
                 r_memory.append(r)
 
                 # observe state after action
-                s_current = np.copy(self.timeslip) #backup s_current
                 display = self.write_to_timeslip()
-                #print(np.array(s_current).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
-                #print(np.array(self.timeslip).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
                 s_future = self.timeslip
                 s_current_temp = s_future
                 
@@ -447,13 +439,9 @@ class Driver:
                 gares = self.get_action(np.array(actmap_future).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
                 a_future = gares[0]
                 actmap_current_temp = actmap_future
-                #print('=============== actmap(temp) ======================')
-                #print(actmap_current_temp)
-
                 a_current_temp = a_future
 
-                # get teacher for critic net (online learning)
-                # tf.print(np.array(actmap_future).shape)
+                # get teacher for critic net
                 s_a_future = tf.concat([s_future, actmap_future[0,:,:,:]], axis=2)
                 q_current = critic_model.predict(np.array(s_a_current).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
                 q_future = critic_model.predict(np.array(s_a_future).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
@@ -496,6 +484,9 @@ class Driver:
                 print('Eat rate = ' + str(eats / self.total_steps))
                 print(display)
                 #print(gares[1])
+
+                # inc step counter
+                i += 1
 
             # train steps
             mini_batch_size = self.mini_batch_size
