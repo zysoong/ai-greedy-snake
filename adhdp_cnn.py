@@ -10,6 +10,7 @@ from tensorflow.keras import backend as K
 from collections import OrderedDict
 import random
 import configparser
+from collections import deque
 import copy
 import sys
 import warnings
