@@ -20,7 +20,7 @@ class Target(keras.Model):
 
     def __init__(self, critic):
         config = configparser.ConfigParser()
-        config.read('dqn.ini')
+        config.read('ddqn.ini')
         self.env = config['ENV']['env']
         self.gamma = float(config[self.env]['gamma'])
         super(Target, self).__init__()
@@ -74,16 +74,15 @@ class Driver:
         self.max_steps = int(config[self.env]['max_steps'])
         self.batch_size = int(config[self.env]['batch_size'])
         self.critic_net_epochs = int(config[self.env]['critic_net_epochs'])
-        self.actor_net_epochs = int(config[self.env]['actor_net_epochs'])
-        self.actor_update_freq = int(config[self.env]['actor_update_freq'])
+        self.target_net_epochs = int(config[self.env]['target_net_epochs'])
         self.gamma = float(config[self.env]['gamma'])
         self.beta_init = float(config[self.env]['beta_init'])
         self.critic_net_learnrate_init = float(config[self.env]['critic_net_learnrate_init'])
         self.critic_net_learnrate_decay = float(config[self.env]['critic_net_learnrate_decay'])
         self.critic_net_clipnorm = float(config[self.env]['critic_net_clipnorm'])
-        self.actor_net_learnrate_init = float(config[self.env]['actor_net_learnrate_init'])
-        self.actor_net_learnrate_decay = float(config[self.env]['actor_net_learnrate_decay'])
-        self.actor_net_clipnorm = float(config[self.env]['actor_net_clipnorm'])
+        self.target_net_learnrate_init = float(config[self.env]['target_net_learnrate_init'])
+        self.target_net_learnrate_decay = float(config[self.env]['target_net_learnrate_decay'])
+        self.target_net_clipnorm = float(config[self.env]['target_net_clipnorm'])
         self.train_hist_file = config[self.env]['train_hist_file']
         self.critic_model_file = config[self.env]['critic_model_file']
         self.actor_model_file = config[self.env]['actor_model_file']
@@ -91,22 +90,42 @@ class Driver:
         # parameters
         self.total_steps = 0
         self.critic_net_learnrate = self.critic_net_learnrate_init * (self.critic_net_learnrate_decay ** self.total_steps)
-        self.actor_net_learnrate = self.actor_net_learnrate_init * (self.actor_net_learnrate_decay ** self.total_steps)
+        self.target_net_learnrate = self.target_net_learnrate_init * (self.target_net_learnrate_decay ** self.total_steps)
 
-    def get_action(self, state, critic_model):
-        q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE ** 2)))
-        sm = np.array(tf.nn.softmax(q)).reshape((4))
-        rand = np.random.rand()
-        action = None
-        if 0 <= rand < sm[0]:
-            action = Direction.UP
-        elif sm[0] <= rand < sm[0] + sm[1]:
-            action = Direction.DOWN
-        elif sm[0] + sm[1] <= rand < sm[0] + sm[1] + sm[2]:
-            action = Direction.LEFT
-        elif sm[0] + sm[1] + sm[2] <= rand <= 1.0:
-            action = Direction.RIGHT
-        return action, q, sm
+    def get_action(self, state, critic_model, epsilon):
+
+        rand_strategy = np.random.rand()
+        # random action
+        if 0 <= rand_strategy <= epsilon:
+            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE ** 2)))
+            sm = np.array(tf.nn.softmax(q)).reshape((4))
+            rand = np.random.randint(0, 4)
+            action = None
+            if rand == 0:
+                action = Direction.UP
+            elif rand == 1:
+                action = Direction.DOWN
+            elif rand == 2:
+                action = Direction.LEFT
+            elif rand == 3:
+                action = Direction.RIGHT
+            return action, q, sm
+        # greedy
+        else:
+            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE ** 2)))
+            sm = np.array(tf.nn.softmax(q)).reshape((4))
+            q_np = np.array(q).reshape((4))
+            argmax = np.argmax(q_np)
+            action = None
+            if argmax == 0:
+                action = Direction.UP
+            elif argmax == 1:
+                action = Direction.DOWN
+            elif argmax == 2:
+                action = Direction.LEFT
+            elif argmax == 3:
+                action = Direction.RIGHT
+            return action, q, sm
 
     def get_action_index(self, action):
         if action == Direction.UP:
@@ -118,21 +137,16 @@ class Driver:
         elif action == Direction.RIGHT:
             return 3
         
-    def get_dqn(self):
+    def get_ddqn(self):
 
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE ** 2)), 
-            keras.layers.Dense(50, activation = 'relu', kernel_initializer='glorot_normal'),
-            keras.layers.BatchNormalization(),
-            keras.layers.Dense(50, activation = 'relu', kernel_initializer='glorot_normal'),
-            keras.layers.BatchNormalization(),
-            keras.layers.Dense(10, activation = 'relu', kernel_initializer='glorot_normal'),
-            keras.layers.BatchNormalization(),
-            keras.layers.Dense(10, activation = 'relu', kernel_initializer='glorot_normal'),
-            keras.layers.BatchNormalization(),
-            keras.layers.Dense(4, activation = 'tanh', kernel_initializer='glorot_normal')
-        ], name = 'critic')   
+            keras.layers.Dense(1000, activation = 'elu', kernel_initializer='random_normal'),
+            keras.layers.Dense(500, activation = 'elu', kernel_initializer='random_normal'),
+            keras.layers.Dense(150, activation = 'elu', kernel_initializer='random_normal'),
+            keras.layers.Dense(4, kernel_initializer='random_normal')
+        ], name = 'critic')
 
         # optimizer
         c_opt = keras.optimizers.SGD(
@@ -195,7 +209,7 @@ class Driver:
     def run(self):
         
         # define deep learning network
-        critic_model, target = self.get_dqn()
+        critic_model, target = self.get_ddqn()
         
         # statics
         scores = []
@@ -275,7 +289,7 @@ class Driver:
 
                 # update learn rate and eps
                 self.critic_net_learnrate = self.critic_net_learnrate_init * (self.critic_net_learnrate_decay ** self.total_steps)
-                self.actor_net_learnrate = self.actor_net_learnrate_init * (self.actor_net_learnrate_decay ** self.total_steps)
+                self.target_net_learnrate = self.target_net_learnrate_init * (self.target_net_learnrate_decay ** self.total_steps)
                 K.set_value(critic_model.optimizer.learning_rate, self.critic_net_learnrate)
 
                 # display information
@@ -310,7 +324,7 @@ class Driver:
             q = np.array(q_arr, dtype=np.float32).reshape((len(q_arr), 4))
             r = np.array(r_arr, dtype=np.float32).reshape((len(r_arr), 1))
             critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=1, batch_size = self.batch_size)
-            target.fit([s_, q, r], epochs=self.actor_net_epochs, verbose=1, batch_size = self.batch_size)
+            target.fit([s_, q, r], epochs=self.target_net_epochs, verbose=1, batch_size = self.batch_size)
 
             if e % 20 == 0:
                 target.target.set_weights(critic_model.get_weights())

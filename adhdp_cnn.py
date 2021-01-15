@@ -218,7 +218,7 @@ class Driver:
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1)), 
             keras.layers.Conv2D(
-                256, (3, 3), 
+                20, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
@@ -227,7 +227,7 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.Conv2D(
-                128, (3, 3), 
+                20, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
@@ -236,7 +236,44 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.Conv2D(
-                64, (3, 3), 
+                20, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
+            keras.layers.Conv2D(
+                20, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
+            keras.layers.Conv2D(
+                20, (1, 1), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
+                bias_regularizer=keras.regularizers.l2(1e-4),
+                activity_regularizer=keras.regularizers.l2(1e-5)
+            ),
+            keras.layers.Flatten(),
+            keras.layers.Dense(3000, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(400, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(150, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(1, kernel_initializer='glorot_normal')
+        ], name = 'critic')
+
+        # actor layers
+        actor_model = keras.Sequential([
+            keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)), 
+            keras.layers.Conv2D(
+                3, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
@@ -254,42 +291,7 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.Conv2D(
-                1, (1, 1), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
-            keras.layers.Flatten(),
-            keras.layers.Dense(self.greedysnake.SIZE ** 2 // 2, activation = 'relu', kernel_initializer='glorot_normal'),
-            keras.layers.Dense(1, kernel_initializer='glorot_normal')
-        ], name = 'critic')
-
-        # actor layers
-        actor_model = keras.Sequential([
-            keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)), 
-            keras.layers.Conv2D(
-                256, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
-            keras.layers.Conv2D(
-                128, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
-            keras.layers.Conv2D(
-                64, (3, 3), 
+                3, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
@@ -377,7 +379,7 @@ class Driver:
 
         return display
         
-    def drive(self):
+    def run(self):
 
         # record random initial steps
         for i in range(self.timeslip_size + 1):
@@ -521,20 +523,6 @@ class Driver:
                 print(display)
                 print(gares[1])
 
-                # print for linux
-                #stdscr.addstr(0, 0, 'Step = ' + str(i) + '\tEpoch = ' + str(e) + '\tTotal Steps = ' + str(self.total_steps))
-                #stdscr.addstr(1, 0, 'action = ' + a_print)
-                #stdscr.addstr(2, 0, 'reward = ' + r_print)
-                #stdscr.addstr(3, 0, 'teacher(Q) = ' + t_print)
-                #stdscr.addstr(4, 0, 'predict(Q) = ' + str(float(predict_print)))
-                #stdscr.addstr(6, 0, 'critic net learn rate = ' + str(float(self.critic_net_learnrate)))
-                #stdscr.addstr(7, 0, 'Score = ' + str(len(self.greedysnake.snake)))
-                #stdscr.addstr(8, 0, 'Thousand steps average score = ' + str(avg))
-                #stdscr.addstr(9, 0, 'Hit rate = ' + str(hits / self.total_steps))
-                #stdscr.addstr(10, 0, 'Eat rate = ' + str(eats / self.total_steps))
-                #stdscr.addstr(11, 0, display)
-                #stdscr.refresh()
-                
             # train steps
             s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
             s_a = np.array(s_a_arr, dtype=np.float32).reshape((len(s_a_arr), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
@@ -554,14 +542,4 @@ class Driver:
 
 if __name__ == "__main__":
     d = Driver()
-    #try:
-    d.drive()
-    #except:
-    #    curses.echo()
-    #    curses.nocbreak()
-    #    curses.endwin()
-    #finally:
-    #    curses.echo()
-    #    curses.nocbreak()
-    #    curses.endwin()
-        
+    d.run()
