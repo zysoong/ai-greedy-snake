@@ -47,8 +47,6 @@ class Driver:
         self.beta = self.beta_init * (self.beta_decay ** self.total_steps)
         self.epsilon = self.epsilon_init * (self.epsilon_decay ** self.total_steps)
 
-
-
     def get_state(self):
         display = ''
         frame_head = np.zeros(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE, 1), dtype=np.float32)
@@ -82,13 +80,19 @@ class Driver:
             else: 
                 display += '-'
 
+            # food
+            food = np.array(self.greedysnake.food).reshape((1,2))
+            pos = np.array([row, col]).reshape((1,2))
+            norm = np.linalg.norm(food-pos)
+            norm_max = np.sqrt(self.greedysnake.SIZE ** 2 * 2)
+            frame_food[row, col] = (norm_max - norm) / (norm_max)
+
             # switch line
             if col == self.greedysnake.SIZE - 1:
                 display += '\n'
 
         # concat frames
         frame = np.concatenate((frame_head, frame_body, frame_food), axis=2)
-            
         return frame, display
 
 
@@ -140,7 +144,7 @@ class Driver:
             q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 3)))
             sm = np.array(tf.nn.softmax(q)).reshape((4))
             action = None
-            food_smell_map = np.array(state)[:,:,:,2].reshape((self.greedysnake.SIZE, self.greedysnake.SIZE))
+            #food_smell_map = np.array(state)[:,:,:,2].reshape((self.greedysnake.SIZE, self.greedysnake.SIZE))
             print(food_smell_map)
             smells = [0.,0.,0.,0.]
             for i in range(self.greedysnake.SIZE ** 2):
