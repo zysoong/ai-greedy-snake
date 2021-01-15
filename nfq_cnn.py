@@ -100,7 +100,7 @@ class Driver:
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, 3)), 
             keras.layers.Conv2D(
-                64, (3, 3), 
+                3, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer='random_normal', 
@@ -109,7 +109,7 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.Conv2D(
-                64, (3, 3), 
+                3, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer='random_normal', 
@@ -119,7 +119,7 @@ class Driver:
             ),
             keras.layers.MaxPooling2D((2, 2)), 
             keras.layers.Conv2D(
-                128, (3, 3), 
+                6, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer='random_normal', 
@@ -128,7 +128,7 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.Conv2D(
-                128, (3, 3), 
+                6, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer='random_normal', 
@@ -138,8 +138,8 @@ class Driver:
             ),
             keras.layers.MaxPooling2D((2, 2)), 
             keras.layers.Flatten(),
-            keras.layers.Dense(800, activation = 'relu', kernel_initializer='random_normal'),
-            keras.layers.Dense(400, activation = 'relu', kernel_initializer='random_normal'),
+            keras.layers.Dense(100, activation = 'relu', kernel_initializer='random_normal'),
+            keras.layers.Dense(100, activation = 'relu', kernel_initializer='random_normal'),
             keras.layers.Dense(4, kernel_initializer='random_normal')
         ], name = 'critic')
 
