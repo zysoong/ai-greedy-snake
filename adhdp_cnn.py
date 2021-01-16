@@ -98,7 +98,6 @@ class Driver:
         self.total_steps = 0
         self.critic_net_learnrate = self.critic_net_learnrate_init * (self.critic_net_learnrate_decay ** self.total_steps)
         self.actor_net_learnrate = self.actor_net_learnrate_init * (self.actor_net_learnrate_decay ** self.total_steps)
-        self.epsilon = self.epsilon_init*(self.epsilon_decay**self.total_steps)
         self.beta = self.beta_init * (self.beta_decay ** self.total_steps)
 
 
@@ -470,7 +469,6 @@ class Driver:
                 # update learn rate and eps
                 self.critic_net_learnrate = self.critic_net_learnrate_init * (self.critic_net_learnrate_decay ** self.total_steps)
                 self.actor_net_learnrate = self.actor_net_learnrate_init * (self.actor_net_learnrate_decay ** self.total_steps)
-                self.epsilon = self.epsilon_init*(self.epsilon_decay**self.total_steps)
                 self.beta = self.beta_init * (self.beta_decay ** self.total_steps)
                 K.set_value(critic_model.optimizer.learning_rate, self.critic_net_learnrate)
                 K.set_value(adhdp.optimizer.learning_rate, self.actor_net_learnrate)
