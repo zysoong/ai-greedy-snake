@@ -200,15 +200,16 @@ class Driver:
         map_values = [map_up, map_down, map_left, map_right]
         argmax = np.argmax(np.array(map_values))
         if argmax == 0:
-            Direction.UP
+            action = Direction.UP
         elif argmax == 1:
-            Direction.DOWN
+            action = Direction.DOWN
         elif argmax == 2:
-            Direction.LEFT
+            action = Direction.LEFT
         elif argmax == 3:
-            Direction.RIGHT
+            action = Direction.RIGHT
         return action, map
         
+
     def get_adhdp(self):
 
         initializer = keras.initializers.RandomNormal(0.007, 0.0001)
@@ -414,7 +415,8 @@ class Driver:
                 #print(s_a_current[:,:,10])
                 #print(s_a_current[:,:,11])
                 #print(s_a_current[:,:,12])
-                print('========== s_a_current ==================')
+                #print('========== s_a_current ==================')
+                print('=============================================')
 
                 s_memory.append(s_current)
                 s_a_memory.append(s_a_current)
