@@ -169,39 +169,41 @@ class Driver:
         return action, map
     '''
 
+
     def get_action(self, action_map):
-        map = np.array(action_map).reshape((self.greedysnake.SIZE ** 2))
-        index = np.argmax(map)
-        row = index // self.greedysnake.SIZE
-        col = index % self.greedysnake.SIZE
-        central = self.greedysnake.SIZE // 2
-        x = col - central
-        y = central - row
+        map = np.array(action_map).reshape((self.greedysnake.SIZE, self.greedysnake.SIZE))
         action = None
-        if x > 0 and y >= 0:
-            if abs(y / x) < 1:
-                action = Direction.RIGHT
-            else:
-                action = Direction.UP
-        if x < 0 and y >= 0:
-            if abs(y / x) < 1:
-                action = Direction.UP
-            else:
-                action = Direction.LEFT
-        if x < 0 and y < 0:
-            if abs(y / x) < 1:
-                action = Direction.LEFT
-            else:
-                action = Direction.DOWN
-        if x > 0 and y < 0:
-            if abs(y / x) < 1:
-                action = Direction.RIGHT
-            else:
-                action = Direction.DOWN
-        if x == 0 and y >= 0:
-            action = Direction.RIGHT
-        if x == 0 and y < 0:
-            action = Direction.LEFT
+        head_row = self.greedysnake.snake[0][0]
+        head_col = self.greedysnake.snake[0][1]
+
+        # zero-padding
+        map_up, map_down, map_left, map_right = None
+        if head_row == 0:
+            map_up = 0
+        else:
+            map_up = map[(head_row - 1), head_col]
+        if head_row == self.greedysnake.SIZE - 1:
+            map_down = 0
+        else:
+            map_down = map[(head_row + 1), head_col]
+        if head_col == 0:
+            map_left = 0
+        else:
+            map_left = map[(head_row), head_col - 1]
+        if head_col == self.greedysnake.SIZE - 1:
+            map_right = 0
+        else:
+            map_right = map[(head_row), head_col + 1]
+        map_values = [map_up, map_down, map_left, map_right]
+        argmax = np.argmax(np.array(map_values))
+        if argmax == 0:
+            Direction.UP
+        elif argmax == 1:
+            Direction.DOWN
+        elif argmax == 2:
+            Direction.LEFT
+        elif argmax == 3:
+            Direction.RIGHT
         return action, map
         
     def get_adhdp(self):
