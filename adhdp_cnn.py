@@ -269,7 +269,6 @@ class Driver:
                 bias_regularizer=keras.regularizers.l2(1e-4),
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
-            keras.layers.MaxPooling2D(), 
             keras.layers.Conv2D(
                 20, (3, 3), 
                 padding='same', 
@@ -296,7 +295,6 @@ class Driver:
                 bias_regularizer=keras.regularizers.l2(1e-4),
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ), 
-            keras.layers.MaxPooling2D(), 
         ], name = 'actor')        
 
         # optimizer
