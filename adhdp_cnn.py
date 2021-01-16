@@ -289,7 +289,7 @@ class Driver:
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
             keras.layers.Conv2D(
-                20, (1, 1), 
+                1, (1, 1), 
                 padding='same',
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
