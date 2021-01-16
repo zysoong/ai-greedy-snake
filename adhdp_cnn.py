@@ -133,6 +133,42 @@ class Driver:
         print(rows_prob)
         print(col_prob)
 
+    '''
+    def get_action(self, action_map):
+        map = np.array(action_map).reshape((self.greedysnake.SIZE ** 2))
+        index = np.argmax(map)
+        row = index // self.greedysnake.SIZE
+        col = index % self.greedysnake.SIZE
+        central = self.greedysnake.SIZE // 2
+        x = col - central
+        y = central - row
+        action = None
+        if x > 0 and y >= 0:
+            if abs(y / x) < 1:
+                action = Direction.RIGHT
+            else:
+                action = Direction.UP
+        if x < 0 and y >= 0:
+            if abs(y / x) < 1:
+                action = Direction.UP
+            else:
+                action = Direction.LEFT
+        if x < 0 and y < 0:
+            if abs(y / x) < 1:
+                action = Direction.LEFT
+            else:
+                action = Direction.DOWN
+        if x > 0 and y < 0:
+            if abs(y / x) < 1:
+                action = Direction.RIGHT
+            else:
+                action = Direction.DOWN
+        if x == 0 and y >= 0:
+            action = Direction.RIGHT
+        if x == 0 and y < 0:
+            action = Direction.LEFT
+        return action, map
+    '''
 
     def get_action(self, action_map):
         map = np.array(action_map).reshape((self.greedysnake.SIZE ** 2))
@@ -179,6 +215,48 @@ class Driver:
                 padding='same', 
                 activation='relu', 
                 kernel_initializer='glorot_normal', 
+            ),
+            keras.layers.Conv2D(
+                20, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+            ),
+            keras.layers.MaxPooling2D(),
+            keras.layers.Conv2D(
+                40, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+            ),
+            keras.layers.Conv2D(
+                40, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+            ),
+            keras.layers.Conv2D(
+                40, (1, 1), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
+            ),
+            keras.layers.MaxPooling2D(), 
+            keras.layers.Flatten(),
+            keras.layers.Dense(500, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(200, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(100, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(1, kernel_initializer='glorot_normal')
+        ], name = 'critic')
+
+        # actor layers
+        actor_model = keras.Sequential([
+            keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)), 
+            keras.layers.Conv2D(
+                20, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
                 activity_regularizer=keras.regularizers.l2(1e-5)
@@ -192,6 +270,7 @@ class Driver:
                 bias_regularizer=keras.regularizers.l2(1e-4),
                 activity_regularizer=keras.regularizers.l2(1e-5)
             ),
+            keras.layers.MaxPooling2D(), 
             keras.layers.Conv2D(
                 20, (3, 3), 
                 padding='same', 
@@ -212,67 +291,13 @@ class Driver:
             ),
             keras.layers.Conv2D(
                 20, (1, 1), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
-            keras.layers.Flatten(),
-            keras.layers.Dense(3000, activation = 'relu', kernel_initializer='glorot_normal'),
-            keras.layers.Dense(400, activation = 'relu', kernel_initializer='glorot_normal'),
-            keras.layers.Dense(150, activation = 'relu', kernel_initializer='glorot_normal'),
-            keras.layers.Dense(1, kernel_initializer='glorot_normal')
-        ], name = 'critic')
-
-        # actor layers
-        actor_model = keras.Sequential([
-            keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)), 
-            keras.layers.Conv2D(
-                3, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
-            keras.layers.Conv2D(
-                3, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
-            keras.layers.Conv2D(
-                3, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
-            keras.layers.Conv2D(
-                3, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='glorot_normal', 
-                kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
-                bias_regularizer=keras.regularizers.l2(1e-4),
-                activity_regularizer=keras.regularizers.l2(1e-5)
-            ),
-            keras.layers.Conv2D(
-                1, (1, 1), 
                 padding='same',
                 kernel_initializer='glorot_normal', 
                 kernel_regularizer=keras.regularizers.l1_l2(l1=1e-5, l2=1e-4),
                 bias_regularizer=keras.regularizers.l2(1e-4),
                 activity_regularizer=keras.regularizers.l2(1e-5)
-            )
+            ), 
+            keras.layers.MaxPooling2D(), 
         ], name = 'actor')        
 
         # optimizer
