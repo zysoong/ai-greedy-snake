@@ -206,6 +206,8 @@ class Driver:
         
     def get_adhdp(self):
 
+        initializer = keras.initializers.RandomNormal(mean=0., stddev=1.)
+
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1)), 
@@ -213,39 +215,39 @@ class Driver:
                 20, (3, 3), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='glorot_normal', 
+                kernel_initializer=initializer, 
             ),
             keras.layers.Conv2D(
                 20, (3, 3), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='glorot_normal', 
+                kernel_initializer=initializer, 
             ),
             keras.layers.MaxPooling2D(),
             keras.layers.Conv2D(
                 40, (3, 3), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='glorot_normal', 
+                kernel_initializer=initializer, 
             ),
             keras.layers.Conv2D(
                 40, (3, 3), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='glorot_normal', 
+                kernel_initializer=initializer, 
             ),
             keras.layers.Conv2D(
                 40, (1, 1), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='glorot_normal', 
+                kernel_initializer=initializer, 
             ),
             keras.layers.MaxPooling2D(), 
             keras.layers.Flatten(),
-            keras.layers.Dense(500, activation = 'relu', kernel_initializer='glorot_normal'),
-            keras.layers.Dense(200, activation = 'relu', kernel_initializer='glorot_normal'),
-            keras.layers.Dense(100, activation = 'relu', kernel_initializer='glorot_normal'),
-            keras.layers.Dense(1, kernel_initializer='glorot_normal')
+            keras.layers.Dense(500, activation = 'relu', kernel_initializer=initializer),
+            keras.layers.Dense(200, activation = 'relu', kernel_initializer=initializer),
+            keras.layers.Dense(100, activation = 'relu', kernel_initializer=initializer),
+            keras.layers.Dense(1, kernel_initializer=initializer)
         ], name = 'critic')
 
         # actor layers
@@ -255,30 +257,30 @@ class Driver:
                 20, (3, 3), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='glorot_normal', 
+                kernel_initializer=initializer, 
             ),
             keras.layers.Conv2D(
                 20, (3, 3), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='glorot_normal', 
+                kernel_initializer=initializer, 
             ),
             keras.layers.Conv2D(
                 20, (3, 3), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='glorot_normal', 
+                kernel_initializer=initializer, 
             ),
             keras.layers.Conv2D(
                 20, (3, 3), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='glorot_normal', 
+                kernel_initializer=initializer, 
             ),
             keras.layers.Conv2D(
                 1, (1, 1), 
                 padding='same',
-                kernel_initializer='glorot_normal', 
+                kernel_initializer=initializer, 
             ), 
         ], name = 'actor')        
 
