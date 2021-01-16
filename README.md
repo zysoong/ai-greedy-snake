@@ -10,6 +10,6 @@ Model | Coding completed | Significant movements | Clever snake
 --- | --- | --- | ---
 NFQ (DQN) | Yes | Yes | No
 DDQN | No | No | No
-Actor-Critic (ADHDP) | Yes | Yes | No
-Actor-Critic-Target | No | No | No
+Actor-Critic (ADHDP) with CNN | Yes | Yes | No
+Actor-Critic-Target with CNN | No | No | No
 
