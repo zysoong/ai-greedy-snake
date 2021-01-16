@@ -472,7 +472,7 @@ class Driver:
                 avg = sum(scores) / len(scores)
 
                 # print to debug
-                print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps) + ' / epsilon = ' + str(self.epsilon))
+                print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps))
                 print('action = ' + a_print + ' / reward = ' + r_print)
                 print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print +' / diff = ' + diff_print)
                 print('Thousand steps average score = ' + str(avg))
