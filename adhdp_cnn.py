@@ -136,17 +136,7 @@ class Driver:
 
     def get_action(self, action_map):
         map = np.array(action_map).reshape((self.greedysnake.SIZE ** 2))
-        map = tf.nn.softmax(map)
-        rand = np.random.rand()
-        index = 0
-        sum = 0.
-        for i in range(self.greedysnake.SIZE ** 2):
-            if sum <= rand <= sum + map[i]:
-                index = i
-                break
-            else:
-                sum += map[i]
-
+        index = np.argmax(map)
         row = index // self.greedysnake.SIZE
         col = index % self.greedysnake.SIZE
         central = self.greedysnake.SIZE // 2
