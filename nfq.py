@@ -47,7 +47,7 @@ class Driver:
         self.beta = self.beta_init * (self.beta_decay ** self.total_steps)
         self.epsilon = self.epsilon_init * (self.epsilon_decay ** self.total_steps)
 
-    
+    '''
     def get_action(self, state, critic_model, epsilon):
 
         rand_strategy = np.random.rand()
@@ -83,6 +83,57 @@ class Driver:
             elif argmax == 3:
                 action = Direction.RIGHT
             return action, q, sm
+    '''
+
+
+    def get_action(self, state, critic_model, epsilon):
+
+        rand_strategy = np.random.rand()
+
+        # greedy algorithmus
+        if 0 <= rand_strategy <= epsilon:
+            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE ** 2)))
+            sm = np.array(tf.nn.softmax(q)).reshape((4))
+            action = None
+            food_smell_map = np.array(state)[:,:,:,2].reshape((self.greedysnake.SIZE, self.greedysnake.SIZE))
+            #print(food_smell_map)
+            smells = [0.,0.,0.,0.]
+            for i in range(self.greedysnake.SIZE ** 2):
+                row = i // self.greedysnake.SIZE
+                col = i % self.greedysnake.SIZE
+                snake_index = self.greedysnake.is_snake(row, col)
+                # snake head
+                if snake_index == 0:
+                    try:
+                        smells[0] = food_smell_map[row-1, col]
+                        smells[1] = food_smell_map[row+1, col]
+                        smells[2] = food_smell_map[row, col-1]
+                        smells[3] = food_smell_map[row-1, col+1]
+                    except IndexError:
+                        pass
+            argmax = np.argmax(np.array(smells))
+            if argmax == 0:
+                if self.greedysnake.head_direction != Direction.DOWN:
+                    action = Direction.UP
+                else:
+                    action = Direction.RIGHT
+            elif argmax == 1:
+                if self.greedysnake.head_direction != Direction.UP:
+                    action = Direction.DOWN
+                else:
+                    action = Direction.LEFT
+            elif argmax == 2:
+                if self.greedysnake.head_direction != Direction.RIGHT:
+                    action = Direction.LEFT
+                else:
+                    action = Direction.UP
+            elif argmax == 3:
+                if self.greedysnake.head_direction != Direction.LEFT:
+                    action = Direction.RIGHT
+                else:
+                    action = Direction.DOWN
+            return action, q, sm
+    
 
     def get_action_index(self, action):
         if action == Direction.UP:
@@ -203,7 +254,7 @@ class Driver:
                     r = 1
                     eats += 1
                 elif signal == Signal.NORMAL:
-                    r = 0.
+                    r = 0
                 r_memory.append(r)
 
                 # observe state after action
@@ -276,7 +327,7 @@ class Driver:
             t_minibatch = random.sample(t_memory, mini_batch_size)
             s = np.array(list(s_minibatch), dtype=np.float32).reshape((len(list(s_minibatch)), self.greedysnake.SIZE**2))
             t = np.array(list(t_minibatch), dtype=np.float32).reshape((len(t_minibatch), 4))
-            critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=1, batch_size = self.batch_size)
+            critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=0, batch_size = self.batch_size)
 
 
             # record train history
