@@ -47,7 +47,6 @@ class Driver:
         self.beta = self.beta_init * (self.beta_decay ** self.total_steps)
         self.epsilon = self.epsilon_init * (self.epsilon_decay ** self.total_steps)
 
-    '''
     def get_action(self, state, critic_model, epsilon):
 
         rand_strategy = np.random.rand()
@@ -83,9 +82,8 @@ class Driver:
             elif argmax == 3:
                 action = Direction.RIGHT
             return action, q, sm
+
     '''
-
-
     def get_action(self, state, critic_model, epsilon):
 
         rand_strategy = np.random.rand()
@@ -95,7 +93,7 @@ class Driver:
             q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE ** 2)))
             sm = np.array(tf.nn.softmax(q)).reshape((4))
             action = None
-            food_smell_map = np.array(state)[:,:,:,2].reshape((self.greedysnake.SIZE, self.greedysnake.SIZE))
+            food_smell_map = np.array(state)[0,:].reshape((self.greedysnake.SIZE, self.greedysnake.SIZE))
             #print(food_smell_map)
             smells = [0.,0.,0.,0.]
             for i in range(self.greedysnake.SIZE ** 2):
@@ -133,6 +131,7 @@ class Driver:
                 else:
                     action = Direction.DOWN
             return action, q, sm
+    '''
     
 
     def get_action_index(self, action):
