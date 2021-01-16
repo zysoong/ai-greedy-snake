@@ -212,7 +212,7 @@ class Driver:
 
     def get_adhdp(self):
 
-        initializer = keras.initializers.RandomNormal(0.007, 0.0001)
+        initializer = keras.initializers.RandomNormal()
 
         # critic layers
         critic_model = keras.Sequential([
