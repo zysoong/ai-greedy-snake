@@ -14,6 +14,7 @@ from collections import deque
 import copy
 import sys
 import warnings
+import math
 warnings.filterwarnings("ignore")
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -182,19 +183,19 @@ class Driver:
         map_left = None
         map_right = None
         if head_row == 0:
-            map_up = 0
+            map_up = -math.inf
         else:
             map_up = map[(head_row - 1), head_col]
         if head_row == self.greedysnake.SIZE - 1:
-            map_down = 0
+            map_down = -math.inf
         else:
             map_down = map[(head_row + 1), head_col]
         if head_col == 0:
-            map_left = 0
+            map_left = -math.inf
         else:
             map_left = map[(head_row), head_col - 1]
         if head_col == self.greedysnake.SIZE - 1:
-            map_right = 0
+            map_right = -math.inf
         else:
             map_right = map[(head_row), head_col + 1]
         map_values = [map_up, map_down, map_left, map_right]
@@ -207,6 +208,10 @@ class Driver:
             action = Direction.LEFT
         elif argmax == 3:
             action = Direction.RIGHT
+        print(map_up)
+        print(map_down)
+        print(map_left)
+        print(map_right)
         return action, map
         
 
