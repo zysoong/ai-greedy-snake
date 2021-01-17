@@ -182,6 +182,8 @@ class Driver:
         map_down = None
         map_left = None
         map_right = None
+
+        # impact prevention
         if head_row == 0:
             map_up = -math.inf
         else:
@@ -198,6 +200,17 @@ class Driver:
             map_right = -math.inf
         else:
             map_right = map[(head_row), head_col + 1]
+
+        # invalid input prevention
+        if self.greedysnake.head_direction == Direction.LEFT:
+            map_right = -math.inf
+        if self.greedysnake.head_direction == Direction.RIGHT:
+            map_left = -math.inf
+        if self.greedysnake.head_direction == Direction.UP:
+            map_down = -math.inf
+        if self.greedysnake.head_direction == Direction.DOWN:
+            map_up = -math.inf
+        
         map_values = [map_up, map_down, map_left, map_right]
         argmax = np.argmax(np.array(map_values))
         if argmax == 0:
