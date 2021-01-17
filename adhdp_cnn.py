@@ -202,14 +202,14 @@ class Driver:
             map_right = map[(head_row), head_col + 1]
 
         # invalid input prevention
-        #if self.greedysnake.head_direction == Direction.LEFT:            
-        #    map_right = -math.inf
-        #if self.greedysnake.head_direction == Direction.RIGHT:
-        #    map_left = -math.inf
-        #if self.greedysnake.head_direction == Direction.UP:
-        #    map_down = -math.inf
-        #if self.greedysnake.head_direction == Direction.DOWN:
-        #    map_up = -math.inf
+       # if self.greedysnake.head_direction == Direction.LEFT:            
+       #     map_right = -math.inf
+       # if self.greedysnake.head_direction == Direction.RIGHT:
+       #     map_left = -math.inf
+       # if self.greedysnake.head_direction == Direction.UP:
+       #     map_down = -math.inf
+       # if self.greedysnake.head_direction == Direction.DOWN:
+       #     map_up = -math.inf
         
         map_values = [map_up, map_down, map_left, map_right]
         argmax = np.argmax(np.array(map_values))
@@ -230,47 +230,47 @@ class Driver:
 
     def get_adhdp(self):
 
-        initializer = keras.initializers.HeUniform()
+        initializer = keras.initializers.HeNormal()
 
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1)), 
             keras.layers.Conv2D(
-                64, (3, 3), 
+                16, (2, 2), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer=initializer, 
             ),
             keras.layers.Conv2D(
-                64, (3, 3), 
+                32, (1, 1), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer=initializer, 
             ),
             #keras.layers.MaxPooling2D(),
-            keras.layers.Conv2D(
-                64, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer=initializer, 
-            ),
-            keras.layers.Conv2D(
-                128, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer=initializer, 
-            ),
-            keras.layers.Conv2D(
-                128, (1, 1), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer=initializer, 
-            ),
+           # keras.layers.Conv2D(
+           #     64, (3, 3), 
+           #     padding='same', 
+           #     activation='relu', 
+           #     kernel_initializer=initializer, 
+           # ),
+           # keras.layers.Conv2D(
+           #     64, (3, 3), 
+           #     padding='same', 
+           #     activation='relu', 
+           #     kernel_initializer=initializer, 
+           # ),
+           # keras.layers.Conv2D(
+           #     64, (3, 3), 
+           #     padding='same', 
+           #     activation='relu', 
+           #     kernel_initializer=initializer, 
+           # ),
             #keras.layers.MaxPooling2D(), 
             keras.layers.Flatten(),
-            keras.layers.Dense(500, activation = 'relu', kernel_initializer=initializer),
-            keras.layers.Dense(200, activation = 'relu', kernel_initializer=initializer),
-            keras.layers.Dense(100, activation = 'relu', kernel_initializer=initializer),
+            keras.layers.Dense(32, activation = 'relu', kernel_initializer=initializer),
+           # keras.layers.Dense(200, activation = 'relu', kernel_initializer=initializer),
+           # keras.layers.Dense(100, activation = 'relu', kernel_initializer=initializer),
             keras.layers.Dense(1, activation = 'tanh', kernel_initializer=initializer)
         ], name = 'critic')
 
@@ -278,29 +278,29 @@ class Driver:
         actor_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)), 
             keras.layers.Conv2D(
-                64, (3, 3), 
+                16, (2, 2), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer=initializer, 
             ),
             keras.layers.Conv2D(
-                64, (3, 3), 
+                32, (1, 1), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer=initializer, 
             ),
-            keras.layers.Conv2D(
-                128, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer=initializer, 
-            ),
-            keras.layers.Conv2D(
-                128, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer=initializer, 
-            ),
+           # keras.layers.Conv2D(
+           #     64, (3, 3), 
+           #     padding='same', 
+           #     activation='relu', 
+           #     kernel_initializer=initializer, 
+           # ),
+           # keras.layers.Conv2D(
+           #     64, (3, 3), 
+           #     padding='same', 
+           #     activation='relu', 
+           #     kernel_initializer=initializer, 
+           # ),
             keras.layers.Conv2D(
                 1, (1, 1),
                 activation='tanh',
@@ -449,11 +449,12 @@ class Driver:
                 if signal == Signal.HIT:
                     r = -1
                     hits += 1
+                   # i = self.max_steps - 1
                 elif signal == Signal.EAT:
                     r = 0.2
                     eats += 1
                 elif signal == Signal.NORMAL:
-                    r = 0
+                    r = -0.1
                 r_memory.append(r)
 
                 # observe state after action
@@ -528,6 +529,7 @@ class Driver:
             t = np.array(list(t_minibatch), dtype=np.float32).reshape((len(list(t_minibatch)), 1))
             critic_model.fit(s_a, t, epochs=self.critic_net_epochs, verbose=1, batch_size = self.batch_size)
             adhdp.fit(s, t, epochs=self.actor_net_epochs, verbose=1, batch_size = self.batch_size)
+            time.sleep(2)
 
             # record train history
             #f.write(str(critic_hist.history)+'\n')
