@@ -220,44 +220,44 @@ class Driver:
                 9, (5, 5), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='random_normal', 
+                kernel_initializer='he_normal', 
             ),
             keras.layers.Conv2D(
                 9, (3, 3), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='random_normal', 
+                kernel_initializer='he_normal', 
             ),
             keras.layers.Conv2D(
                 9, (3, 3), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='random_normal', 
+                kernel_initializer='he_normal', 
             ),
             keras.layers.Conv2D(
                 9, (3, 3), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='random_normal', 
+                kernel_initializer='he_normal', 
             ),
             keras.layers.Conv2D(
                 9, (3, 3), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='random_normal', 
+                kernel_initializer='he_normal', 
             ),
             keras.layers.Conv2D(
                 9, (1, 1), 
                 padding='same', 
                 activation='relu', 
-                kernel_initializer='random_normal', 
+                kernel_initializer='he_normal', 
             ),
             keras.layers.Flatten(),
-            keras.layers.Dense(1600, activation = 'relu', kernel_initializer='random_normal'),
-            keras.layers.Dense(800, activation = 'relu', kernel_initializer='random_normal'),
-            keras.layers.Dense(400, activation = 'relu', kernel_initializer='random_normal'),
-            keras.layers.Dense(100, activation = 'relu', kernel_initializer='random_normal'),
-            keras.layers.Dense(4, kernel_initializer='random_normal')
+            keras.layers.Dense(1600, activation = 'relu', kernel_initializer='he_normal'),
+            keras.layers.Dense(800, activation = 'relu', kernel_initializer='he_normal'),
+            keras.layers.Dense(400, activation = 'relu', kernel_initializer='he_normal'),
+            keras.layers.Dense(100, activation = 'relu', kernel_initializer='he_normal'),
+            keras.layers.Dense(4, kernel_initializer='he_normal')
         ], name = 'critic')
 
         # optimizer

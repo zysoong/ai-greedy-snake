@@ -176,8 +176,6 @@ class Driver:
         action = None
         head_row = self.greedysnake.snake[0][0]
         head_col = self.greedysnake.snake[0][1]
-
-        # zero-padding
         map_up = None
         map_down = None
         map_left = None
