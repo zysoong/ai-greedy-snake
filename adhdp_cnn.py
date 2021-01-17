@@ -45,7 +45,7 @@ class ADHDP(keras.Model):
             state_action = tf.concat([state, action_map], 3)
             q = self.critic(state_action)
             t = np.ones((self.batch_size, 1))              
-            t.fill(1.333333333333333)                                             
+            t.fill(1.)                                             
             actor_loss = self.loss(t, q)
         actor_grads = tape.gradient(actor_loss, self.actor.trainable_weights)
 
@@ -202,14 +202,14 @@ class Driver:
             map_right = map[(head_row), head_col + 1]
 
         # invalid input prevention
-        if self.greedysnake.head_direction == Direction.LEFT:
-            map_right = -math.inf
-        if self.greedysnake.head_direction == Direction.RIGHT:
-            map_left = -math.inf
-        if self.greedysnake.head_direction == Direction.UP:
-            map_down = -math.inf
-        if self.greedysnake.head_direction == Direction.DOWN:
-            map_up = -math.inf
+        #if self.greedysnake.head_direction == Direction.LEFT:            
+        #    map_right = -math.inf
+        #if self.greedysnake.head_direction == Direction.RIGHT:
+        #    map_left = -math.inf
+        #if self.greedysnake.head_direction == Direction.UP:
+        #    map_down = -math.inf
+        #if self.greedysnake.head_direction == Direction.DOWN:
+        #    map_up = -math.inf
         
         map_values = [map_up, map_down, map_left, map_right]
         argmax = np.argmax(np.array(map_values))
@@ -230,79 +230,80 @@ class Driver:
 
     def get_adhdp(self):
 
-        initializer = keras.initializers.RandomNormal()
+        initializer = keras.initializers.HeUniform()
 
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1)), 
             keras.layers.Conv2D(
-                20, (3, 3), 
+                64, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer=initializer, 
             ),
             keras.layers.Conv2D(
-                20, (3, 3), 
+                64, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer=initializer, 
             ),
-            keras.layers.MaxPooling2D(),
+            #keras.layers.MaxPooling2D(),
             keras.layers.Conv2D(
-                40, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer=initializer, 
-            ),
-            keras.layers.Conv2D(
-                40, (3, 3), 
+                64, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer=initializer, 
             ),
             keras.layers.Conv2D(
-                40, (1, 1), 
+                128, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer=initializer, 
             ),
-            keras.layers.MaxPooling2D(), 
+            keras.layers.Conv2D(
+                128, (1, 1), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer=initializer, 
+            ),
+            #keras.layers.MaxPooling2D(), 
             keras.layers.Flatten(),
             keras.layers.Dense(500, activation = 'relu', kernel_initializer=initializer),
             keras.layers.Dense(200, activation = 'relu', kernel_initializer=initializer),
             keras.layers.Dense(100, activation = 'relu', kernel_initializer=initializer),
-            keras.layers.Dense(1, kernel_initializer=initializer)
+            keras.layers.Dense(1, activation = 'tanh', kernel_initializer=initializer)
         ], name = 'critic')
 
         # actor layers
         actor_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)), 
             keras.layers.Conv2D(
-                20, (3, 3), 
+                64, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer=initializer, 
             ),
             keras.layers.Conv2D(
-                20, (3, 3), 
+                64, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer=initializer, 
             ),
             keras.layers.Conv2D(
-                20, (3, 3), 
+                128, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer=initializer, 
             ),
             keras.layers.Conv2D(
-                20, (3, 3), 
+                128, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer=initializer, 
             ),
             keras.layers.Conv2D(
-                1, (1, 1), 
+                1, (1, 1),
+                activation='tanh',
                 padding='same',
                 kernel_initializer=initializer, 
             ), 
@@ -390,6 +391,9 @@ class Driver:
 
 
         for e in range(self.max_epochs):
+            
+            # reset on epoch start
+            self.greedysnake.reset()
 
             # database
             s_memory = deque(maxlen=self.memory_size)
