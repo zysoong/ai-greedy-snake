@@ -20,7 +20,7 @@ class Driver:
 
     def __init__(self):
         config = configparser.ConfigParser()
-        config.read('nfq_cnn.ini')
+        config.read('dqn.ini')
         self.env = config['ENV']['env']
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
@@ -47,63 +47,12 @@ class Driver:
         self.beta = self.beta_init * (self.beta_decay ** self.total_steps)
         self.epsilon = self.epsilon_init * (self.epsilon_decay ** self.total_steps)
 
-    def get_state(self):
-        display = ''
-        frame_head = np.zeros(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE, 1), dtype=np.float32)
-        frame_body = np.zeros(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE, 1), dtype=np.float32)
-        frame_food = np.zeros(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE, 1), dtype=np.float32)
-        # generate states for N(s, a)
-        for i in range(self.greedysnake.SIZE ** 2):
-            row = i // self.greedysnake.SIZE
-            col = i % self.greedysnake.SIZE
-            snake_index = self.greedysnake.is_snake(row, col)
-
-            # snake
-            if snake_index > -1:
-
-                # snake head
-                if snake_index == 0: 
-                    frame_head[row, col] = 1.
-                    display += '@'
-
-                # snake body
-                else:
-                    frame_body[row, col] = 1.
-                    display += 'O'
-
-            # food
-            elif (np.array([row, col]) == self.greedysnake.food).all():
-                frame_food[row, col] = 1.
-                display += '#'
-            
-            # block
-            else: 
-                display += '-'
-
-            # food
-            food = np.array(self.greedysnake.food).reshape((1,2))
-            pos = np.array([row, col]).reshape((1,2))
-            norm = np.linalg.norm(food-pos)
-            norm_max = np.sqrt(self.greedysnake.SIZE ** 2 * 2)
-            frame_food[row, col] = (norm_max - norm) / (norm_max)
-
-            # switch line
-            if col == self.greedysnake.SIZE - 1:
-                display += '\n'
-
-        # concat frames
-        frame = np.concatenate((frame_head, frame_body, frame_food), axis=2)
-        return frame, display
-
-
-    '''
     def get_action(self, state, critic_model, epsilon):
 
         rand_strategy = np.random.rand()
-
         # random action
         if 0 <= rand_strategy <= epsilon:
-            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 3)))
+            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE ** 2)))
             sm = np.array(tf.nn.softmax(q)).reshape((4))
             rand = np.random.randint(0, 4)
             action = None
@@ -119,7 +68,7 @@ class Driver:
 
         # greedy
         else:
-            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 3)))
+            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE ** 2)))
             sm = np.array(tf.nn.softmax(q)).reshape((4))
             q_np = np.array(q).reshape((4))
             argmax = np.argmax(q_np)
@@ -133,18 +82,18 @@ class Driver:
             elif argmax == 3:
                 action = Direction.RIGHT
             return action, q, sm
-    '''
 
+    '''
     def get_action(self, state, critic_model, epsilon):
 
         rand_strategy = np.random.rand()
 
         # greedy algorithmus
         if 0 <= rand_strategy <= epsilon:
-            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 3)))
+            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE ** 2)))
             sm = np.array(tf.nn.softmax(q)).reshape((4))
             action = None
-            food_smell_map = np.array(state)[:,:,:,2].reshape((self.greedysnake.SIZE, self.greedysnake.SIZE))
+            food_smell_map = np.array(state)[0,:].reshape((self.greedysnake.SIZE, self.greedysnake.SIZE))
             #print(food_smell_map)
             smells = [0.,0.,0.,0.]
             for i in range(self.greedysnake.SIZE ** 2):
@@ -182,24 +131,8 @@ class Driver:
                 else:
                     action = Direction.DOWN
             return action, q, sm
-
-        # greedy
-        else:
-            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 3)))
-            sm = np.array(tf.nn.softmax(q)).reshape((4))
-            q_np = np.array(q).reshape((4))
-            argmax = np.argmax(q_np)
-            action = None
-            if argmax == 0:
-                action = Direction.UP
-            elif argmax == 1:
-                action = Direction.DOWN
-            elif argmax == 2:
-                action = Direction.LEFT
-            elif argmax == 3:
-                action = Direction.RIGHT
-            return action, q, sm
-
+    '''
+    
 
     def get_action_index(self, action):
         if action == Direction.UP:
@@ -211,70 +144,69 @@ class Driver:
         elif action == Direction.RIGHT:
             return 3
         
-    def get_nfq(self):
+    def get_dqn(self):
 
         # critic layers
         critic_model = keras.Sequential([
-            keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, 3)), 
-            keras.layers.Conv2D(
-                9, (5, 5), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='he_normal', 
-            ),
-            keras.layers.Conv2D(
-                9, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='he_normal', 
-            ),
-            keras.layers.Conv2D(
-                9, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='he_normal', 
-            ),
-            keras.layers.Conv2D(
-                9, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='he_normal', 
-            ),
-            keras.layers.Conv2D(
-                9, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='he_normal', 
-            ),
-            keras.layers.Conv2D(
-                9, (1, 1), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer='he_normal', 
-            ),
-            keras.layers.Flatten(),
-            keras.layers.Dense(1600, activation = 'relu', kernel_initializer='he_normal'),
-            keras.layers.Dense(800, activation = 'relu', kernel_initializer='he_normal'),
-            keras.layers.Dense(400, activation = 'relu', kernel_initializer='he_normal'),
-            keras.layers.Dense(100, activation = 'relu', kernel_initializer='he_normal'),
-            keras.layers.Dense(4, kernel_initializer='he_normal')
+            keras.layers.Input(shape = (self.greedysnake.SIZE ** 2)), 
+            keras.layers.Dense(40, activation = 'relu', kernel_initializer='random_normal'),
+            keras.layers.Dense(30, activation = 'relu', kernel_initializer='random_normal'),
+            keras.layers.Dense(10, activation = 'relu', kernel_initializer='random_normal'),
+            keras.layers.Dense(4, kernel_initializer='random_normal')
         ], name = 'critic')
 
         # optimizer
-        c_opt = keras.optimizers.Adam(
+        c_opt = keras.optimizers.SGD(
             lr = self.critic_net_learnrate, 
             clipnorm = self.critic_net_clipnorm
         )
 
         # critic model
         critic_model.compile(loss = keras.losses.MSE, optimizer = c_opt)
-
         return critic_model
+
+
+    def get_state(self):
+        display = ''
+        frame = np.zeros(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE), dtype=np.float32)
+        # generate states for N(s, a)
+        for i in range(self.greedysnake.SIZE ** 2):
+            row = i // self.greedysnake.SIZE
+            col = i % self.greedysnake.SIZE
+            snake_index = self.greedysnake.is_snake(row, col)
+
+            # snake
+            if snake_index > -1:
+
+                # snake head
+                if snake_index == 0: 
+                    frame[row, col] = 0.6
+                    display += '@'
+
+                # snake body
+                else:
+                    frame[row, col] = 0.3
+                    display += 'O'
+
+            # food
+            elif (np.array([row, col]) == self.greedysnake.food).all():
+                frame[row, col] = 1.0
+                display += '#'
+            
+            # block
+            else: 
+                frame[row, col] = 0.
+                display += '-'
+
+            # switch line
+            if col == self.greedysnake.SIZE - 1:
+                display += '\n'
+        return frame, display
         
     def run(self):
         
         # define deep learning network
-        critic_model = self.get_nfq()
+        critic_model = self.get_dqn()
         
         # statics
         scores = []
@@ -296,16 +228,11 @@ class Driver:
             
             # start steps
             i = 0
-            stamina = 0
-            stamina_max = self.greedysnake.SIZE ** 2
             while i < self.max_steps:
-
-                s_current = None
-                a_current = None
 
                 # observe state and action at t = 0
                 if i == 0:
-                    s_current = self.get_state()[0].reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 3))
+                    s_current = self.get_state()[0].reshape((1, self.greedysnake.SIZE ** 2))
                     a_current = self.get_action(s_current, critic_model, self.epsilon)[0]
                 else: 
                     s_current = s_current_temp
@@ -319,23 +246,18 @@ class Driver:
 
                 # signal reward
                 if signal == Signal.HIT:
-                    r = -10.
-                    stamina = 0
+                    r = -1
                     hits += 1
-                    i = self.max_steps - 1    #  learn on hit
+                    i = self.max_steps - 1                    # learn on hit
                 elif signal == Signal.EAT:
-                    r = 10.
-                    stamina = stamina_max
+                    r = 1
                     eats += 1
                 elif signal == Signal.NORMAL:
-                    stamina -= 1
-                    if stamina < 0:
-                        stamina = 0
-                    r = 10. * stamina / stamina_max
+                    r = 0
                 r_memory.append(r)
 
                 # observe state after action
-                s_future = self.get_state()[0].reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 3))
+                s_future = self.get_state()[0].reshape((1, self.greedysnake.SIZE ** 2))
                 s_current_temp = s_future
                 s_a_future_memory.append(s_future)
                 
@@ -391,7 +313,6 @@ class Driver:
                 print('Hit rate = ' + str(hits / self.total_steps))
                 print('Eat rate = ' + str(eats / self.total_steps))
                 print(display)
-                print(tf.nn.softmax(get_action_result[1]))
 
                 # inc step counter
                 i += 1
@@ -403,7 +324,7 @@ class Driver:
                 mini_batch_size = len_memory
             s_minibatch = random.sample(s_memory, mini_batch_size)
             t_minibatch = random.sample(t_memory, mini_batch_size)
-            s = np.array(list(s_minibatch), dtype=np.float32).reshape((len(list(s_minibatch)), self.greedysnake.SIZE, self.greedysnake.SIZE, 3))
+            s = np.array(list(s_minibatch), dtype=np.float32).reshape((len(list(s_minibatch)), self.greedysnake.SIZE**2))
             t = np.array(list(t_minibatch), dtype=np.float32).reshape((len(t_minibatch), 4))
             critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=0, batch_size = self.batch_size)
 
@@ -414,7 +335,7 @@ class Driver:
             #f.close()
 
             # save model to file
-            critic_model.save('nfq_cnn_critic')
+            #critic_model.save(self.critic_model_file)
             #actor.save(self.actor_model_file) # BUG saving subclass model actor not succeed
 
 
