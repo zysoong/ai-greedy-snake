@@ -63,6 +63,10 @@ class ADHDP(keras.Model):
     def predict_actor(self, state):
         return self.actor(state)
 
+    def save_models(self):
+        self.critic.save('adhdp_cnn_critic')
+        self.actor.save('adhdp_cnn_actor')
+
 
 
 class Driver:
@@ -542,6 +546,7 @@ class Driver:
             #f.close()
 
             # save model to file
+            adhdp.save_models()
             #critic_model.save(self.critic_model_file)
             #adhdp.save(self.actor_model_file) # BUG saving subclass model adhdp not succeed
 
