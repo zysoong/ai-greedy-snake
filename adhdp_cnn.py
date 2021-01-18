@@ -200,14 +200,14 @@ class Driver:
             map_right = map[(head_row), head_col + 1]
 
         # invalid input prevention
-        #if self.greedysnake.head_direction == Direction.LEFT:            
-        #    map_right = -math.inf
-        #if self.greedysnake.head_direction == Direction.RIGHT:
-        #    map_left = -math.inf
-        #if self.greedysnake.head_direction == Direction.UP:
-        #    map_down = -math.inf
-        #if self.greedysnake.head_direction == Direction.DOWN:
-        #    map_up = -math.inf
+       # if self.greedysnake.head_direction == Direction.LEFT:            
+       #     map_right = -math.inf
+       # if self.greedysnake.head_direction == Direction.RIGHT:
+       #     map_left = -math.inf
+       # if self.greedysnake.head_direction == Direction.UP:
+       #     map_down = -math.inf
+       # if self.greedysnake.head_direction == Direction.DOWN:
+       #     map_up = -math.inf
         
         map_values = [map_up, map_down, map_left, map_right]
         argmax = np.argmax(np.array(map_values))
@@ -228,12 +228,31 @@ class Driver:
 
     def get_adhdp(self):
 
-        initializer = keras.initializers.HeUniform()
+        initializer = keras.initializers.HeNormal()
 
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1)), 
             keras.layers.Conv2D(
+                16, (2, 2), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer=initializer, 
+            ),
+            keras.layers.Conv2D(
+                32, (1, 1), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer=initializer, 
+            ),
+           # keras.layers.MaxPooling2D(),
+            keras.layers.Conv2D(
+                64, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer=initializer, 
+            ),
+            keras.layers.Conv2D(
                 64, (3, 3), 
                 padding='same', 
                 activation='relu', 
@@ -241,25 +260,6 @@ class Driver:
             ),
             keras.layers.Conv2D(
                 64, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer=initializer, 
-            ),
-            #keras.layers.MaxPooling2D(),
-            keras.layers.Conv2D(
-                64, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer=initializer, 
-            ),
-            keras.layers.Conv2D(
-                128, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer=initializer, 
-            ),
-            keras.layers.Conv2D(
-                128, (1, 1), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer=initializer, 
@@ -276,7 +276,13 @@ class Driver:
         actor_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)), 
             keras.layers.Conv2D(
-                64, (3, 3), 
+                16, (2, 2), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer=initializer, 
+            ),
+            keras.layers.Conv2D(
+                32, (1, 1), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer=initializer, 
@@ -288,13 +294,7 @@ class Driver:
                 kernel_initializer=initializer, 
             ),
             keras.layers.Conv2D(
-                128, (3, 3), 
-                padding='same', 
-                activation='relu', 
-                kernel_initializer=initializer, 
-            ),
-            keras.layers.Conv2D(
-                128, (3, 3), 
+                64, (3, 3), 
                 padding='same', 
                 activation='relu', 
                 kernel_initializer=initializer, 
@@ -355,7 +355,7 @@ class Driver:
             
             # block
             else: 
-                frame[row, col] = 0.1
+                frame[row, col] = 0.
                 display += '-'
 
             # switch line
@@ -391,7 +391,7 @@ class Driver:
         for e in range(self.max_epochs):
             
             # reset on epoch start
-            self.greedysnake.reset()
+           # self.greedysnake.reset()
 
             # database
             s_memory = deque(maxlen=self.memory_size)
@@ -406,6 +406,7 @@ class Driver:
             
             # start steps
             i = 0
+            stamina = 0
             while i < self.max_steps:
 
                 # observe state and action at t = 0
@@ -443,15 +444,22 @@ class Driver:
 
                 # take action via eps greedy, get reward
                 signal = self.greedysnake.step(a_current)
+                stamina_max = self.greedysnake.SIZE ** 2
                 r = None
                 if signal == Signal.HIT:
-                    r = -1
+                    r = -1.
+                    stamina = 0
                     hits += 1
+                   # i = self.max_steps - 1
                 elif signal == Signal.EAT:
-                    r = 0.2
+                    r = 1.
+                    stamina = stamina_max
                     eats += 1
                 elif signal == Signal.NORMAL:
-                    r = 0
+                    r = stamina / stamina_max
+                    stamina -= 1
+                    if stamina < 0:
+                        stamina = 0
                 r_memory.append(r)
 
                 # observe state after action
@@ -524,8 +532,9 @@ class Driver:
             s = np.array(list(s_minibatch), dtype=np.float32).reshape((len(list(s_minibatch)), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
             s_a = np.array(list(s_a_minibatch), dtype=np.float32).reshape((len(list(s_a_minibatch)), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
             t = np.array(list(t_minibatch), dtype=np.float32).reshape((len(list(t_minibatch)), 1))
-            critic_model.fit(s_a, t, epochs=self.critic_net_epochs, verbose=1, batch_size = self.batch_size)
-            adhdp.fit(s, t, epochs=self.actor_net_epochs, verbose=1, batch_size = self.batch_size)
+            critic_model.fit(s_a, t, epochs=self.critic_net_epochs, verbose=0, batch_size = self.batch_size)
+            adhdp.fit(s, t, epochs=self.actor_net_epochs, verbose=0, batch_size = self.batch_size)
+           # time.sleep(2)
 
             # record train history
             #f.write(str(critic_hist.history)+'\n')
