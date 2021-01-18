@@ -280,7 +280,7 @@ class Driver:
                 t = [0,0,0,0]
                 for j in range(len(t)):
                     t[j] = r + self.gamma * np.array(target_sa).reshape((4))[j]
-                    if signal == Signal.HIT:
+                    if signal == Signal.HIT and j == self.get_action_index(a_t):
                         t[j] = r
                 q_arr.append(q_t)
                 t_arr.append(t)
