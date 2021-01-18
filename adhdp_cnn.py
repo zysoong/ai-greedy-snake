@@ -245,30 +245,30 @@ class Driver:
                 activation='relu', 
                 kernel_initializer=initializer, 
             ),
-            #keras.layers.MaxPooling2D(),
-           # keras.layers.Conv2D(
-           #     64, (3, 3), 
-           #     padding='same', 
-           #     activation='relu', 
-           #     kernel_initializer=initializer, 
-           # ),
-           # keras.layers.Conv2D(
-           #     64, (3, 3), 
-           #     padding='same', 
-           #     activation='relu', 
-           #     kernel_initializer=initializer, 
-           # ),
-           # keras.layers.Conv2D(
-           #     64, (3, 3), 
-           #     padding='same', 
-           #     activation='relu', 
-           #     kernel_initializer=initializer, 
-           # ),
+           # keras.layers.MaxPooling2D(),
+            keras.layers.Conv2D(
+                64, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer=initializer, 
+            ),
+            keras.layers.Conv2D(
+                64, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer=initializer, 
+            ),
+            keras.layers.Conv2D(
+                64, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer=initializer, 
+            ),
             #keras.layers.MaxPooling2D(), 
             keras.layers.Flatten(),
-            keras.layers.Dense(32, activation = 'relu', kernel_initializer=initializer),
-           # keras.layers.Dense(200, activation = 'relu', kernel_initializer=initializer),
-           # keras.layers.Dense(100, activation = 'relu', kernel_initializer=initializer),
+            keras.layers.Dense(500, activation = 'relu', kernel_initializer=initializer),
+            keras.layers.Dense(200, activation = 'relu', kernel_initializer=initializer),
+            keras.layers.Dense(100, activation = 'relu', kernel_initializer=initializer),
             keras.layers.Dense(1, activation = 'tanh', kernel_initializer=initializer)
         ], name = 'critic')
 
@@ -287,18 +287,18 @@ class Driver:
                 activation='relu', 
                 kernel_initializer=initializer, 
             ),
-           # keras.layers.Conv2D(
-           #     64, (3, 3), 
-           #     padding='same', 
-           #     activation='relu', 
-           #     kernel_initializer=initializer, 
-           # ),
-           # keras.layers.Conv2D(
-           #     64, (3, 3), 
-           #     padding='same', 
-           #     activation='relu', 
-           #     kernel_initializer=initializer, 
-           # ),
+            keras.layers.Conv2D(
+                64, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer=initializer, 
+            ),
+            keras.layers.Conv2D(
+                64, (3, 3), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer=initializer, 
+            ),
             keras.layers.Conv2D(
                 1, (1, 1),
                 activation='tanh',
@@ -355,7 +355,7 @@ class Driver:
             
             # block
             else: 
-                frame[row, col] = 0.1
+                frame[row, col] = 0.
                 display += '-'
 
             # switch line
@@ -391,7 +391,7 @@ class Driver:
         for e in range(self.max_epochs):
             
             # reset on epoch start
-            self.greedysnake.reset()
+           # self.greedysnake.reset()
 
             # database
             s_memory = deque(maxlen=self.memory_size)
@@ -406,6 +406,7 @@ class Driver:
             
             # start steps
             i = 0
+            stamina = 0
             while i < self.max_steps:
 
                 # observe state and action at t = 0
@@ -443,16 +444,22 @@ class Driver:
 
                 # take action via eps greedy, get reward
                 signal = self.greedysnake.step(a_current)
+                stamina_max = self.greedysnake.SIZE ** 2
                 r = None
                 if signal == Signal.HIT:
-                    r = -1
+                    r = -1.
+                    stamina = 0
                     hits += 1
                    # i = self.max_steps - 1
                 elif signal == Signal.EAT:
-                    r = 0.2
+                    r = 1.
+                    stamina = stamina_max
                     eats += 1
                 elif signal == Signal.NORMAL:
-                    r = -0.1
+                    r = stamina / stamina_max
+                    stamina -= 1
+                    if stamina < 0:
+                        stamina = 0
                 r_memory.append(r)
 
                 # observe state after action
@@ -525,9 +532,9 @@ class Driver:
             s = np.array(list(s_minibatch), dtype=np.float32).reshape((len(list(s_minibatch)), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
             s_a = np.array(list(s_a_minibatch), dtype=np.float32).reshape((len(list(s_a_minibatch)), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
             t = np.array(list(t_minibatch), dtype=np.float32).reshape((len(list(t_minibatch)), 1))
-            critic_model.fit(s_a, t, epochs=self.critic_net_epochs, verbose=1, batch_size = self.batch_size)
-            adhdp.fit(s, t, epochs=self.actor_net_epochs, verbose=1, batch_size = self.batch_size)
-            time.sleep(2)
+            critic_model.fit(s_a, t, epochs=self.critic_net_epochs, verbose=0, batch_size = self.batch_size)
+            adhdp.fit(s, t, epochs=self.actor_net_epochs, verbose=0, batch_size = self.batch_size)
+           # time.sleep(2)
 
             # record train history
             #f.write(str(critic_hist.history)+'\n')
