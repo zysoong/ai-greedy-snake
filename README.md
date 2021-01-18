@@ -5,7 +5,7 @@ The agent runs purely with the console, which makes it extremely easy to be trai
 # Current status
 Model | Coding completed | Significant movements | Clever snake
 --- | --- | --- | ---
-NFQ (DQN) | Yes | Yes | No
+DQN | Yes | Yes | No
 DDQN | Yes | No | No
 Actor-Critic (ADHDP) with CNN | Yes | Yes | No
 Actor-Critic-Target with CNN | No | No | No
