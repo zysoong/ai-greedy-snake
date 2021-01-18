@@ -66,7 +66,7 @@ class Driver:
 
     def __init__(self):
         config = configparser.ConfigParser()
-        config.read('dqn.ini')
+        config.read('ddqn.ini')
         self.env = config['ENV']['env']
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
@@ -79,6 +79,8 @@ class Driver:
         self.target_net_epochs = int(config[self.env]['target_net_epochs'])
         self.gamma = float(config[self.env]['gamma'])
         self.beta_init = float(config[self.env]['beta_init'])
+        self.epsilon_init = float(config[self.env]['epsilon_init'])
+        self.epsilon_decay = float(config[self.env]['epsilon_decay'])
         self.critic_net_learnrate_init = float(config[self.env]['critic_net_learnrate_init'])
         self.critic_net_learnrate_decay = float(config[self.env]['critic_net_learnrate_decay'])
         self.critic_net_clipnorm = float(config[self.env]['critic_net_clipnorm'])
@@ -93,6 +95,7 @@ class Driver:
         self.total_steps = 0
         self.critic_net_learnrate = self.critic_net_learnrate_init * (self.critic_net_learnrate_decay ** self.total_steps)
         self.target_net_learnrate = self.target_net_learnrate_init * (self.target_net_learnrate_decay ** self.total_steps)
+        self.epsilon = self.epsilon_init * (self.epsilon_decay ** self.total_steps)
 
     def get_action(self, state, critic_model, epsilon):
 
@@ -237,7 +240,7 @@ class Driver:
                 # observe state and action at t = 0
                 if i == 0:
                     s_t = self.get_state()[0].reshape((1, self.greedysnake.SIZE ** 2))
-                    a_t = self.get_action(s_t, critic_model)[0]
+                    a_t = self.get_action(s_t, critic_model, self.epsilon)[0]
                 else: 
                     s_t = s_t_temp
                     a_t = a_t_temp
@@ -267,7 +270,7 @@ class Driver:
                 s_a_t_add_1_arr.append(s_t_add_1)
                 
                 # choose action at t+1
-                gares = self.get_action(s_t_add_1, critic_model)
+                gares = self.get_action(s_t_add_1, critic_model, self.epsilon)
                 a_t_add_1 = gares[0]
                 a_t_temp = a_t_add_1
 
@@ -278,7 +281,7 @@ class Driver:
                 for j in range(len(t)):
                     if j == self.get_action_index(a_t):
                         t[j] = r + self.gamma * np.array(target_sa).reshape((4))[j]
-                        if r == -1:
+                        if signal == Signal.HIT:
                             t[j] = r
                     else:
                         t[j] = np.array(q_t).reshape((4))[j]
@@ -290,7 +293,8 @@ class Driver:
 
                 # update learn rate and eps
                 self.critic_net_learnrate = self.critic_net_learnrate_init * (self.critic_net_learnrate_decay ** self.total_steps)
-                self.target_net_learnrate = self.target_net_learnrate_init * (self.target_net_learnrate_decay ** self.total_steps)
+                self.target_net_learnrate = self.target_net_learnrate_init * (self.target_net_learnrate_decay ** self.total_steps) 
+                self.epsilon = self.epsilon_init * (self.epsilon_decay ** self.total_steps)
                 K.set_value(critic_model.optimizer.learning_rate, self.critic_net_learnrate)
 
                 # display information
