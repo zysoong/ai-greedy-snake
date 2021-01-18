@@ -296,6 +296,8 @@ class Driver:
             
             # start steps
             i = 0
+            stamina = 0
+            stamina_max = self.greedysnake.SIZE ** 2
             while i < self.max_steps:
 
                 s_current = None
@@ -317,14 +319,19 @@ class Driver:
 
                 # signal reward
                 if signal == Signal.HIT:
-                    r = -1.
+                    r = -10.
+                    stamina = 0
                     hits += 1
                     i = self.max_steps - 1    #  learn on hit
                 elif signal == Signal.EAT:
-                    r = 1.
+                    r = 10.
+                    stamina = stamina_max
                     eats += 1
                 elif signal == Signal.NORMAL:
-                    r = 0.
+                    stamina -= 1
+                    if stamina < 0:
+                        stamina = 0
+                    r = 10. * stamina / stamina_max
                 r_memory.append(r)
 
                 # observe state after action
@@ -398,7 +405,7 @@ class Driver:
             t_minibatch = random.sample(t_memory, mini_batch_size)
             s = np.array(list(s_minibatch), dtype=np.float32).reshape((len(list(s_minibatch)), self.greedysnake.SIZE, self.greedysnake.SIZE, 3))
             t = np.array(list(t_minibatch), dtype=np.float32).reshape((len(t_minibatch), 4))
-            critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=1, batch_size = self.batch_size)
+            critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=0, batch_size = self.batch_size)
 
 
             # record train history
@@ -407,7 +414,7 @@ class Driver:
             #f.close()
 
             # save model to file
-            #critic_model.save(self.critic_model_file)
+            critic_model.save('nfq_cnn_critic')
             #actor.save(self.actor_model_file) # BUG saving subclass model actor not succeed
 
 

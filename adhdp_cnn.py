@@ -45,7 +45,7 @@ class ADHDP(keras.Model):
             state_action = tf.concat([state, action_map], 3)
             q = self.critic(state_action)
             t = np.ones((self.batch_size, 1))              
-            t.fill(1.)                                             
+            t.fill(100)                                             
             actor_loss = self.loss(t, q)
         actor_grads = tape.gradient(actor_loss, self.actor.trainable_weights)
 
@@ -213,8 +213,8 @@ class Driver:
        # if self.greedysnake.head_direction == Direction.DOWN:
        #     map_up = -math.inf
         
-        map_values = [map_up, map_down, map_left, map_right]
-        argmax = np.argmax(np.array(map_values))
+        map_values = np.array([map_up, map_down, map_left, map_right])
+        argmax = np.argmax(map_values)
         if argmax == 0:
             action = Direction.UP
         elif argmax == 1:
@@ -223,10 +223,22 @@ class Driver:
             action = Direction.LEFT
         elif argmax == 3:
             action = Direction.RIGHT
+        '''
+        rand = np.random.rand()
+        if 0 <= rand < map_values[0]:
+            action = Direction.UP
+        elif map_values[0] <= rand < map_values[0] + map_values[1]:
+            action = Direction.DOWN
+        elif map_values[1] <= rand < map_values[0] + map_values[1] + map_values[2]:
+            action = Direction.LEFT
+        else:
+            action = Direction.RIGHT
+        '''
         print(map_up)
         print(map_down)
         print(map_left)
         print(map_right)
+       # print(map_values)
         return action, map
         
 
@@ -273,7 +285,7 @@ class Driver:
             keras.layers.Dense(500, activation = 'relu', kernel_initializer=initializer),
             keras.layers.Dense(200, activation = 'relu', kernel_initializer=initializer),
             keras.layers.Dense(100, activation = 'relu', kernel_initializer=initializer),
-            keras.layers.Dense(1, activation = 'tanh', kernel_initializer=initializer)
+            keras.layers.Dense(1, kernel_initializer=initializer)
         ], name = 'critic')
 
         # actor layers
@@ -305,7 +317,6 @@ class Driver:
             ),
             keras.layers.Conv2D(
                 1, (1, 1),
-                activation='tanh',
                 padding='same',
                 kernel_initializer=initializer, 
             ), 
@@ -451,16 +462,16 @@ class Driver:
                 stamina_max = self.greedysnake.SIZE ** 2
                 r = None
                 if signal == Signal.HIT:
-                    r = -1.
+                    r = -10.
                     stamina = 0
                     hits += 1
                    # i = self.max_steps - 1
                 elif signal == Signal.EAT:
-                    r = 1.
+                    r = 10.
                     stamina = stamina_max
                     eats += 1
                 elif signal == Signal.NORMAL:
-                    r = stamina / stamina_max
+                    r = 10. * stamina / stamina_max
                     stamina -= 1
                     if stamina < 0:
                         stamina = 0

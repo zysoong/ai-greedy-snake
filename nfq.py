@@ -149,9 +149,9 @@ class Driver:
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE ** 2)), 
-            keras.layers.Dense(1000, activation = 'elu', kernel_initializer='random_normal'),
-            keras.layers.Dense(500, activation = 'elu', kernel_initializer='random_normal'),
-            keras.layers.Dense(150, activation = 'elu', kernel_initializer='random_normal'),
+            keras.layers.Dense(40, activation = 'relu', kernel_initializer='random_normal'),
+            keras.layers.Dense(30, activation = 'relu', kernel_initializer='random_normal'),
+            keras.layers.Dense(10, activation = 'relu', kernel_initializer='random_normal'),
             keras.layers.Dense(4, kernel_initializer='random_normal')
         ], name = 'critic')
 
@@ -180,7 +180,7 @@ class Driver:
 
                 # snake head
                 if snake_index == 0: 
-                    frame[row, col] = 0.5
+                    frame[row, col] = 0.6
                     display += '@'
 
                 # snake body
