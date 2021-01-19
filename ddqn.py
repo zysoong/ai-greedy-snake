@@ -147,18 +147,18 @@ class Driver:
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE ** 2)), 
-            keras.layers.Dense(1000, activation = 'elu', kernel_initializer='random_normal'),
-            keras.layers.Dense(500, activation = 'elu', kernel_initializer='random_normal'),
-            keras.layers.Dense(150, activation = 'elu', kernel_initializer='random_normal'),
+            keras.layers.Dense(40, activation = 'relu', kernel_initializer='random_normal'),
+            keras.layers.Dense(32, activation = 'relu', kernel_initializer='random_normal'),
+            keras.layers.Dense(15, activation = 'relu', kernel_initializer='random_normal'),
             keras.layers.Dense(4, kernel_initializer='random_normal')
         ], name = 'critic')
 
         # optimizer
-        c_opt = keras.optimizers.SGD(
+        c_opt = keras.optimizers.Adam(
             lr = self.critic_net_learnrate, 
             clipnorm = self.critic_net_clipnorm
         )
-        t_opt = keras.optimizers.SGD(
+        t_opt = keras.optimizers.Adam(
             lr = self.critic_net_learnrate, 
             clipnorm = self.critic_net_clipnorm
         )
@@ -203,7 +203,7 @@ class Driver:
             
             # block
             else: 
-                frame[row, col] = 0.1
+                frame[row, col] = 0.
                 display += '-'
 
             # switch line
@@ -235,6 +235,8 @@ class Driver:
             a_t_temp = None
             
             # start steps
+            stamina = 0
+            stamina_max = self.greedysnake.SIZE
             for i in range(self.max_steps):
 
                 # observe state and action at t = 0
@@ -253,12 +255,17 @@ class Driver:
                 # signal reward
                 if signal == Signal.HIT:
                     r = -1
+                    stamina = 0
                     hits += 1
                 elif signal == Signal.EAT:
                     r = 1
+                    stamina = stamina_max
                     eats += 1
                 elif signal == Signal.NORMAL:
-                    r = 0.1
+                    stamina -= 1
+                    if stamina < 0:
+                        stamina = 0
+                    r = stamina / stamina_max
 
                 r_arr.append(r)
 
@@ -310,14 +317,15 @@ class Driver:
                 avg = sum(scores) / len(scores)
 
                 # print to debug
-                print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps))
-                print('action = ' + a_print + ' / reward = ' + r_print)
-                print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print +' / diff = ' + diff_print)
-                print('Thousand steps average score = ' + str(avg))
-                print('Hit rate = ' + str(hits / self.total_steps))
-                print('Eat rate = ' + str(eats / self.total_steps))
-                print(display)
-                print(gares[1])
+               # print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps))
+               # print('action = ' + a_print + ' / reward = ' + r_print)
+               # print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print +' / diff = ' + diff_print)
+                if self.total_steps % 50 == 0:
+                    print('thousand steps average score = ' + str(avg))
+               # print('Hit rate = ' + str(hits / self.total_steps))
+               # print('Eat rate = ' + str(eats / self.total_steps))
+               # print(display)
+               # print(gares[1])
                 
             # train steps
             s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), self.greedysnake.SIZE**2))
