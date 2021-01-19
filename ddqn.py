@@ -270,7 +270,6 @@ class Driver:
                 r_arr.append(r)
 
                 # observe state after action
-                s_t = np.copy(s_t) #backup s_t
                 display = self.get_state()[1]
                 s_t_add_1 = self.get_state()[0].reshape((1, self.greedysnake.SIZE ** 2))
                 s_t_temp = s_t_add_1
@@ -285,8 +284,9 @@ class Driver:
                 q_t = critic_model.predict(s_t)
                 target_sa = target.predict(s_t_add_1)
                 t = [0,0,0,0]
+                index = self.get_action_index(a_t)
                 for j in range(len(t)):
-                    t[j] = r + self.gamma * np.array(target_sa).reshape((4))[j]
+                    t[j] = r + self.gamma * np.array(target_sa).reshape((4))[index]
                     if signal == Signal.HIT and j == self.get_action_index(a_t):
                         t[j] = r
                 q_arr.append(q_t)
@@ -320,8 +320,13 @@ class Driver:
                # print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps))
                # print('action = ' + a_print + ' / reward = ' + r_print)
                # print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print +' / diff = ' + diff_print)
+              #  print('thousand steps average score = ' + str(avg))
                 if self.total_steps % 50 == 0:
+                    print('=============================================')
+                    print('total steps = ' + str(self.total_steps))
                     print('thousand steps average score = ' + str(avg))
+                    print('Hit rate = ' + str(hits / self.total_steps))
+                    print('Eat rate = ' + str(eats / self.total_steps))
                # print('Hit rate = ' + str(hits / self.total_steps))
                # print('Eat rate = ' + str(eats / self.total_steps))
                # print(display)
@@ -333,10 +338,10 @@ class Driver:
             t = np.array(t_arr, dtype=np.float32).reshape((len(t_arr), 4))
             q = np.array(q_arr, dtype=np.float32).reshape((len(q_arr), 4))
             r = np.array(r_arr, dtype=np.float32).reshape((len(r_arr), 1))
-            critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=1, batch_size = self.batch_size)
-            target.fit([s_, q, r], epochs=self.target_net_epochs, verbose=1, batch_size = self.batch_size)
+            critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=0, batch_size = self.batch_size)
+           # target.fit([s_, q, r], epochs=self.target_net_epochs, verbose=1, batch_size = self.batch_size)
 
-            if e % 20 == 0:
+            if e % 10 == 0:
                 target.target.set_weights(critic_model.get_weights())
 
             # record train history
