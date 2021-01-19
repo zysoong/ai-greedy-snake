@@ -40,9 +40,6 @@ class Driver:
         self.target_net_learnrate_init = float(config[self.env]['target_net_learnrate_init'])
         self.target_net_learnrate_decay = float(config[self.env]['target_net_learnrate_decay'])
         self.target_net_clipnorm = float(config[self.env]['target_net_clipnorm'])
-        self.train_hist_file = config[self.env]['train_hist_file']
-        self.critic_model_file = config[self.env]['critic_model_file']
-        self.actor_model_file = config[self.env]['actor_model_file']
 
         # parameters
         self.total_steps = 0
@@ -100,10 +97,8 @@ class Driver:
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (self.greedysnake.SIZE ** 2)), 
-            keras.layers.Dense(40, activation = 'relu', kernel_initializer='random_normal'),
-            keras.layers.Dense(32, activation = 'relu', kernel_initializer='random_normal'),
-            keras.layers.Dense(15, activation = 'relu', kernel_initializer='random_normal'),
-            keras.layers.Dense(4, kernel_initializer='random_normal')
+            keras.layers.Dense(10, activation = 'relu', kernel_initializer='random_normal'),
+            keras.layers.Dense(4, activation = 'linear', kernel_initializer='random_normal')
         ], name = 'critic')
 
         # optimizer
@@ -135,7 +130,7 @@ class Driver:
 
                 # snake head
                 if snake_index == 0: 
-                    frame[row, col] = 0.5
+                    frame[row, col] = 0.6
                     display += '@'
 
                 # snake body
@@ -145,7 +140,7 @@ class Driver:
 
             # food
             elif (np.array([row, col]) == self.greedysnake.food).all():
-                frame[row, col] = 1.0
+                frame[row, col] = 1.
                 display += '#'
             
             # block
@@ -267,20 +262,20 @@ class Driver:
                 avg = sum(scores) / len(scores)
 
                 # print to debug
-               # print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps))
-               # print('action = ' + a_print + ' / reward = ' + r_print)
-               # print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print +' / diff = ' + diff_print)
-              #  print('thousand steps average score = ' + str(avg))
-                if self.total_steps % 50 == 0:
-                    print('=============================================')
-                    print('total steps = ' + str(self.total_steps))
-                    print('thousand steps average score = ' + str(avg))
-                    print('Hit rate = ' + str(hits / self.total_steps))
-                    print('Eat rate = ' + str(eats / self.total_steps))
-               # print('Hit rate = ' + str(hits / self.total_steps))
-               # print('Eat rate = ' + str(eats / self.total_steps))
-               # print(display)
-               # print(gares[1])
+                print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps) + ' / epsilong = ' + str(self.epsilon))
+                print('action = ' + a_print + ' / reward = ' + r_print)
+                print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print +' / diff = ' + diff_print)
+                print('thousand steps average score = ' + str(avg))
+               # if self.total_steps % 50 == 0:
+               #     print('=============================================')
+               #     print('total steps = ' + str(self.total_steps))
+               #     print('thousand steps average score = ' + str(avg))
+               #     print('Hit rate = ' + str(hits / self.total_steps))
+               #     print('Eat rate = ' + str(eats / self.total_steps))
+                print('Hit rate = ' + str(hits / self.total_steps))
+                print('Eat rate = ' + str(eats / self.total_steps))
+                print(display)
+                print(gares[1])
                 
             # train steps
             s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), self.greedysnake.SIZE**2))
@@ -288,10 +283,11 @@ class Driver:
             t = np.array(t_arr, dtype=np.float32).reshape((len(t_arr), 4))
             q = np.array(q_arr, dtype=np.float32).reshape((len(q_arr), 4))
             r = np.array(r_arr, dtype=np.float32).reshape((len(r_arr), 1))
-            critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=0, batch_size = self.batch_size)
+            critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=1, batch_size = self.batch_size)
            # target.fit([s_, q, r], epochs=self.target_net_epochs, verbose=1, batch_size = self.batch_size)
 
             if e % 10 == 0:
+                print('target net was synchronized with critic net')
                 target.set_weights(critic_model.get_weights())
 
             # record train history
