@@ -31,7 +31,6 @@ class Driver:
         self.critic_net_epochs = int(config[self.env]['critic_net_epochs'])
         self.target_net_epochs = int(config[self.env]['target_net_epochs'])
         self.gamma = float(config[self.env]['gamma'])
-        self.beta_init = float(config[self.env]['beta_init'])
         self.epsilon_init = float(config[self.env]['epsilon_init'])
         self.epsilon_decay = float(config[self.env]['epsilon_decay'])
         self.critic_net_learnrate_init = float(config[self.env]['critic_net_learnrate_init'])
@@ -230,7 +229,7 @@ class Driver:
                 q_current = critic_model.predict(s_current)
                 target_sa = target.predict(s_future)
                 t = [0,0,0,0]
-                index = self.get_action_index(a_current)
+                index = np.argmax(np.array(target_sa).reshape((4)))
                 for j in range(len(t)):
                     if j == self.get_action_index(a_current):
                         t[j] = r + self.gamma * np.array(target_sa).reshape((4))[index]
@@ -270,12 +269,12 @@ class Driver:
                # print('action = ' + a_print + ' / reward = ' + r_print)
                # print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print +' / diff = ' + diff_print)
               #  print('thousand steps average score = ' + str(avg))
-                if self.total_steps % 50 == 0:
-                    print('=============================================')
-                    print('total steps = ' + str(self.total_steps))
-                    print('thousand steps average score = ' + str(avg))
-                    print('Hit rate = ' + str(hits / self.total_steps))
-                    print('Eat rate = ' + str(eats / self.total_steps))
+                print('=============================================')
+                print('total steps = ' + str(self.total_steps))
+                print('thousand steps average score = ' + str(avg))
+                print('Hit rate = ' + str(hits / self.total_steps))
+                print('Eat rate = ' + str(eats / self.total_steps))
+                print('=============================================')
                # print('Hit rate = ' + str(hits / self.total_steps))
                # print('Eat rate = ' + str(eats / self.total_steps))
                # print(display)
