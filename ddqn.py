@@ -292,7 +292,7 @@ class Driver:
            # target.fit([s_, q, r], epochs=self.target_net_epochs, verbose=1, batch_size = self.batch_size)
 
             if e % 10 == 0:
-                target.target.set_weights(critic_model.get_weights())
+                target.set_weights(critic_model.get_weights())
 
             # record train history
             #f.write(str(critic_hist.history)+'\n')
