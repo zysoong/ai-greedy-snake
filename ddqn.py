@@ -52,7 +52,7 @@ class Driver:
         rand_strategy = np.random.rand()
         # random action
         if 0 <= rand_strategy <= epsilon:
-            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE ** 2)))
+            q = critic_model.predict(np.array(state).reshape(1, 84, 84, 1))
             sm = np.array(tf.nn.softmax(q)).reshape((4))
             rand = np.random.randint(0, 4)
             action = None
@@ -67,7 +67,7 @@ class Driver:
             return action, q, sm
         # greedy
         else:
-            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE ** 2)))
+            q = critic_model.predict(np.array(state).reshape((1, 84, 84, 1)))
             sm = np.array(tf.nn.softmax(q)).reshape((4))
             q_np = np.array(q).reshape((4))
             argmax = np.argmax(q_np)
@@ -98,7 +98,7 @@ class Driver:
 
         # critic layers
         critic_model = keras.Sequential([
-            keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1)), 
+            keras.layers.Input(shape = (84, 84, 1)), 
             keras.layers.Conv2D(
                 16, (8, 8), 
                 padding='same', 
@@ -167,9 +167,11 @@ class Driver:
             if col == self.greedysnake.SIZE - 1:
                 display += '\n'
 
+            print(frame.shape)
+
             # scale frame to 84*84
-            frame = np.kron(frame, np.ones(84, 84))
-        return frame, display
+            res = np.kron(frame, np.ones((21, 21)))
+        return res, display
         
     def run(self):
         
@@ -201,7 +203,7 @@ class Driver:
 
                 # observe state and action at t = 0
                 if i == 0:
-                    s_current = self.get_state()[0].reshape((1, self.greedysnake.SIZE ** 2))
+                    s_current = self.get_state()[0].reshape((1, 84, 84))
                     a_current = self.get_action(s_current, critic_model, self.epsilon)[0]
                 else: 
                     s_current = s_current_temp
