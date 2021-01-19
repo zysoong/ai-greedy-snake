@@ -94,11 +94,26 @@ class Driver:
         
     def get_ddqn(self):
 
+        initializer = keras.initializers.HeNormal()
+
         # critic layers
         critic_model = keras.Sequential([
-            keras.layers.Input(shape = (self.greedysnake.SIZE ** 2)), 
-            keras.layers.Dense(10, activation = 'relu', kernel_initializer='random_normal'),
-            keras.layers.Dense(4, activation = 'linear', kernel_initializer='random_normal')
+            keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1)), 
+            keras.layers.Conv2D(
+                16, (8, 8), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer=initializer, 
+            ),
+            keras.layers.Conv2D(
+                32, (4, 4), 
+                padding='same', 
+                activation='relu', 
+                kernel_initializer=initializer, 
+            ),
+            keras.layers.Flatten(),
+            keras.layers.Dense(256, activation = 'relu', kernel_initializer=initializer),
+            keras.layers.Dense(4, kernel_initializer=initializer)
         ], name = 'critic')
 
         # optimizer
@@ -151,6 +166,9 @@ class Driver:
             # switch line
             if col == self.greedysnake.SIZE - 1:
                 display += '\n'
+
+            # scale frame to 84*84
+            frame = np.kron(frame, np.ones(84, 84))
         return frame, display
         
     def run(self):
