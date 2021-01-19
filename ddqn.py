@@ -14,6 +14,9 @@ import sys
 import warnings
 warnings.filterwarnings("ignore")
 np.set_printoptions(threshold=sys.maxsize)
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
 
 class Driver:
 
@@ -167,8 +170,6 @@ class Driver:
             if col == self.greedysnake.SIZE - 1:
                 display += '\n'
 
-            print(frame.shape)
-
             # scale frame to 84*84
             res = np.kron(frame, np.ones((21, 21)))
         return res, display
@@ -203,7 +204,7 @@ class Driver:
 
                 # observe state and action at t = 0
                 if i == 0:
-                    s_current = self.get_state()[0].reshape((1, 84, 84))
+                    s_current = self.get_state()[0].reshape((1, 84, 84, 1))
                     a_current = self.get_action(s_current, critic_model, self.epsilon)[0]
                 else: 
                     s_current = s_current_temp
@@ -233,7 +234,7 @@ class Driver:
 
                 # observe state after action
                 display = self.get_state()[1]
-                s_future = self.get_state()[0].reshape((1, self.greedysnake.SIZE ** 2))
+                s_future = self.get_state()[0].reshape((1, 84, 84, 1))
                 s_current_temp = s_future
                 s_a_future_arr.append(s_future)
                 
@@ -298,8 +299,8 @@ class Driver:
                 print(gares[1])
                 
             # train steps
-            s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), self.greedysnake.SIZE**2))
-            s_ = np.array(s_a_future_arr, dtype=np.float32).reshape((len(s_a_future_arr), self.greedysnake.SIZE**2))
+            s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), 84, 84, 1))
+            s_ = np.array(s_a_future_arr, dtype=np.float32).reshape((len(s_a_future_arr), 84, 84, 1))
             t = np.array(t_arr, dtype=np.float32).reshape((len(t_arr), 4))
             q = np.array(q_arr, dtype=np.float32).reshape((len(q_arr), 4))
             r = np.array(r_arr, dtype=np.float32).reshape((len(r_arr), 1))
