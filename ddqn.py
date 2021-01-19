@@ -269,12 +269,13 @@ class Driver:
                # print('action = ' + a_print + ' / reward = ' + r_print)
                # print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print +' / diff = ' + diff_print)
               #  print('thousand steps average score = ' + str(avg))
-                print('=============================================')
-                print('total steps = ' + str(self.total_steps))
-                print('thousand steps average score = ' + str(avg))
-                print('Hit rate = ' + str(hits / self.total_steps))
-                print('Eat rate = ' + str(eats / self.total_steps))
-                print('=============================================')
+                if self.total_steps % 1000 == 0:
+                    print('=============================================')
+                    print('total steps = ' + str(self.total_steps))
+                    print('thousand steps average score = ' + str(avg))
+                    print('Hit rate = ' + str(hits / self.total_steps))
+                    print('Eat rate = ' + str(eats / self.total_steps))
+                    print('=============================================')
                # print('Hit rate = ' + str(hits / self.total_steps))
                # print('Eat rate = ' + str(eats / self.total_steps))
                # print(display)
@@ -289,7 +290,8 @@ class Driver:
             critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=0, batch_size = self.batch_size)
            # target.fit([s_, q, r], epochs=self.target_net_epochs, verbose=1, batch_size = self.batch_size)
 
-            if e % 10 == 0:
+            if self.total_steps % 2560 == 0 and self.total_steps != 0:
+                print('clone critic weights to target')
                 target.set_weights(critic_model.get_weights())
 
             # record train history
