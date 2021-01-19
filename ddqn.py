@@ -15,53 +15,6 @@ import warnings
 warnings.filterwarnings("ignore")
 np.set_printoptions(threshold=sys.maxsize)
 
-
-class Target(keras.Model):
-
-    def __init__(self, critic):
-        config = configparser.ConfigParser()
-        config.read('ddqn.ini')
-        self.env = config['ENV']['env']
-        self.gamma = float(config[self.env]['gamma'])
-        super(Target, self).__init__()
-        self.critic = critic
-        self.target = keras.models.clone_model(critic)
-        self.batch_size = int(config[self.env]['batch_size'])
-
-    def compile(self, optimizer, loss):
-        super(Target, self).compile()
-        self.target_optimizer = optimizer
-        self.loss = loss
-
-    def train_step(self, data):
-
-        state_t_add_1, q, reward = data[0]
-
-        # train target
-        with tf.GradientTape(watch_accessed_variables=True, persistent=True) as tape:
-            tape.watch(self.target.trainable_weights)
-            ts_ = self.target(state_t_add_1)
-            y = reward + self.gamma * ts_ - q
-            t = np.zeros((self.batch_size, 4))                                                        
-            t = np.zeros((self.batch_size, 4))                                                        
-            target_loss = self.loss(t, y)
-        target_grads = tape.gradient(target_loss, self.target.trainable_weights)
-
-        #print('============= test gradient ===================')
-        #tf.print(tape.gradient(target_loss, y))
-
-        self.target_optimizer.apply_gradients(
-            zip(target_grads, self.target.trainable_weights)
-        )
-        return {"TargetLoss": target_loss}
-
-    def call(self, state):
-        return self.target(state)
-
-    def predict_target(self, state):
-        return self.target(state)
-
-
 class Driver:
 
     def __init__(self):
@@ -158,19 +111,13 @@ class Driver:
             lr = self.critic_net_learnrate, 
             clipnorm = self.critic_net_clipnorm
         )
-        t_opt = keras.optimizers.Adam(
-            lr = self.critic_net_learnrate, 
-            clipnorm = self.critic_net_clipnorm
-        )
         
         # critic model
         critic_model.compile(loss = keras.losses.MSE, optimizer = c_opt)
 
         # target model
-        target = Target(critic=critic_model)
+        target = keras.models.clone_model(critic_model)
         target.target.set_weights(critic_model.get_weights())
-        target.compile(loss = keras.losses.MSE, optimizer = t_opt)
-
         return critic_model, target
 
 
@@ -225,14 +172,14 @@ class Driver:
 
             # execute steps for greedy snake
             s_arr = []
-            s_a_t_add_1_arr = []
+            s_a_future_arr = []
             r_arr = []
             t_arr = []
             q_arr = []
 
             # buffer
-            s_t_temp = None
-            a_t_temp = None
+            s_current_temp = None
+            a_current_temp = None
             
             # start steps
             stamina = 0
@@ -241,15 +188,15 @@ class Driver:
 
                 # observe state and action at t = 0
                 if i == 0:
-                    s_t = self.get_state()[0].reshape((1, self.greedysnake.SIZE ** 2))
-                    a_t = self.get_action(s_t, critic_model, self.epsilon)[0]
+                    s_current = self.get_state()[0].reshape((1, self.greedysnake.SIZE ** 2))
+                    a_current = self.get_action(s_current, critic_model, self.epsilon)[0]
                 else: 
-                    s_t = s_t_temp
-                    a_t = a_t_temp
-                s_arr.append(s_t)
+                    s_current = s_current_temp
+                    a_current = a_current_temp
+                s_arr.append(s_current)
 
                 # take action via eps greedy, get reward
-                signal = self.greedysnake.step(a_t)
+                signal = self.greedysnake.step(a_current)
                 r = None
 
                 # signal reward
@@ -271,28 +218,28 @@ class Driver:
 
                 # observe state after action
                 display = self.get_state()[1]
-                s_t_add_1 = self.get_state()[0].reshape((1, self.greedysnake.SIZE ** 2))
-                s_t_temp = s_t_add_1
-                s_a_t_add_1_arr.append(s_t_add_1)
+                s_future = self.get_state()[0].reshape((1, self.greedysnake.SIZE ** 2))
+                s_current_temp = s_future
+                s_a_future_arr.append(s_future)
                 
                 # choose action at t+1
-                gares = self.get_action(s_t_add_1, critic_model, self.epsilon)
-                a_t_add_1 = gares[0]
-                a_t_temp = a_t_add_1
+                gares = self.get_action(s_future, critic_model, self.epsilon)
+                a_future = gares[0]
+                a_current_temp = a_future
 
                 # get teacher for critic net (online learning)
-                q_t = critic_model.predict(s_t)
-                target_sa = target.predict(s_t_add_1)
+                q_current = critic_model.predict(s_current)
+                target_sa = target.predict(s_future)
                 t = [0,0,0,0]
-                index = self.get_action_index(a_t)
+                index = self.get_action_index(a_current)
                 for j in range(len(t)):
-                    if j == self.get_action_index(a_t):
+                    if j == self.get_action_index(a_current):
                         t[j] = r + self.gamma * np.array(target_sa).reshape((4))[index]
-                        if signal == Signal.HIT and j == self.get_action_index(a_t):
+                        if signal == Signal.HIT and j == self.get_action_index(a_current):
                             t[j] = r
                     else:
-                        t[j] = np.array(q_t).reshape((4))[j]
-                q_arr.append(q_t)
+                        t[j] = np.array(q_current).reshape((4))[j]
+                q_arr.append(q_current)
                 t_arr.append(t)
 
                 # accumulate index
@@ -305,11 +252,11 @@ class Driver:
                 K.set_value(critic_model.optimizer.learning_rate, self.critic_net_learnrate)
 
                 # display information
-                a_print = str(a_t_add_1)
+                a_print = str(a_future)
                 r_print = str(float(r))
                 t_print = str(np.array(t))
-                predict_print = str(q_t)
-                diff_print = str(abs(t - q_t))
+                predict_print = str(q_current)
+                diff_print = str(abs(t - q_current))
 
                 # calc stats
                 if len(scores) < 1000:
@@ -337,7 +284,7 @@ class Driver:
                 
             # train steps
             s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), self.greedysnake.SIZE**2))
-            s_ = np.array(s_a_t_add_1_arr, dtype=np.float32).reshape((len(s_a_t_add_1_arr), self.greedysnake.SIZE**2))
+            s_ = np.array(s_a_future_arr, dtype=np.float32).reshape((len(s_a_future_arr), self.greedysnake.SIZE**2))
             t = np.array(t_arr, dtype=np.float32).reshape((len(t_arr), 4))
             q = np.array(q_arr, dtype=np.float32).reshape((len(q_arr), 4))
             r = np.array(r_arr, dtype=np.float32).reshape((len(r_arr), 1))
