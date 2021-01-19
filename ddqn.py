@@ -117,7 +117,7 @@ class Driver:
 
         # target model
         target = keras.models.clone_model(critic_model)
-        target.target.set_weights(critic_model.get_weights())
+        target.set_weights(critic_model.get_weights())
         return critic_model, target
 
 
