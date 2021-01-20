@@ -41,7 +41,7 @@ class Driver:
         rand_strategy = np.random.rand()
         # random action
         if 0 <= rand_strategy <= epsilon:
-            q = critic_model.predict(np.array(state).reshape((1, 8)))
+            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 3)))
             sm = np.array(tf.nn.softmax(q)).reshape((4))
             rand = np.random.randint(0, 4)
             action = None
@@ -56,7 +56,7 @@ class Driver:
             return action, q, sm
         # greedy
         else:
-            q = critic_model.predict(np.array(state).reshape((1, 8)))
+            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 3)))
             sm = np.array(tf.nn.softmax(q)).reshape((4))
             q_np = np.array(q).reshape((4))
             argmax = np.argmax(q_np)
@@ -216,7 +216,7 @@ class Driver:
 
                 # observe state and action at t = 0
                 if i == 0:
-                    s_current = self.get_state()[0].reshape((1, 8))
+                    s_current = self.get_state()[0].reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 3))
                     a_current = self.get_action(s_current, critic_model, self.epsilon)[0]
                 else: 
                     s_current = s_current_temp
@@ -246,7 +246,7 @@ class Driver:
 
                 # observe state after action
                 display = self.get_state()[1]
-                s_future = self.get_state()[0].reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE))
+                s_future = self.get_state()[0].reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 3))
                 s_current_temp = s_future
                 s_a_future_arr.append(s_future)
                 
@@ -301,10 +301,9 @@ class Driver:
                 print('Hit rate = ' + str(hits / self.total_steps))
                 print('Eat rate = ' + str(eats / self.total_steps))
                 print(display)
-                print(str(np.array(s_future).reshape((2, 4))))
                 
             # train steps
-            s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), 8))
+            s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), self.greedysnake.SIZE, self.greedysnake.SIZE, 3))
             t = np.array(t_arr, dtype=np.float32).reshape((len(t_arr), 4))
             r = np.array(r_arr, dtype=np.float32).reshape((len(r_arr), 1))
             critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=0, batch_size = self.batch_size)
