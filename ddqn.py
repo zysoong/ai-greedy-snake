@@ -301,15 +301,22 @@ class Driver:
                 print('Eat rate = ' + str(eats / self.total_steps))
                 print(display)
                 print(str(np.array(s_future).reshape((2, 4))))
+
                 
+                if self.total_steps % self.target_update_freq == 0 and self.total_steps != 0:
+                    print('clone critic weights to target')
+                    target.set_weights(critic_model.get_weights())
+
+                if self.total_steps % 1000 == 0:
+                    print('models saved')
+                    critic_model.save('ddqn_critic')
+                    target.save('ddqn_target')
+
             # train steps
             s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), 8))
             t = np.array(t_arr, dtype=np.float32).reshape((len(t_arr), 4))
             r = np.array(r_arr, dtype=np.float32).reshape((len(r_arr), 1))
             critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=0, batch_size = self.batch_size)
-            if self.total_steps % self.target_update_freq == 0 and self.total_steps != 0:
-                print('clone critic weights to target')
-                target.set_weights(critic_model.get_weights())
 
             # record train history
             #f.write(str(critic_hist.history)+'\n')
