@@ -1,15 +1,9 @@
 from greedysnake import GreedySnake, Direction, Signal
-import time
 import numpy as np
-from threading import Thread
-import subprocess
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import backend as K
-from collections import OrderedDict
-import random
 import configparser
-import copy
 import sys
 import warnings
 warnings.filterwarnings("ignore")
@@ -29,24 +23,17 @@ class Driver:
         self.memory_size = int(config[self.env]['memory_size'])
         self.mini_batch_size = int(config[self.env]['mini_batch_size'])
         self.critic_net_epochs = int(config[self.env]['critic_net_epochs'])
-        self.target_net_epochs = int(config[self.env]['target_net_epochs'])
         self.gamma = float(config[self.env]['gamma'])
         self.epsilon_init = float(config[self.env]['epsilon_init'])
         self.epsilon_decay = float(config[self.env]['epsilon_decay'])
         self.critic_net_learnrate_init = float(config[self.env]['critic_net_learnrate_init'])
         self.critic_net_learnrate_decay = float(config[self.env]['critic_net_learnrate_decay'])
         self.critic_net_clipnorm = float(config[self.env]['critic_net_clipnorm'])
-        self.target_net_learnrate_init = float(config[self.env]['target_net_learnrate_init'])
-        self.target_net_learnrate_decay = float(config[self.env]['target_net_learnrate_decay'])
-        self.target_net_clipnorm = float(config[self.env]['target_net_clipnorm'])
-        self.train_hist_file = config[self.env]['train_hist_file']
-        self.critic_model_file = config[self.env]['critic_model_file']
-        self.actor_model_file = config[self.env]['actor_model_file']
+        self.target_update_freq = float(config[self.env]['target_update_freq'])
 
         # parameters
         self.total_steps = 0
         self.critic_net_learnrate = self.critic_net_learnrate_init * (self.critic_net_learnrate_decay ** self.total_steps)
-        self.target_net_learnrate = self.target_net_learnrate_init * (self.target_net_learnrate_decay ** self.total_steps)
         self.epsilon = self.epsilon_init * (self.epsilon_decay ** self.total_steps)
 
     def get_action(self, state, critic_model, epsilon):
@@ -54,7 +41,7 @@ class Driver:
         rand_strategy = np.random.rand()
         # random action
         if 0 <= rand_strategy <= epsilon:
-            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE ** 2)))
+            q = critic_model.predict(np.array(state).reshape((1, 8)))
             sm = np.array(tf.nn.softmax(q)).reshape((4))
             rand = np.random.randint(0, 4)
             action = None
@@ -69,7 +56,7 @@ class Driver:
             return action, q, sm
         # greedy
         else:
-            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE ** 2)))
+            q = critic_model.predict(np.array(state).reshape((1, 8)))
             sm = np.array(tf.nn.softmax(q)).reshape((4))
             q_np = np.array(q).reshape((4))
             argmax = np.argmax(q_np)
@@ -98,7 +85,7 @@ class Driver:
 
         # critic layers
         critic_model = keras.Sequential([
-            keras.layers.Input(shape = (self.greedysnake.SIZE ** 2)), 
+            keras.layers.Input(shape = (8)), 
             keras.layers.Dense(32, activation = 'relu', kernel_initializer='random_normal'),
             keras.layers.Dense(15, activation = 'relu', kernel_initializer='random_normal'),
             keras.layers.Dense(4, kernel_initializer='random_normal')
@@ -121,7 +108,51 @@ class Driver:
 
     def get_state(self):
         display = ''
-        frame = np.zeros(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE), dtype=np.float32)
+        state = np.zeros(shape=(8))
+        head = self.greedysnake.snake[0]
+        head_up = head + np.array([-1, 0])
+        head_down = head + np.array([1, 0])
+        head_left = head + np.array([0, -1])
+        head_right = head + np.array([0, 1])
+        
+        if self.greedysnake.is_snake(head_up[0], head_up[1]) != -1 or head_up[0] < 0:
+            state[0] = 1.
+        if self.greedysnake.is_snake(head_down[0], head_down[1]) != -1 or head_down[0] >= self.greedysnake.SIZE:
+            state[1] = 1.
+        if self.greedysnake.is_snake(head_left[0], head_left[1]) != -1 or head_left[1] < 0:
+            state[2] = 1.
+        if self.greedysnake.is_snake(head_right[0], head_right[1]) != -1 or head_right[1] >= self.greedysnake.SIZE:
+            state[3] = 1.
+
+        food_vec = self.greedysnake.food - head
+        food_vec[0] = -food_vec[0]
+        x = food_vec[1]
+        y = food_vec[0]
+        norm_max = np.sqrt(2 * (self.greedysnake.SIZE ** 2))
+        norm = 1. - (np.linalg.norm(np.array(x, y)) / norm_max)
+
+        if x == 0 and y >= 0:
+            state[4] = norm
+        elif x == 0 and y < 0:
+            state[5] = norm
+        elif x > 0 and y >= 0 and y / x <= 1:
+            state[7] = norm
+        elif x > 0 and y >= 0 and y / x > 1:
+            state[4] = norm
+        elif x < 0 and y >= 0 and y / x < -1:
+            state[4] = norm
+        elif x < 0 and y >= 0 and y / x >= -1:
+            state[6] = norm
+        elif x < 0 and y <= 0 and y / x <= 1:
+            state[6] = norm
+        elif x < 0 and y <= 0 and y / x > 1:
+            state[5] = norm
+        elif x > 0 and y <= 0 and y / x < -1:
+            state[5] = norm
+        elif x > 0 and y <= 0 and y / x >= -1:
+            state[7] = norm
+        
+
         # generate states for N(s, a)
         for i in range(self.greedysnake.SIZE ** 2):
             row = i // self.greedysnake.SIZE
@@ -133,28 +164,26 @@ class Driver:
 
                 # snake head
                 if snake_index == 0: 
-                    frame[row, col] = 0.5
                     display += '@'
 
                 # snake body
                 else:
-                    frame[row, col] = 0.3
                     display += 'O'
 
             # food
             elif (np.array([row, col]) == self.greedysnake.food).all():
-                frame[row, col] = 1.0
                 display += '#'
             
             # block
             else: 
-                frame[row, col] = 0.
                 display += '-'
 
             # switch line
             if col == self.greedysnake.SIZE - 1:
                 display += '\n'
-        return frame, display
+
+
+        return state, display
         
     def run(self):
         
@@ -186,7 +215,7 @@ class Driver:
 
                 # observe state and action at t = 0
                 if i == 0:
-                    s_current = self.get_state()[0].reshape((1, self.greedysnake.SIZE ** 2))
+                    s_current = self.get_state()[0].reshape((1, 8))
                     a_current = self.get_action(s_current, critic_model, self.epsilon)[0]
                 else: 
                     s_current = s_current_temp
@@ -216,7 +245,7 @@ class Driver:
 
                 # observe state after action
                 display = self.get_state()[1]
-                s_future = self.get_state()[0].reshape((1, self.greedysnake.SIZE ** 2))
+                s_future = self.get_state()[0].reshape((1, 8))
                 s_current_temp = s_future
                 s_a_future_arr.append(s_future)
                 
@@ -245,7 +274,6 @@ class Driver:
 
                 # update learn rate and eps
                 self.critic_net_learnrate = self.critic_net_learnrate_init * (self.critic_net_learnrate_decay ** self.total_steps)
-                self.target_net_learnrate = self.target_net_learnrate_init * (self.target_net_learnrate_decay ** self.total_steps) 
                 self.epsilon = self.epsilon_init * (self.epsilon_decay ** self.total_steps)
                 K.set_value(critic_model.optimizer.learning_rate, self.critic_net_learnrate)
 
@@ -265,32 +293,21 @@ class Driver:
                 avg = sum(scores) / len(scores)
 
                 # print to debug
-               # print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps))
-               # print('action = ' + a_print + ' / reward = ' + r_print)
-               # print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print +' / diff = ' + diff_print)
-              #  print('thousand steps average score = ' + str(avg))
-                if self.total_steps % 1000 == 0:
-                    print('=============================================')
-                    print('total steps = ' + str(self.total_steps))
-                    print('thousand steps average score = ' + str(avg))
-                    print('Hit rate = ' + str(hits / self.total_steps))
-                    print('Eat rate = ' + str(eats / self.total_steps))
-                    print('=============================================')
-               # print('Hit rate = ' + str(hits / self.total_steps))
-               # print('Eat rate = ' + str(eats / self.total_steps))
-               # print(display)
-               # print(gares[1])
+                print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps))
+                print('action = ' + a_print + ' / reward = ' + r_print)
+                print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print +' / diff = ' + diff_print)
+                print('thousand steps average score = ' + str(avg))
+                print('Hit rate = ' + str(hits / self.total_steps))
+                print('Eat rate = ' + str(eats / self.total_steps))
+                print(display)
+                print(str(np.array(s_future).reshape((2, 4))))
                 
             # train steps
-            s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), self.greedysnake.SIZE**2))
-            s_ = np.array(s_a_future_arr, dtype=np.float32).reshape((len(s_a_future_arr), self.greedysnake.SIZE**2))
+            s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), 8))
             t = np.array(t_arr, dtype=np.float32).reshape((len(t_arr), 4))
-            q = np.array(q_arr, dtype=np.float32).reshape((len(q_arr), 4))
             r = np.array(r_arr, dtype=np.float32).reshape((len(r_arr), 1))
             critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=0, batch_size = self.batch_size)
-           # target.fit([s_, q, r], epochs=self.target_net_epochs, verbose=1, batch_size = self.batch_size)
-
-            if self.total_steps % 2560 == 0 and self.total_steps != 0:
+            if self.total_steps % self.target_update_freq == 0 and self.total_steps != 0:
                 print('clone critic weights to target')
                 target.set_weights(critic_model.get_weights())
 
@@ -298,10 +315,6 @@ class Driver:
             #f.write(str(critic_hist.history)+'\n')
             #f.write(str(actor_hist.history)+'\n')
             #f.close()
-
-            # save model to file
-            #critic_model.save(self.critic_model_file)
-            #actor.save(self.actor_model_file) # BUG saving subclass model actor not succeed
 
 
 if __name__ == "__main__":
