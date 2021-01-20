@@ -54,7 +54,7 @@ class Driver:
         rand_strategy = np.random.rand()
         # random action
         if 0 <= rand_strategy <= epsilon:
-            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE ** 2)))
+            q = critic_model.predict(np.array(state).reshape((1, 8)))
             sm = np.array(tf.nn.softmax(q)).reshape((4))
             rand = np.random.randint(0, 4)
             action = None
@@ -69,7 +69,7 @@ class Driver:
             return action, q, sm
         # greedy
         else:
-            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE ** 2)))
+            q = critic_model.predict(np.array(state).reshape((1, 8)))
             sm = np.array(tf.nn.softmax(q)).reshape((4))
             q_np = np.array(q).reshape((4))
             argmax = np.argmax(q_np)
@@ -128,40 +128,42 @@ class Driver:
         head_left = head + np.array([0, -1])
         head_right = head + np.array([0, 1])
         
-        if self.greedysnake.is_snake(head_up[0], head_up[1]) or head_up[0] < 0:
+        if self.greedysnake.is_snake(head_up[0], head_up[1]) != -1 or head_up[0] < 0:
             state[0] = 1.
-        if self.greedysnake.is_snake(head_down[0], head_down[1]) or head_down[0] < 0:
+        if self.greedysnake.is_snake(head_down[0], head_down[1]) != -1 or head_down[0] >= self.greedysnake.SIZE:
             state[1] = 1.
-        if self.greedysnake.is_snake(head_left[0], head_left[1]) or head_left[0] < 0:
+        if self.greedysnake.is_snake(head_left[0], head_left[1]) != -1 or head_left[1] < 0:
             state[2] = 1.
-        if self.greedysnake.is_snake(head_right[0], head_right[1]) or head_right[0] < 0:
+        if self.greedysnake.is_snake(head_right[0], head_right[1]) != -1 or head_right[1] >= self.greedysnake.SIZE:
             state[3] = 1.
 
         food_vec = self.greedysnake.food - head
         food_vec[0] = -food_vec[0]
         x = food_vec[1]
         y = food_vec[0]
+        norm_max = np.sqrt(2 * (self.greedysnake.SIZE ** 2))
+        norm = 1. - (np.linalg.norm(np.array(x, y)) / norm_max)
 
         if x == 0 and y >= 0:
-            state[4] = 1.
+            state[4] = norm
         elif x == 0 and y < 0:
-            state[5] = 1.
+            state[5] = norm
         elif x > 0 and y >= 0 and y / x <= 1:
-            state[7] = 1.
+            state[7] = norm
         elif x > 0 and y >= 0 and y / x > 1:
-            state[4] = 1.
+            state[4] = norm
         elif x < 0 and y >= 0 and y / x < -1:
-            state[4] = 1.
+            state[4] = norm
         elif x < 0 and y >= 0 and y / x >= -1:
-            state[6] = 1.
+            state[6] = norm
         elif x < 0 and y <= 0 and y / x <= 1:
-            state[6] = 1.
+            state[6] = norm
         elif x < 0 and y <= 0 and y / x > 1:
-            state[5] = 1.
+            state[5] = norm
         elif x > 0 and y <= 0 and y / x < -1:
-            state[5] = 1.
+            state[5] = norm
         elif x > 0 and y <= 0 and y / x >= -1:
-            state[7] = 1.
+            state[7] = norm
         
 
         # generate states for N(s, a)
@@ -305,25 +307,25 @@ class Driver:
                 avg = sum(scores) / len(scores)
 
                 # print to debug
-               # print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps))
-               # print('action = ' + a_print + ' / reward = ' + r_print)
-               # print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print +' / diff = ' + diff_print)
-              #  print('thousand steps average score = ' + str(avg))
-                if self.total_steps % 1000 == 0:
-                    print('=============================================')
-                    print('total steps = ' + str(self.total_steps))
-                    print('thousand steps average score = ' + str(avg))
-                    print('Hit rate = ' + str(hits / self.total_steps))
-                    print('Eat rate = ' + str(eats / self.total_steps))
-                    print('=============================================')
-               # print('Hit rate = ' + str(hits / self.total_steps))
-               # print('Eat rate = ' + str(eats / self.total_steps))
-               # print(display)
-               # print(gares[1])
+                print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps))
+                print('action = ' + a_print + ' / reward = ' + r_print)
+                print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print +' / diff = ' + diff_print)
+                print('thousand steps average score = ' + str(avg))
+               # if self.total_steps % 1000 == 0:
+               #     print('=============================================')
+               #     print('total steps = ' + str(self.total_steps))
+               #     print('thousand steps average score = ' + str(avg))
+               #     print('Hit rate = ' + str(hits / self.total_steps))
+               #     print('Eat rate = ' + str(eats / self.total_steps))
+               #     print('=============================================')
+                print('Hit rate = ' + str(hits / self.total_steps))
+                print('Eat rate = ' + str(eats / self.total_steps))
+                print(display)
+                print(str(np.array(s_future).reshape((2, 4))))
                 
             # train steps
-            s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), self.greedysnake.SIZE**2))
-            s_ = np.array(s_a_future_arr, dtype=np.float32).reshape((len(s_a_future_arr), self.greedysnake.SIZE**2))
+            s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), 8))
+            s_ = np.array(s_a_future_arr, dtype=np.float32).reshape((len(s_a_future_arr), 8))
             t = np.array(t_arr, dtype=np.float32).reshape((len(t_arr), 4))
             q = np.array(q_arr, dtype=np.float32).reshape((len(q_arr), 4))
             r = np.array(r_arr, dtype=np.float32).reshape((len(r_arr), 1))
