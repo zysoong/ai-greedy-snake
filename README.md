@@ -1,4 +1,4 @@
-# AI Greedy Snake (ongoing)
+# AI Snake (ongoing)
 Experimental project: Snake game AI using reinforcement learning\
 The agent runs purely with the console, which makes it extremely easy to be trained with a cloud server
 
