@@ -13,7 +13,7 @@ class Driver:
 
     def __init__(self):
         config = configparser.ConfigParser()
-        config.read('dqn.ini')
+        config.read('ddqn.ini')
         self.env = config['ENV']['env']
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
@@ -29,6 +29,7 @@ class Driver:
         self.critic_net_learnrate_init = float(config[self.env]['critic_net_learnrate_init'])
         self.critic_net_learnrate_decay = float(config[self.env]['critic_net_learnrate_decay'])
         self.critic_net_clipnorm = float(config[self.env]['critic_net_clipnorm'])
+        self.target_update_freq = float(config[self.env]['target_update_freq'])
 
         # parameters
         self.total_steps = 0
@@ -99,7 +100,10 @@ class Driver:
         # critic model
         critic_model.compile(loss = keras.losses.MSE, optimizer = c_opt)
 
-        return critic_model
+        # target model
+        target = keras.models.clone_model(critic_model)
+        target.set_weights(critic_model.get_weights())
+        return critic_model, target
 
 
     def get_state(self):
@@ -184,7 +188,7 @@ class Driver:
     def run(self):
         
         # define deep learning network
-        critic_model = self.get_ddqn()
+        critic_model, target = self.get_ddqn()
         
         # statics
         scores = []
@@ -252,12 +256,12 @@ class Driver:
 
                 # get teacher for critic net (online learning)
                 q_current = critic_model.predict(s_current)
-                q_future = critic_model.predict(s_future)
+                target_sa = target.predict(s_future)
                 t = [0,0,0,0]
-                index = np.argmax(np.array(q_future).reshape((4)))
+                index = np.argmax(np.array(target_sa).reshape((4)))
                 for j in range(len(t)):
                     if j == self.get_action_index(a_current):
-                        t[j] = r + self.gamma * np.array(q_future).reshape((4))[index]
+                        t[j] = r + self.gamma * np.array(target_sa).reshape((4))[index]
                         if signal == Signal.HIT and j == self.get_action_index(a_current):
                             t[j] = r
                     else:
@@ -303,6 +307,9 @@ class Driver:
             t = np.array(t_arr, dtype=np.float32).reshape((len(t_arr), 4))
             r = np.array(r_arr, dtype=np.float32).reshape((len(r_arr), 1))
             critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=0, batch_size = self.batch_size)
+            if self.total_steps % self.target_update_freq == 0 and self.total_steps != 0:
+                print('clone critic weights to target')
+                target.set_weights(critic_model.get_weights())
 
             # record train history
             #f.write(str(critic_hist.history)+'\n')
