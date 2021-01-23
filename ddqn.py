@@ -193,6 +193,7 @@ class Driver:
         
         # statics
         scores = deque(maxlen=1000)
+        max_score = 0
         hits = 0
         eats = 0
 
@@ -288,12 +289,15 @@ class Driver:
                 # calc stats
                 scores.append(len(self.greedysnake.snake))
                 avg = sum(scores) / len(scores)
+                if avg > max_score:
+                    max_score = avg
 
                 # print to debug
                 print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps))
                 print('action = ' + a_print + ' / reward = ' + r_print)
                 print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print +' / diff = ' + diff_print)
                 print('thousand steps average score = ' + str(avg))
+                print('max avg. score = ' + str(max_score))
                 print('Hit rate = ' + str(hits / self.total_steps))
                 print('Eat rate = ' + str(eats / self.total_steps))
                 print(display)

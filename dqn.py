@@ -6,6 +6,7 @@ from tensorflow.keras import backend as K
 import configparser
 import sys
 import warnings
+from collections import deque
 warnings.filterwarnings("ignore")
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -187,18 +188,19 @@ class Driver:
         critic_model = self.get_ddqn()
         
         # statics
-        scores = []
+        scores = deque(maxlen=1000)
+        max_score = 0
         hits = 0
         eats = 0
 
         for e in range(self.max_epochs):
 
             # execute steps for greedy snake
-            s_arr = []
-            s_a_future_arr = []
-            r_arr = []
-            t_arr = []
-            q_arr = []
+            s_arr = deque()
+            s_a_future_arr = deque()
+            r_arr = deque()
+            t_arr = deque()
+            q_arr = deque()
 
             # buffer
             s_current_temp = None
@@ -281,18 +283,17 @@ class Driver:
                 diff_print = str(abs(t - q_current))
 
                 # calc stats
-                if len(scores) < 1000:
-                    scores.append(len(self.greedysnake.snake))
-                else:
-                    scores.pop(0)
-                    scores.append(len(self.greedysnake.snake))
+                scores.append(len(self.greedysnake.snake))
                 avg = sum(scores) / len(scores)
+                if avg > max_score:
+                    max_score = avg
 
                 # print to debug
                 print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps))
                 print('action = ' + a_print + ' / reward = ' + r_print)
                 print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print +' / diff = ' + diff_print)
                 print('thousand steps average score = ' + str(avg))
+                print('max avg. score = ' + str(max_score))
                 print('Hit rate = ' + str(hits / self.total_steps))
                 print('Eat rate = ' + str(eats / self.total_steps))
                 print(display)
