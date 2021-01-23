@@ -8,7 +8,7 @@ Model | Coding completed | Highest avg. score
 --- | --- | --- 
 DQN with 8-dimensional state | Yes | 10.891
 DQN(SARSA) with 8-dimensional state | No | -
-DDQN with 8-dimensional state | Yes | ≈14
+DDQN with 8-dimensional state | Yes | 14.015
 DDQN with CNN | Yes | (testing)
 Actor-Critic (ADHDP) with 8-dimensional state | No | -
 Actor-Critic (ADHDP) with CNN | No | -
