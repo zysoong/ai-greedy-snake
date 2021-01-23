@@ -6,6 +6,7 @@ from tensorflow.keras import backend as K
 import configparser
 import sys
 import warnings
+from collections import deque
 warnings.filterwarnings("ignore")
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -191,18 +192,18 @@ class Driver:
         critic_model, target = self.get_ddqn()
         
         # statics
-        scores = []
+        scores = deque(maxlen=1000)
         hits = 0
         eats = 0
 
         for e in range(self.max_epochs):
 
             # execute steps for greedy snake
-            s_arr = []
-            s_a_future_arr = []
-            r_arr = []
-            t_arr = []
-            q_arr = []
+            s_arr = deque()
+            s_a_future_arr = deque()
+            r_arr = deque()
+            t_arr = deque()
+            q_arr = deque()
 
             # buffer
             s_current_temp = None
@@ -285,11 +286,7 @@ class Driver:
                 diff_print = str(abs(t - q_current))
 
                 # calc stats
-                if len(scores) < 1000:
-                    scores.append(len(self.greedysnake.snake))
-                else:
-                    scores.pop(0)
-                    scores.append(len(self.greedysnake.snake))
+                scores.append(len(self.greedysnake.snake))
                 avg = sum(scores) / len(scores)
 
                 # print to debug
