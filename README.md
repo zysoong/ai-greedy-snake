@@ -8,7 +8,7 @@ Model | Coding completed | Highest avg. score of 1000 steps | Max tested steps
 --- | --- | --- | --- 
 DQN with 8-dimensional state | Yes | 17.005 | 738276
 DQN(SARSA) with 8-dimensional state | No | - | -
-DDQN with 8-dimensional state | Yes | 14.015 | 675580
+DDQN with 8-dimensional state | Yes | 14.716 | 356570
 DDQN with CNN | No | - | - | - 
 Actor-Critic (ADHDP) with 8-dimensional state | No | - | - 
 Actor-Critic (ADHDP) with CNN | Yes | 3.937 | 258350
