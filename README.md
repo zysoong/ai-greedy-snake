@@ -11,5 +11,5 @@ DQN(SARSA) with 8-dimensional state | No | - | -
 DDQN with 8-dimensional state | Yes | 14.716 | 356570
 DDQN with CNN | No | - | - | - 
 Actor-Critic (ADHDP) with 8-dimensional state | No | - | - 
-Actor-Critic (ADHDP) with CNN | Yes | 3.937 | 258350
+Actor-Critic (ADHDP) with CNN | Yes | 4.337 | 97968
 Actor-Critic-Target with CNN | No | - | -
