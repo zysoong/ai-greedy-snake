@@ -4,7 +4,7 @@ The agent runs purely with the console, which makes it extremely easy to be trai
 
 # Current state
 ![](https://github.com/zysoong/ai-greedy-snake/blob/master/images/example_ddqn_reduced.gif?raw=true)
-Model | Coding completed | Highest avg. score
+Model | Coding completed | Highest avg. score of latest 1000 steps
 --- | --- | --- 
 DQN with 8-dimensional state | Yes | 17.005
 DQN(SARSA) with 8-dimensional state | No | -
