@@ -121,9 +121,9 @@ class Driver:
         return action_map
 
     def print_action_softmax(self, action_map):
-        sum_rows_arr = np.sum(action_map, axis=1)
+        sum_rows_memory = np.sum(action_map, axis=1)
         rand_row = np.random.rand()
-        rows_prob = tf.nn.softmax(sum_rows_arr)
+        rows_prob = tf.nn.softmax(sum_rows_memory)
         sum_row = 0.
         row = None
         for i in range(np.array(rows_prob).shape[0]):
@@ -136,44 +136,6 @@ class Driver:
         col_prob = tf.nn.softmax(column)
         print(rows_prob)
         print(col_prob)
-
-    '''
-    def get_action(self, action_map):
-        map = np.array(action_map).reshape((self.greedysnake.SIZE ** 2))
-        index = np.argmax(map)
-        row = index // self.greedysnake.SIZE
-        col = index % self.greedysnake.SIZE
-        central = self.greedysnake.SIZE // 2
-        x = col - central
-        y = central - row
-        action = None
-        if x > 0 and y >= 0:
-            if abs(y / x) < 1:
-                action = Direction.RIGHT
-            else:
-                action = Direction.UP
-        if x < 0 and y >= 0:
-            if abs(y / x) < 1:
-                action = Direction.UP
-            else:
-                action = Direction.LEFT
-        if x < 0 and y < 0:
-            if abs(y / x) < 1:
-                action = Direction.LEFT
-            else:
-                action = Direction.DOWN
-        if x > 0 and y < 0:
-            if abs(y / x) < 1:
-                action = Direction.RIGHT
-            else:
-                action = Direction.DOWN
-        if x == 0 and y >= 0:
-            action = Direction.RIGHT
-        if x == 0 and y < 0:
-            action = Direction.LEFT
-        return action, map
-    '''
-
 
     def get_action(self, action_map):
         map = np.array(action_map).reshape((self.greedysnake.SIZE, self.greedysnake.SIZE))
@@ -201,18 +163,7 @@ class Driver:
         if head_col == self.greedysnake.SIZE - 1:
             map_right = -math.inf
         else:
-            map_right = map[(head_row), head_col + 1]
-
-        # invalid input prevention
-       # if self.greedysnake.head_direction == Direction.LEFT:            
-       #     map_right = -math.inf
-       # if self.greedysnake.head_direction == Direction.RIGHT:
-       #     map_left = -math.inf
-       # if self.greedysnake.head_direction == Direction.UP:
-       #     map_down = -math.inf
-       # if self.greedysnake.head_direction == Direction.DOWN:
-       #     map_up = -math.inf
-        
+            map_right = map[(head_row), head_col + 1]        
         map_values = np.array([map_up, map_down, map_left, map_right])
         argmax = np.argmax(map_values)
         if argmax == 0:
@@ -223,22 +174,6 @@ class Driver:
             action = Direction.LEFT
         elif argmax == 3:
             action = Direction.RIGHT
-        '''
-        rand = np.random.rand()
-        if 0 <= rand < map_values[0]:
-            action = Direction.UP
-        elif map_values[0] <= rand < map_values[0] + map_values[1]:
-            action = Direction.DOWN
-        elif map_values[1] <= rand < map_values[0] + map_values[1] + map_values[2]:
-            action = Direction.LEFT
-        else:
-            action = Direction.RIGHT
-        '''
-        print(map_up)
-        print(map_down)
-        print(map_left)
-        print(map_right)
-       # print(map_values)
         return action, map
         
 
@@ -261,7 +196,6 @@ class Driver:
                 activation='relu', 
                 kernel_initializer=initializer, 
             ),
-           # keras.layers.MaxPooling2D(),
             keras.layers.Conv2D(
                 64, (3, 3), 
                 padding='same', 
@@ -280,7 +214,6 @@ class Driver:
                 activation='relu', 
                 kernel_initializer=initializer, 
             ),
-            #keras.layers.MaxPooling2D(), 
             keras.layers.Flatten(),
             keras.layers.Dense(500, activation = 'relu', kernel_initializer=initializer),
             keras.layers.Dense(200, activation = 'relu', kernel_initializer=initializer),
@@ -398,21 +331,21 @@ class Driver:
         critic_model, adhdp = self.get_adhdp()
         
         # statics
-        scores = []
+        scores = deque(maxlen=1000)
+        max_score = 0
         hits = 0
         eats = 0
 
 
         for e in range(self.max_epochs):
-            
-            # reset on epoch start
-           # self.greedysnake.reset()
 
-            # database
-            s_memory = deque(maxlen=self.memory_size)
-            s_a_memory = deque(maxlen=self.memory_size)
-            r_memory = deque(maxlen=self.memory_size)
-            t_memory = deque(maxlen=self.memory_size)
+            # execute steps for greedy snake
+            s_memory = deque()
+            s_a_memory = deque()
+            s_a_future_memory = deque()
+            r_memory = deque()
+            t_memory = deque()
+            q_memory = deque()
 
             # buffer
             s_current_temp = None
@@ -422,7 +355,8 @@ class Driver:
             # start steps
             i = 0
             stamina = 0
-            while i < self.max_steps:
+            stamina_max = self.greedysnake.SIZE
+            for i in range(self.max_steps):
 
                 # observe state and action at t = 0
                 if i == 0:
@@ -457,24 +391,22 @@ class Driver:
                 s_memory.append(s_current)
                 s_a_memory.append(s_a_current)
 
-                # take action via eps greedy, get reward
+                # take action and fetch reward
                 signal = self.greedysnake.step(a_current)
-                stamina_max = self.greedysnake.SIZE ** 2
                 r = None
                 if signal == Signal.HIT:
-                    r = -10.
+                    r = -1
                     stamina = 0
                     hits += 1
-                   # i = self.max_steps - 1
                 elif signal == Signal.EAT:
-                    r = 10.
+                    r = 1
                     stamina = stamina_max
                     eats += 1
                 elif signal == Signal.NORMAL:
-                    r = 10. * stamina / stamina_max
                     stamina -= 1
                     if stamina < 0:
                         stamina = 0
+                    r = stamina / stamina_max
                 r_memory.append(r)
 
                 # observe state after action
@@ -484,8 +416,8 @@ class Driver:
                 
                 # choose action at t+1
                 actmap_future = adhdp.predict_actor(np.array(s_future).reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
-                gares = self.get_action(np.array(actmap_future).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
-                a_future = gares[0]
+                get_action_result = self.get_action(np.array(actmap_future).reshape(self.greedysnake.SIZE, self.greedysnake.SIZE))
+                a_future = get_action_result[0]
                 actmap_current_temp = actmap_future
                 a_current_temp = a_future
 
@@ -516,11 +448,7 @@ class Driver:
                 diff_print = str(abs(t - q_current))
 
                 # calc stats
-                if len(scores) < 1000:
-                    scores.append(len(self.greedysnake.snake))
-                else:
-                    scores.pop(0)
-                    scores.append(len(self.greedysnake.snake))
+                scores.append(len(self.greedysnake.snake))
                 avg = sum(scores) / len(scores)
 
                 # print to debug
@@ -531,35 +459,18 @@ class Driver:
                 print('Hit rate = ' + str(hits / self.total_steps))
                 print('Eat rate = ' + str(eats / self.total_steps))
                 print(display)
-                #print(gares[1])
-
-                # inc step counter
-                i += 1
+                #print(get_action_result[1])
 
             # train steps
-            mini_batch_size = self.mini_batch_size
-            len_memory = len(list(s_memory))
-            if len_memory < mini_batch_size:
-                mini_batch_size = len_memory
-            s_minibatch = random.sample(s_memory, mini_batch_size)
-            s_a_minibatch = random.sample(s_a_memory, mini_batch_size)
-            t_minibatch = random.sample(t_memory, mini_batch_size)
-            s = np.array(list(s_minibatch), dtype=np.float32).reshape((len(list(s_minibatch)), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
-            s_a = np.array(list(s_a_minibatch), dtype=np.float32).reshape((len(list(s_a_minibatch)), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
-            t = np.array(list(t_minibatch), dtype=np.float32).reshape((len(list(t_minibatch)), 1))
+            s = np.array(list(s_memory), dtype=np.float32).reshape((len(list(s_memory)), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
+            s_a = np.array(list(s_a_memory), dtype=np.float32).reshape((len(list(s_a_memory)), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size + 1))
+            t = np.array(list(t_memory), dtype=np.float32).reshape((len(list(t_memory)), 1))
             critic_model.fit(s_a, t, epochs=self.critic_net_epochs, verbose=0, batch_size = self.batch_size)
             adhdp.fit(s, t, epochs=self.actor_net_epochs, verbose=0, batch_size = self.batch_size)
-           # time.sleep(2)
-
-            # record train history
-            #f.write(str(critic_hist.history)+'\n')
-            #f.write(str(actor_hist.history)+'\n')
-            #f.close()
 
             # save model to file
             adhdp.save_models()
-            #critic_model.save(self.critic_model_file)
-            #adhdp.save(self.actor_model_file) # BUG saving subclass model adhdp not succeed
+
 
 
 if __name__ == "__main__":
