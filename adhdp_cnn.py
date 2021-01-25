@@ -45,7 +45,7 @@ class ADHDP(keras.Model):
             state_action = tf.concat([state, action_map], 3)
             q = self.critic(state_action)
             t = np.ones((self.batch_size, 1))              
-            t.fill(100)                                             
+            t.fill(30.333333)                                             
             actor_loss = self.loss(t, q)
         actor_grads = tape.gradient(actor_loss, self.actor.trainable_weights)
 
@@ -119,23 +119,6 @@ class Driver:
         elif rand == 3.0:
             action_map[central, self.greedysnake.SIZE - 1] = 1.0
         return action_map
-
-    def print_action_softmax(self, action_map):
-        sum_rows_memory = np.sum(action_map, axis=1)
-        rand_row = np.random.rand()
-        rows_prob = tf.nn.softmax(sum_rows_memory)
-        sum_row = 0.
-        row = None
-        for i in range(np.array(rows_prob).shape[0]):
-            if sum_row <= rand_row <= sum_row + rows_prob[i]:
-                row = i
-                break
-            else:
-                sum_row += rows_prob[i]
-        column = action_map[row, :]
-        col_prob = tf.nn.softmax(column)
-        print(rows_prob)
-        print(col_prob)
 
     def get_action(self, action_map):
         map = np.array(action_map).reshape((self.greedysnake.SIZE, self.greedysnake.SIZE))
@@ -273,7 +256,6 @@ class Driver:
         adhdp.compile(loss = keras.losses.MSE, optimizer = a_opt) # loss is MSE to compare the Q values
         return critic_model, adhdp
 
-
     def write_to_timeslip(self):
         display = ''
         frame = np.zeros(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE), dtype=np.float32)
@@ -313,7 +295,6 @@ class Driver:
 
         self.timeslip = np.insert(self.timeslip, 0, frame, axis=2)
         self.timeslip = np.delete(self.timeslip, self.timeslip_size, axis=2)
-
         return display
         
     def run(self):
@@ -342,10 +323,8 @@ class Driver:
             # execute steps for greedy snake
             s_memory = deque()
             s_a_memory = deque()
-            s_a_future_memory = deque()
             r_memory = deque()
             t_memory = deque()
-            q_memory = deque()
 
             # buffer
             s_current_temp = None
