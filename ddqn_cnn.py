@@ -84,7 +84,7 @@ class Driver:
         rand_strategy = np.random.rand()
         # random action
         if 0 <= rand_strategy <= epsilon:
-            q = critic_model.predict(np.array(state).reshape((self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)))
+            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)))
             sm = np.array(tf.nn.softmax(q)).reshape((4))
             rand = np.random.randint(0, 4)
             action = None
@@ -268,8 +268,8 @@ class Driver:
                 a_current_temp = a_future
 
                 # get teacher for critic net (online learning)
-                q_current = critic_model.predict(s_current)
-                target_sa = target.predict(s_future)
+                q_current = critic_model.predict(s_current.reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)))
+                target_sa = target.predict(s_future.reshape(1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
                 t = [0,0,0,0]
                 index = np.argmax(np.array(target_sa).reshape((4)))
                 for j in range(len(t)):
@@ -312,7 +312,6 @@ class Driver:
                 print('Hit rate = ' + str(hits / self.total_steps))
                 print('Eat rate = ' + str(eats / self.total_steps))
                 print(display)
-                print(str(np.array(s_future).reshape((2, 4))))
 
                 
                 if self.total_steps % self.target_update_freq == 0 and self.total_steps != 0:
