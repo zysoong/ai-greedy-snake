@@ -6,6 +6,7 @@ from tensorflow.keras import backend as K
 import configparser
 import sys
 import warnings
+from collections import deque
 warnings.filterwarnings("ignore")
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -13,7 +14,7 @@ class Driver:
 
     def __init__(self):
         config = configparser.ConfigParser()
-        config.read('ddqn.ini')
+        config.read('ddqn_cnn.ini')
         self.env = config['ENV']['env']
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
@@ -30,18 +31,60 @@ class Driver:
         self.critic_net_learnrate_decay = float(config[self.env]['critic_net_learnrate_decay'])
         self.critic_net_clipnorm = float(config[self.env]['critic_net_clipnorm'])
         self.target_update_freq = float(config[self.env]['target_update_freq'])
+        self.timeslip_size = int(config[self.env]['timeslip_size'])
+        self.timeslip = np.zeros(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
 
         # parameters
         self.total_steps = 0
         self.critic_net_learnrate = self.critic_net_learnrate_init * (self.critic_net_learnrate_decay ** self.total_steps)
         self.epsilon = self.epsilon_init * (self.epsilon_decay ** self.total_steps)
 
-    def get_action(self, state, critic_model, epsilon):
+    def write_to_timeslip(self):
+        display = ''
+        frame = np.zeros(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE), dtype=np.float32)
+        # generate states for N(s, a)
+        for i in range(self.greedysnake.SIZE ** 2):
+            row = i // self.greedysnake.SIZE
+            col = i % self.greedysnake.SIZE
+            snake_index = self.greedysnake.is_snake(row, col)
 
+            # snake
+            if snake_index > -1:
+
+                # snake head
+                if snake_index == 0: 
+                    frame[row, col] = 0.5
+                    display += '@'
+
+                # snake body
+                else:
+                    frame[row, col] = 0.3
+                    display += 'O'
+
+            # food
+            elif (np.array([row, col]) == self.greedysnake.food).all():
+                frame[row, col] = 1.0
+                display += '#'
+            
+            # block
+            else: 
+                frame[row, col] = 0.
+                display += '-'
+
+            # switch line
+            if col == self.greedysnake.SIZE - 1:
+                display += '\n'
+            # store frame to timeslip
+
+        self.timeslip = np.insert(self.timeslip, 0, frame, axis=2)
+        self.timeslip = np.delete(self.timeslip, self.timeslip_size, axis=2)
+        return display
+    
+    def get_action(self, state, critic_model, epsilon):
         rand_strategy = np.random.rand()
         # random action
         if 0 <= rand_strategy <= epsilon:
-            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 3)))
+            q = critic_model.predict(np.array(state).reshape((self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)))
             sm = np.array(tf.nn.softmax(q)).reshape((4))
             rand = np.random.randint(0, 4)
             action = None
@@ -56,7 +99,7 @@ class Driver:
             return action, q, sm
         # greedy
         else:
-            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 3)))
+            q = critic_model.predict(np.array(state).reshape((self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)))
             sm = np.array(tf.nn.softmax(q)).reshape((4))
             q_np = np.array(q).reshape((4))
             argmax = np.argmax(q_np)
@@ -87,7 +130,7 @@ class Driver:
 
         # critic layers
         critic_model = keras.Sequential([
-            keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, 3)),
+            keras.layers.Input(shape = (self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)),
             keras.layers.Conv2D(
                 24, (5, 5), 
                 padding='same', 
@@ -121,7 +164,6 @@ class Driver:
             keras.layers.Flatten(),
             keras.layers.Dense(1280, activation = 'relu', kernel_initializer=initializer),
             keras.layers.Dense(256, activation = 'relu', kernel_initializer=initializer),
-            keras.layers.Dense(128, activation = 'relu', kernel_initializer=initializer),
             keras.layers.Dense(4, kernel_initializer=initializer)
         ], name = 'critic')
 
@@ -138,72 +180,42 @@ class Driver:
         target = keras.models.clone_model(critic_model)
         target.set_weights(critic_model.get_weights())
         return critic_model, target
-
-
-    def get_state(self):
-
-        display = ''
-        frame_head = np.zeros((self.greedysnake.SIZE, self.greedysnake.SIZE, 1))
-        frame_body = np.zeros((self.greedysnake.SIZE, self.greedysnake.SIZE, 1))
-        frame_food = np.zeros((self.greedysnake.SIZE, self.greedysnake.SIZE, 1))
-        state = None
-
-        # generate states for N(s, a)
-        for i in range(self.greedysnake.SIZE ** 2):
-            row = i // self.greedysnake.SIZE
-            col = i % self.greedysnake.SIZE
-            snake_index = self.greedysnake.is_snake(row, col)
-
-            # snake
-            if snake_index > -1:
-
-                # snake head
-                if snake_index == 0: 
-                    display += '@'
-                    frame_head[row, col] = 1.
-
-                # snake body
-                else:
-                    display += 'O'
-                    frame_body[row, col] = 1.
-
-            # food
-            elif (np.array([row, col]) == self.greedysnake.food).all():
-                display += '#'
-                frame_food[row, col] = 1.
-            
-            # block
-            else: 
-                display += '-'
-
-            # switch line
-            if col == self.greedysnake.SIZE - 1:
-                display += '\n'
-
-            # concate channels
-            state = np.concatenate((frame_head, frame_body, frame_food), axis=2)
-
-        return state, display
-
-
+        
     def run(self):
+        # record random initial steps
+        for i in range(self.timeslip_size + 1):
+            rand = np.random.randint(0, 4)
+            a = None
+            if rand == 0:
+                a = Direction.UP
+            elif rand == 1:
+                a = Direction.DOWN
+            elif rand == 2:
+                a = Direction.LEFT
+            elif rand == 3:
+                a = Direction.RIGHT
+            self.greedysnake.step(a)
+            display = self.write_to_timeslip()
+            print('=========Initial Steps===========')
+            print(display)
         
         # define deep learning network
         critic_model, target = self.get_ddqn()
         
         # statics
-        scores = []
+        scores = deque(maxlen=1000)
+        max_score = 0
         hits = 0
         eats = 0
 
         for e in range(self.max_epochs):
 
             # execute steps for greedy snake
-            s_arr = []
-            s_a_future_arr = []
-            r_arr = []
-            t_arr = []
-            q_arr = []
+            s_arr = deque()
+            s_a_future_arr = deque()
+            r_arr = deque()
+            t_arr = deque()
+            q_arr = deque()
 
             # buffer
             s_current_temp = None
@@ -216,7 +228,7 @@ class Driver:
 
                 # observe state and action at t = 0
                 if i == 0:
-                    s_current = self.get_state()[0].reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 3))
+                    s_current = self.timeslip
                     a_current = self.get_action(s_current, critic_model, self.epsilon)[0]
                 else: 
                     s_current = s_current_temp
@@ -245,14 +257,14 @@ class Driver:
                 r_arr.append(r)
 
                 # observe state after action
-                display = self.get_state()[1]
-                s_future = self.get_state()[0].reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, 3))
+                display = self.write_to_timeslip()
+                s_future = self.timeslip
                 s_current_temp = s_future
                 s_a_future_arr.append(s_future)
                 
                 # choose action at t+1
-                gares = self.get_action(s_future, critic_model, self.epsilon)
-                a_future = gares[0]
+                get_action_result = self.get_action(s_future, critic_model, self.epsilon)
+                a_future = get_action_result[0]
                 a_current_temp = a_future
 
                 # get teacher for critic net (online learning)
@@ -286,30 +298,37 @@ class Driver:
                 diff_print = str(abs(t - q_current))
 
                 # calc stats
-                if len(scores) < 1000:
-                    scores.append(len(self.greedysnake.snake))
-                else:
-                    scores.pop(0)
-                    scores.append(len(self.greedysnake.snake))
+                scores.append(len(self.greedysnake.snake))
                 avg = sum(scores) / len(scores)
+                if avg > max_score:
+                    max_score = avg
 
                 # print to debug
                 print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps))
                 print('action = ' + a_print + ' / reward = ' + r_print)
                 print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print +' / diff = ' + diff_print)
                 print('thousand steps average score = ' + str(avg))
+                print('max avg. score = ' + str(max_score))
                 print('Hit rate = ' + str(hits / self.total_steps))
                 print('Eat rate = ' + str(eats / self.total_steps))
                 print(display)
+                print(str(np.array(s_future).reshape((2, 4))))
+
                 
+                if self.total_steps % self.target_update_freq == 0 and self.total_steps != 0:
+                    print('clone critic weights to target')
+                    target.set_weights(critic_model.get_weights())
+
+                if self.total_steps % 1000 == 0:
+                    print('models saved')
+                    critic_model.save('ddqn_critic')
+                    target.save('ddqn_target')
+
             # train steps
-            s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), self.greedysnake.SIZE, self.greedysnake.SIZE, 3))
+            s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
             t = np.array(t_arr, dtype=np.float32).reshape((len(t_arr), 4))
             r = np.array(r_arr, dtype=np.float32).reshape((len(r_arr), 1))
             critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=0, batch_size = self.batch_size)
-            if self.total_steps % self.target_update_freq == 0 and self.total_steps != 0:
-                print('clone critic weights to target')
-                target.set_weights(critic_model.get_weights())
 
             # record train history
             #f.write(str(critic_hist.history)+'\n')
