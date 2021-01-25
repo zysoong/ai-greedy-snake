@@ -99,7 +99,7 @@ class Driver:
             return action, q, sm
         # greedy
         else:
-            q = critic_model.predict(np.array(state).reshape((self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)))
+            q = critic_model.predict(np.array(state).reshape((1, self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size)))
             sm = np.array(tf.nn.softmax(q)).reshape((4))
             q_np = np.array(q).reshape((4))
             argmax = np.argmax(q_np)
