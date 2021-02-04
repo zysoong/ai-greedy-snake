@@ -348,25 +348,6 @@ class Driver:
                     actmap_current = actmap_current_temp
                 s_a_current = tf.concat([s_current, np.array(actmap_current).reshape((self.greedysnake.SIZE, self.greedysnake.SIZE, 1))], axis=2)
 
-                # DEBUG
-                #print('============ s_a_current ===================')
-                #print(s_a_current.shape)
-                #print(s_a_current[:,:,0])
-                #print(s_a_current[:,:,1])
-                #print(s_a_current[:,:,2])
-                #print(s_a_current[:,:,3])
-                #print(s_a_current[:,:,4])
-                #print(s_a_current[:,:,5])
-                #print(s_a_current[:,:,6])
-                #print(s_a_current[:,:,7])
-                #print(s_a_current[:,:,8])
-                #print(s_a_current[:,:,9])
-                #print(s_a_current[:,:,10])
-                #print(s_a_current[:,:,11])
-                #print(s_a_current[:,:,12])
-                #print('========== s_a_current ==================')
-                print('=============================================')
-
                 s_memory.append(s_current)
                 s_a_memory.append(s_a_current)
 

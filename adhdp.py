@@ -4,10 +4,61 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import backend as K
 import configparser
+from collections import deque
 import sys
 import warnings
 warnings.filterwarnings("ignore")
 np.set_printoptions(threshold=sys.maxsize)
+
+
+class ADHDP(keras.Model):
+
+    def __init__(self, critic, actor):
+        config = configparser.ConfigParser()
+        config.read('adhdp_cnn.ini')
+        self.env = config['ENV']['env']
+        super(ADHDP, self).__init__()
+        self.critic = critic
+        self.actor = actor
+        self.batch_size = int(config[self.env]['batch_size'])
+
+    def compile(self, optimizer, loss):
+        super(ADHDP, self).compile()
+        self.actor_optimizer = optimizer
+        self.loss = loss
+
+    def train_step(self, data):
+
+        state, teacher_critic = data
+
+        # train actor
+        with tf.GradientTape(watch_accessed_variables=True, persistent=True) as tape:
+            tape.watch(self.actor.trainable_weights)
+            action_map = self.actor(state)
+            state_action = tf.concat([state, action_map], 1)
+            q = self.critic(state_action)
+            t = np.ones((self.batch_size, 1))              
+            t.fill(30.333333)                                             
+            actor_loss = self.loss(t, q)
+        actor_grads = tape.gradient(actor_loss, self.actor.trainable_weights)
+
+        #print('============= test gradient ===================')
+        #tf.print(tape.gradient(actor_loss, action_map))
+
+        self.actor_optimizer.apply_gradients(
+            zip(actor_grads, self.actor.trainable_weights)
+        )
+        return {"ActorLoss": actor_loss}
+
+    def call(self, state):
+        return self.actor(state)
+
+    def predict_actor(self, state):
+        return self.actor(state)
+
+    def save_models(self):
+        self.critic.save('adhdp_critic')
+        self.actor.save('adhdp_actor')
 
 class Driver:
 
@@ -36,40 +87,20 @@ class Driver:
         self.critic_net_learnrate = self.critic_net_learnrate_init * (self.critic_net_learnrate_decay ** self.total_steps)
         self.epsilon = self.epsilon_init * (self.epsilon_decay ** self.total_steps)
 
-    def get_action(self, state, critic_model, epsilon):
-
-        rand_strategy = np.random.rand()
-        # random action
-        if 0 <= rand_strategy <= epsilon:
-            q = critic_model.predict(np.array(state).reshape((1, 8)))
-            sm = np.array(tf.nn.softmax(q)).reshape((4))
-            rand = np.random.randint(0, 4)
-            action = None
-            if rand == 0:
-                action = Direction.UP
-            elif rand == 1:
-                action = Direction.DOWN
-            elif rand == 2:
-                action = Direction.LEFT
-            elif rand == 3:
-                action = Direction.RIGHT
-            return action, q, sm
-        # greedy
+    def get_action(self, state, adhdp):
+        actor_output = adhdp.predict_actor(np.array(state).reshape((1, 8)))
+        actor_sm = np.array(tf.nn.softmax(actor_output)).reshape((4))
+        rand = np.random.rand()
+        action = None
+        if 0 <= rand < actor_sm[0]:
+            action = Direction.UP
+        elif actor_sm[0] <= rand < actor_sm[0] + actor_sm[1]:
+            action = Direction.DOWN
+        elif actor_sm[0] + actor_sm[1] <= rand < actor_sm[0] + actor_sm[1] + actor_sm[2]:
+            action = Direction.LEFT
         else:
-            q = critic_model.predict(np.array(state).reshape((1, 8)))
-            sm = np.array(tf.nn.softmax(q)).reshape((4))
-            q_np = np.array(q).reshape((4))
-            argmax = np.argmax(q_np)
-            action = None
-            if argmax == 0:
-                action = Direction.UP
-            elif argmax == 1:
-                action = Direction.DOWN
-            elif argmax == 2:
-                action = Direction.LEFT
-            elif argmax == 3:
-                action = Direction.RIGHT
-            return action, q, sm
+            action = Direction.RIGHT
+        return action, actor_output
 
     def get_action_index(self, action):
         if action == Direction.UP:
@@ -81,29 +112,41 @@ class Driver:
         elif action == Direction.RIGHT:
             return 3
         
-    def get_ddqn(self):
+    def get_adhdp(self):
 
         # critic layers
         critic_model = keras.Sequential([
+            keras.layers.Input(shape = (12)), 
+            keras.layers.Dense(32, activation = 'relu', kernel_initializer='random_normal'),
+            keras.layers.Dense(15, activation = 'relu', kernel_initializer='random_normal'),
+            keras.layers.Dense(1, kernel_initializer='random_normal')
+        ], name = 'critic')
+
+        # critic layers
+        actor_model = keras.Sequential([
             keras.layers.Input(shape = (8)), 
             keras.layers.Dense(32, activation = 'relu', kernel_initializer='random_normal'),
             keras.layers.Dense(15, activation = 'relu', kernel_initializer='random_normal'),
-            keras.layers.Dense(4, kernel_initializer='random_normal')
-        ], name = 'critic')
+            keras.layers.Dense(1, kernel_initializer='random_normal')
+        ], name = 'actor')
 
         # optimizer
         c_opt = keras.optimizers.Adam(
             lr = self.critic_net_learnrate, 
             clipnorm = self.critic_net_clipnorm
         )
+        a_opt = keras.optimizers.Adam(
+            lr = self.actor_net_learnrate, 
+            clipnorm = self.actor_net_clipnorm
+        )
         
         # critic model
         critic_model.compile(loss = keras.losses.MSE, optimizer = c_opt)
 
-        # target model
-        target = keras.models.clone_model(critic_model)
-        target.set_weights(critic_model.get_weights())
-        return critic_model, target
+        # actor model
+        adhdp = ADHDP(critic=critic_model, actor=actor_model)
+        adhdp.compile(loss = keras.losses.MSE, optimizer = a_opt) # loss is MSE to compare the Q values
+        return critic_model, adhdp
 
 
     def get_state(self):
@@ -151,9 +194,7 @@ class Driver:
             state[5] = norm
         elif x > 0 and y <= 0 and y / x >= -1:
             state[7] = norm
-        
 
-        # generate states for N(s, a)
         for i in range(self.greedysnake.SIZE ** 2):
             row = i // self.greedysnake.SIZE
             col = i % self.greedysnake.SIZE
@@ -181,32 +222,31 @@ class Driver:
             # switch line
             if col == self.greedysnake.SIZE - 1:
                 display += '\n'
-
-
         return state, display
         
     def run(self):
         
         # define deep learning network
-        critic_model, target = self.get_ddqn()
+        critic_model, adhdp = self.get_adhdp()
         
         # statics
-        scores = []
+        scores = deque(maxlen=1000)
+        max_score = 0
         hits = 0
         eats = 0
 
         for e in range(self.max_epochs):
 
             # execute steps for greedy snake
-            s_arr = []
-            s_a_future_arr = []
-            r_arr = []
-            t_arr = []
-            q_arr = []
+            s_memory = deque()
+            s_a_memory = deque()
+            r_memory = deque()
+            t_memory = deque()
 
             # buffer
             s_current_temp = None
-            a_current_temp = None
+            get_action_result_current_temp = None
+            action_current = None
             
             # start steps
             stamina = 0
@@ -216,17 +256,21 @@ class Driver:
                 # observe state and action at t = 0
                 if i == 0:
                     s_current = self.get_state()[0].reshape((1, 8))
-                    a_current = self.get_action(s_current, critic_model, self.epsilon)[0]
+                    get_action_result_current = self.get_action(s_current, adhdp)
+                    a_current = get_action_result_current[1].reshape((1, 4))
+                    action_current = get_action_result_current[0]
                 else: 
                     s_current = s_current_temp
-                    a_current = a_current_temp
-                s_arr.append(s_current)
+                    get_action_result_current = get_action_result_current_temp
+                    a_current = get_action_result_current[1].reshape((1, 4))
+                    action_current = get_action_result_current[0]
+                s_memory.append(s_current)
+                s_a_current = tf.concat([s_current, a_current], axis=1)
+                s_a_memory.append(s_a_current)
 
                 # take action via eps greedy, get reward
-                signal = self.greedysnake.step(a_current)
+                signal = self.greedysnake.step(action_current)
                 r = None
-
-                # signal reward
                 if signal == Signal.HIT:
                     r = -1
                     stamina = 0
@@ -240,42 +284,36 @@ class Driver:
                     if stamina < 0:
                         stamina = 0
                     r = stamina / stamina_max
-
-                r_arr.append(r)
+                r_memory.append(r)
 
                 # observe state after action
                 display = self.get_state()[1]
                 s_future = self.get_state()[0].reshape((1, 8))
                 s_current_temp = s_future
-                s_a_future_arr.append(s_future)
                 
                 # choose action at t+1
-                gares = self.get_action(s_future, critic_model, self.epsilon)
-                a_future = gares[0]
-                a_current_temp = a_future
+                get_action_result_future = self.get_action(np.array(s_future).reshape((1, 8)), adhdp)
+                a_future = get_action_result_future[1]
+                get_action_result_current_temp = get_action_result_future
 
-                # get teacher for critic net (online learning)
-                q_current = critic_model.predict(s_current)
-                target_sa = target.predict(s_future)
-                t = [0,0,0,0]
-                index = np.argmax(np.array(target_sa).reshape((4)))
-                for j in range(len(t)):
-                    if j == self.get_action_index(a_current):
-                        t[j] = r + self.gamma * np.array(target_sa).reshape((4))[index]
-                        if signal == Signal.HIT and j == self.get_action_index(a_current):
-                            t[j] = r
-                    else:
-                        t[j] = np.array(q_current).reshape((4))[j]
-                q_arr.append(q_current)
-                t_arr.append(t)
+                # get teacher for critic net
+                s_a_future = tf.concat([np.array(s_future).reshape(1, 8), np.array(a_future).reshape(1, 4)], axis=1)
+                q_current = critic_model(np.array(s_a_current).reshape((1, 12)))
+                q_future = critic_model(np.array(s_a_future).reshape((1, 12)))
+                t = r + self.gamma * q_future
+                if signal == Signal.HIT:
+                    t = r
+                t_memory.append(t)
 
                 # accumulate index
                 self.total_steps += 1
 
                 # update learn rate and eps
                 self.critic_net_learnrate = self.critic_net_learnrate_init * (self.critic_net_learnrate_decay ** self.total_steps)
-                self.epsilon = self.epsilon_init * (self.epsilon_decay ** self.total_steps)
+                self.actor_net_learnrate = self.actor_net_learnrate_init * (self.actor_net_learnrate_decay ** self.total_steps)
+                self.beta = self.beta_init * (self.beta_decay ** self.total_steps)
                 K.set_value(critic_model.optimizer.learning_rate, self.critic_net_learnrate)
+                K.set_value(adhdp.optimizer.learning_rate, self.actor_net_learnrate)
 
                 # display information
                 a_print = str(a_future)
@@ -285,37 +323,31 @@ class Driver:
                 diff_print = str(abs(t - q_current))
 
                 # calc stats
-                if len(scores) < 1000:
-                    scores.append(len(self.greedysnake.snake))
-                else:
-                    scores.pop(0)
-                    scores.append(len(self.greedysnake.snake))
+                scores.append(len(self.greedysnake.snake))
                 avg = sum(scores) / len(scores)
+                if avg > max_score:
+                    max_score = avg
 
                 # print to debug
                 print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps))
                 print('action = ' + a_print + ' / reward = ' + r_print)
                 print('teacher(Q) = ' + t_print + ' / predict(Q) = ' + predict_print +' / diff = ' + diff_print)
-                print('thousand steps average score = ' + str(avg))
+                print('Thousand steps average score = ' + str(avg))
+                print('Max average score = ' + str(max_score))
                 print('Hit rate = ' + str(hits / self.total_steps))
                 print('Eat rate = ' + str(eats / self.total_steps))
                 print(display)
-                print(str(np.array(s_future).reshape((2, 4))))
+                #print(get_action_result[1])
                 
             # train steps
-            s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), 8))
-            t = np.array(t_arr, dtype=np.float32).reshape((len(t_arr), 4))
-            r = np.array(r_arr, dtype=np.float32).reshape((len(r_arr), 1))
-            critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=0, batch_size = self.batch_size)
-            if self.total_steps % self.target_update_freq == 0 and self.total_steps != 0:
-                print('clone critic weights to target')
-                target.set_weights(critic_model.get_weights())
+            s = np.array(list(s_memory), dtype=np.float32).reshape((len(list(s_memory)), 8))
+            s_a = np.array(list(s_a_memory), dtype=np.float32).reshape((len(list(s_a_memory)), 12))
+            t = np.array(list(t_memory), dtype=np.float32).reshape((len(list(t_memory)), 1))
+            critic_model.fit(s_a, t, epochs=self.critic_net_epochs, verbose=0, batch_size = self.batch_size)
+            adhdp.fit(s, t, epochs=self.actor_net_epochs, verbose=0, batch_size = self.batch_size)
 
-            # record train history
-            #f.write(str(critic_hist.history)+'\n')
-            #f.write(str(actor_hist.history)+'\n')
-            #f.close()
-
+            # save model to file
+            adhdp.save_models()
 
 if __name__ == "__main__":
     d = Driver()
