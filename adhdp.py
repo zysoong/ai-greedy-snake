@@ -136,7 +136,7 @@ class Driver:
             keras.layers.Input(shape = (8)), 
             keras.layers.Dense(32, activation = 'relu', kernel_initializer='random_normal'),
             keras.layers.Dense(15, activation = 'relu', kernel_initializer='random_normal'),
-            keras.layers.Dense(1, kernel_initializer='random_normal')
+            keras.layers.Dense(4, kernel_initializer='random_normal')
         ], name = 'actor')
 
         # optimizer
