@@ -271,7 +271,7 @@ class Driver:
                 else: 
                     s_current = s_current_temp
                     get_action_result_current = get_action_result_current_temp
-                    a_current = get_action_result_current[1].reshape((1, 4))
+                    a_current = np.array(get_action_result_current[1]).reshape((1, 4))
                     action_current = get_action_result_current[0]
                 s_memory.append(s_current)
                 s_a_current = tf.concat([s_current, a_current], axis=1)
