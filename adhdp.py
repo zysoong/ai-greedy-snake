@@ -64,7 +64,7 @@ class Driver:
 
     def __init__(self):
         config = configparser.ConfigParser()
-        config.read('ddqn.ini')
+        config.read('adhdp.ini')
         self.env = config['ENV']['env']
         self.greedysnake = GreedySnake()
         self.signal_in = Direction.STRAIGHT
@@ -74,18 +74,27 @@ class Driver:
         self.memory_size = int(config[self.env]['memory_size'])
         self.mini_batch_size = int(config[self.env]['mini_batch_size'])
         self.critic_net_epochs = int(config[self.env]['critic_net_epochs'])
+        self.actor_net_epochs = int(config[self.env]['actor_net_epochs'])
         self.gamma = float(config[self.env]['gamma'])
-        self.epsilon_init = float(config[self.env]['epsilon_init'])
-        self.epsilon_decay = float(config[self.env]['epsilon_decay'])
+        self.beta_init = float(config[self.env]['beta_init'])
+        self.beta_decay = float(config[self.env]['beta_decay'])
         self.critic_net_learnrate_init = float(config[self.env]['critic_net_learnrate_init'])
         self.critic_net_learnrate_decay = float(config[self.env]['critic_net_learnrate_decay'])
         self.critic_net_clipnorm = float(config[self.env]['critic_net_clipnorm'])
-        self.target_update_freq = float(config[self.env]['target_update_freq'])
+        self.actor_net_learnrate_init = float(config[self.env]['actor_net_learnrate_init'])
+        self.actor_net_learnrate_decay = float(config[self.env]['actor_net_learnrate_decay'])
+        self.actor_net_clipnorm = float(config[self.env]['actor_net_clipnorm'])
+        self.train_hist_file = config[self.env]['train_hist_file']
+        self.critic_model_file = config[self.env]['critic_model_file']
+        self.actor_model_file = config[self.env]['actor_model_file']
+        self.timeslip_size = int(config[self.env]['timeslip_size'])
+        self.timeslip = np.zeros(shape=(self.greedysnake.SIZE, self.greedysnake.SIZE, self.timeslip_size))
 
         # parameters
         self.total_steps = 0
         self.critic_net_learnrate = self.critic_net_learnrate_init * (self.critic_net_learnrate_decay ** self.total_steps)
-        self.epsilon = self.epsilon_init * (self.epsilon_decay ** self.total_steps)
+        self.actor_net_learnrate = self.actor_net_learnrate_init * (self.actor_net_learnrate_decay ** self.total_steps)
+        self.beta = self.beta_init * (self.beta_decay ** self.total_steps)
 
     def get_action(self, state, adhdp):
         actor_output = adhdp.predict_actor(np.array(state).reshape((1, 8)))
