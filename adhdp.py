@@ -266,7 +266,7 @@ class Driver:
                 if i == 0:
                     s_current = self.get_state()[0].reshape((1, 8))
                     get_action_result_current = self.get_action(s_current, adhdp)
-                    a_current = get_action_result_current[1].reshape((1, 4))
+                    a_current = np.array(get_action_result_current[1]).reshape((1, 4))
                     action_current = get_action_result_current[0]
                 else: 
                     s_current = s_current_temp
