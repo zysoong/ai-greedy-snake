@@ -15,7 +15,7 @@ class ADHDP(keras.Model):
 
     def __init__(self, critic, actor):
         config = configparser.ConfigParser()
-        config.read('adhdp_cnn.ini')
+        config.read('adhdp.ini')
         self.env = config['ENV']['env']
         super(ADHDP, self).__init__()
         self.critic = critic
@@ -38,7 +38,7 @@ class ADHDP(keras.Model):
             state_action = tf.concat([state, action_map], 1)
             q = self.critic(state_action)
             t = np.ones((self.batch_size, 1))              
-            t.fill(30.333333)                                             
+            t.fill(1.0)                                             
             actor_loss = self.loss(t, q)
         actor_grads = tape.gradient(actor_loss, self.actor.trainable_weights)
 
@@ -126,17 +126,17 @@ class Driver:
         # critic layers
         critic_model = keras.Sequential([
             keras.layers.Input(shape = (12)), 
-            keras.layers.Dense(32, activation = 'relu', kernel_initializer='random_normal'),
-            keras.layers.Dense(15, activation = 'relu', kernel_initializer='random_normal'),
-            keras.layers.Dense(1, kernel_initializer='random_normal')
+            keras.layers.Dense(32, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(15, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(1, activation='tanh', kernel_initializer='glorot_normal')
         ], name = 'critic')
 
         # critic layers
         actor_model = keras.Sequential([
             keras.layers.Input(shape = (8)), 
-            keras.layers.Dense(32, activation = 'relu', kernel_initializer='random_normal'),
-            keras.layers.Dense(15, activation = 'relu', kernel_initializer='random_normal'),
-            keras.layers.Dense(4, kernel_initializer='random_normal')
+            keras.layers.Dense(32, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(15, activation = 'relu', kernel_initializer='glorot_normal'),
+            keras.layers.Dense(4, kernel_initializer='glorot_normal')
         ], name = 'actor')
 
         # optimizer
@@ -346,7 +346,7 @@ class Driver:
                 print('Hit rate = ' + str(hits / self.total_steps))
                 print('Eat rate = ' + str(eats / self.total_steps))
                 print(display)
-                #print(get_action_result[1])
+                print(s_future.reshape((2, 4)))
                 
             # train steps
             s = np.array(list(s_memory), dtype=np.float32).reshape((len(list(s_memory)), 8))
