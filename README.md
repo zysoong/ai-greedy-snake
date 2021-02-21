@@ -13,4 +13,5 @@ Actor-Critic (ADHDP) with 8-dimensional state | Yes | 15.351
 Actor-Critic (ADHDP) with CNN | Yes | 3.0  | infinite rotation, Hit rate = 0.01%
 Actor-Critic-Target | No | - | -
 
-# Training histories (working)
+# Training histories
+(working)
