@@ -1,9 +1,9 @@
 # AI Snake (ongoing)
 Experimental project: Snake game AI using reinforcement learning\
 The agent runs purely with the console, which makes it extremely easy to be trained with a cloud server
+![](https://github.com/zysoong/ai-greedy-snake/blob/master/images/example_ddqn_reduced.gif?raw=true)
 
 # Best results
-![](https://github.com/zysoong/ai-greedy-snake/blob/master/images/example_ddqn_reduced.gif?raw=true)
 Model | Coding completed | Highest avg. score of 1000 steps | Max tested steps
 --- | --- | --- | --- 
 DQN with 8-dimensional state | Yes | 17.005 | 738276
