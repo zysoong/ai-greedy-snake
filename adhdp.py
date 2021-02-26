@@ -236,6 +236,10 @@ class Driver:
         hits = 0
         eats = 0
 
+        # model save cold down
+        cd = 0
+        MAX_CD = 100
+
         for e in range(self.max_epochs):
 
             # execute steps for greedy snake
@@ -327,11 +331,14 @@ class Driver:
                 avg = sum(scores) / len(scores)
                 if avg > max_score:
                     max_score = avg
-
-                    # save model on max score
-                    print('models saved')
-                    adhdp.save_models()
-
+                    if cd == 0:
+                        print('models saved')
+                        adhdp.save_models()
+                        cd = MAX_CD
+                cd = cd - 1
+                if cd < 0:
+                    cd = 0
+                    
                 # print to debug
                 print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps))
                 print('action = ' + a_print + ' / reward = ' + r_print)
