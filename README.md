@@ -22,4 +22,4 @@ Actor-Critic-Target | No | - | -
 ## DDQN with 8-dimensional state
 (working)
 ## ADHDP with 8-dimensional state
-(working)
+![](https://github.com/zysoong/ai-greedy-snake/blob/master/images/adhdp_plot.png?raw=true)
