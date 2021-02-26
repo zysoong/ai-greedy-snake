@@ -16,7 +16,7 @@ DDQN with CNN | Yes | 4.0  | infinite rotation, Hit rate = 0.27%
 Actor-Critic (ADHDP) with CNN | Yes | 3.0  | infinite rotation, Hit rate = 0.01%
 Actor-Critic-Target | No | - | -
 
-# Training historie
+# Training histories
 ## DQN with 8-dimensional state
 (working)
 ## DDQN with 8-dimensional state
