@@ -22,4 +22,5 @@ Actor-Critic-Target | No | - | -
 ## DDQN with 8-dimensional state
 (working)
 ## ADHDP with 8-dimensional state
+Blue line: batch size = 32, gamma = 0.97, critic_lr = 0.0025, actor_lr = 0.0025, non decay
 ![](https://github.com/zysoong/ai-greedy-snake/blob/master/images/adhdp_plot.png?raw=true)
