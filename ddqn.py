@@ -31,6 +31,7 @@ class Driver:
         self.critic_net_learnrate_decay = float(config[self.env]['critic_net_learnrate_decay'])
         self.critic_net_clipnorm = float(config[self.env]['critic_net_clipnorm'])
         self.target_update_freq = float(config[self.env]['target_update_freq'])
+        self.train_hist_file = config[self.env]['train_hist_file']
 
         # parameters
         self.total_steps = 0
@@ -312,6 +313,11 @@ class Driver:
                     print('models saved')
                     critic_model.save('ddqn_critic')
                     target.save('ddqn_target')
+
+                if self.total_steps % 100 == 0:
+                    f = open(self.train_hist_file, 'a+')
+                    f.write(str(avg)+'\n')
+                    f.close()
 
             # train steps
             s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), 8))
