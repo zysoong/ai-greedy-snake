@@ -347,6 +347,13 @@ class Driver:
                 print('Eat rate = ' + str(eats / self.total_steps))
                 print(display)
                 print(s_future.reshape((2, 4)))
+
+                # record training history
+                if self.total_steps % 100 == 0:
+                    f = open(self.train_hist_file, 'a+')
+                    f.write(str(avg)+'\n')
+                    f.close()
+                
                 
             # train steps
             s = np.array(list(s_memory), dtype=np.float32).reshape((len(list(s_memory)), 8))
