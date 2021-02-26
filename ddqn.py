@@ -292,6 +292,9 @@ class Driver:
                 avg = sum(scores) / len(scores)
                 if avg > max_score:
                     max_score = avg
+                    print('models saved')
+                    critic_model.save('ddqn_critic')
+                    target.save('ddqn_target')
 
                 # print to debug
                 print('Step = ' + str(i) + ' / Epoch = ' + str(e) + ' / Total Steps = ' + str(self.total_steps))
@@ -309,11 +312,6 @@ class Driver:
                     print('clone critic weights to target')
                     target.set_weights(critic_model.get_weights())
 
-                if self.total_steps % 1000 == 0:
-                    print('models saved')
-                    critic_model.save('ddqn_critic')
-                    target.save('ddqn_target')
-
                 if self.total_steps % 100 == 0:
                     f = open(self.train_hist_file, 'a+')
                     f.write(str(avg)+'\n')
@@ -324,12 +322,6 @@ class Driver:
             t = np.array(t_arr, dtype=np.float32).reshape((len(t_arr), 4))
             r = np.array(r_arr, dtype=np.float32).reshape((len(r_arr), 1))
             critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=0, batch_size = self.batch_size)
-
-            # record train history
-            #f.write(str(critic_hist.history)+'\n')
-            #f.write(str(actor_hist.history)+'\n')
-            #f.close()
-
 
 if __name__ == "__main__":
     d = Driver()
