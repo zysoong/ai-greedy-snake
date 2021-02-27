@@ -6,8 +6,11 @@ The agent runs purely with the console, which makes it easy to be trained with a
 # Getting started
 (working)
 
+# Principles
+(working)
+
 # Best results
-The best results will be updated consistently, as far as a better result is available\
+The best results will be updated consistently, as far as a better result is available
 Model | Highest avg. score of 1000 steps | Comment
 --- | --- | ---
 DQN with 8-dimensional state | 17.005 | -
