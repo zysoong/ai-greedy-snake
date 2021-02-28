@@ -22,7 +22,7 @@ Actor-Critic-Target | (working) | (working)
 
 # Training histories
 ## DQN with 8-dimensional state
-(working)
+(working)\
 ## DDQN with 8-dimensional state
 (working)\
 Blue line: batch size = 32, gamma = 0.97, critic lr = 0.01, non-decay
