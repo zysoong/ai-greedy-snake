@@ -1,6 +1,7 @@
 # AI Snake
 Experimental project: Snake game AI using reinforcement learning\
-The agent runs purely with the console, which makes it easy to be trained with a cloud server
+The agent runs purely with the console, which makes it easy to be trained with a cloud server.\
+The following animated image shows a training result via the DDQN model. \
 ![](https://github.com/zysoong/ai-greedy-snake/blob/master/images/example_ddqn_reduced.gif?raw=true)
 
 # Getting started
@@ -24,7 +25,12 @@ Actor-Critic-Target | (working) | (working)
 ## DQN with 8-dimensional state
 (working)
 ## DDQN with 8-dimensional state
-(working)
+(working)\
+Blue line: batch size = 32, gamma = 0.97, critic lr = 0.01, non-decay\
+![](https://github.com/zysoong/ai-greedy-snake/blob/master/images/ddqn_plot.png?raw=true)\
+The training history shows that the DDQN agent ends up overfitting if the decay of the learning rate is not applied. For further planning, decaying of learning rates, applying learning rates according to the scores, or experience replay will be tried to see if better results would come out.
 ## ADHDP with 8-dimensional state
-Blue line: batch size = 32, gamma = 0.97, critic lr = 0.0025, actor lr = 0.0025, non decay
-![](https://github.com/zysoong/ai-greedy-snake/blob/master/images/adhdp_plot.png?raw=true)
+(working)\
+Blue line: batch size = 32, gamma = 0.97, critic lr = 0.0025, actor lr = 0.0025, non-decay
+![](https://github.com/zysoong/ai-greedy-snake/blob/master/images/adhdp_plot.png?raw=true)\
+The training history shows that the ADHDP agent ends up overfitting if the decay of the learning rate is not applied, especially on the critic-net. For further planning, decaying of learning rates, applying learning rates according to the scores, or experience replay will be tried to see if better results would come out.
