@@ -26,10 +26,13 @@ Actor-Critic-Target | (working) | (working)
 (working)
 ## DDQN with 8-dimensional state
 (working)\
-Blue line: batch size = 32, gamma = 0.97, critic lr = 0.01, non-decay\
+batch size = 32, gamma = 0.97, critic lr = 0.01, non-decay\
 ![](https://github.com/zysoong/ai-greedy-snake/blob/master/images/ddqn_plot.png?raw=true)\
-The training history shows that the DDQN agent ends up overfitting if the decay of the learning rate is not applied. For further planning, decaying of learning rates, applying learning rates according to the scores, or experience replay will be tried to see if better results would come out. \
-Early stopping is currently recommended to avoid the problem of overfitting.
+batch size = 32, gamma = 0.97, critic lr = 0.0025, critic lr decay = 0.999995\
+![](https://github.com/zysoong/ai-greedy-snake/blob/master/images/ddqn_plot_d0999995.png?raw=true)\
+
+
+
 ## ADHDP with 8-dimensional state
 (working)\
 Blue line: batch size = 32, gamma = 0.97, critic lr = 0.0025, actor lr = 0.0025, non-decay
