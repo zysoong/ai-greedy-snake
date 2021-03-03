@@ -29,6 +29,8 @@ batch size = 32, gamma = 0.97, **critic lr = 0.01, non-decay**\
 ![](https://github.com/zysoong/ai-greedy-snake/blob/master/images/ddqn_plot.png?raw=true)\
 batch size = 32, gamma = 0.97, **critic lr = 0.01, critic lr decay = 0.999995**\
 ![](https://github.com/zysoong/ai-greedy-snake/blob/master/images/ddqn_plot_d0999995.png?raw=true)\
+batch size = 32, gamma = 0.97, **critic lr = 0.0025, non-decay**\
+![](https://github.com/zysoong/ai-greedy-snake/blob/master/images/ddqn_plot_.png?raw=true)\
 batch size = 32, gamma = 0.97, **critic lr = 0.0025, critic lr decay = 0.999995**\
 ![](https://github.com/zysoong/ai-greedy-snake/blob/master/images/ddqn_plot_d0999995_.png?raw=true)\
 
