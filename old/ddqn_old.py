@@ -90,7 +90,7 @@ class Driver:
             keras.layers.Input(shape = (8)), 
             keras.layers.Dense(32, activation = 'relu', kernel_initializer='random_normal'),
             keras.layers.Dense(15, activation = 'relu', kernel_initializer='random_normal'),
-            keras.layers.Dense(4, activation = 'tanh',kernel_initializer='random_normal')
+            keras.layers.Dense(4, kernel_initializer='random_normal')
         ], name = 'critic')
 
         # optimizer
@@ -235,18 +235,18 @@ class Driver:
 
                 # signal reward
                 if signal == Signal.HIT:
-                    r = -0.03
+                    r = -1
                     stamina = 0
                     hits += 1
                 elif signal == Signal.EAT:
-                    r = 0.03
+                    r = 1
                     stamina = stamina_max
                     eats += 1
                 elif signal == Signal.NORMAL:
                     stamina -= 1
                     if stamina < 0:
                         stamina = 0
-                    r = 0.03 * stamina / stamina_max
+                    r = stamina / stamina_max
 
                 r_arr.append(r)
 
