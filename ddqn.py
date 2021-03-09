@@ -7,6 +7,7 @@ import configparser
 import sys
 import warnings
 from collections import deque
+import random
 warnings.filterwarnings("ignore")
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -205,11 +206,11 @@ class Driver:
         for e in range(self.max_epochs):
 
             # execute steps for greedy snake
-            s_arr = deque()
-            s_a_future_arr = deque()
-            r_arr = deque()
-            t_arr = deque()
-            q_arr = deque()
+            s_arr = deque([], maxlen=self.memory_size)
+            s_a_future_arr = deque([], maxlen=self.memory_size)
+            r_arr = deque([], maxlen=self.memory_size)
+            t_arr = deque([], maxlen=self.memory_size)
+            q_arr = deque([], maxlen=self.memory_size)
 
             # buffer
             s_current_temp = None
@@ -327,9 +328,17 @@ class Driver:
                     f.close()
 
             # train steps
-            s = np.array(s_arr, dtype=np.float32).reshape((len(s_arr), 8))
-            t = np.array(t_arr, dtype=np.float32).reshape((len(t_arr), 4))
-            r = np.array(r_arr, dtype=np.float32).reshape((len(r_arr), 1))
+            if len(s_arr) < self.memory_size:
+                s_mini = s_arr
+                t_mini = t_arr
+                r_mini = r_arr
+            else:
+                s_mini = random.sample(s_arr, self.mini_batch_size)
+                t_mini = random.sample(t_arr, self.mini_batch_size)
+                r_mini = random.sample(r_arr, self.mini_batch_size)
+            s = np.array(s_mini, dtype=np.float32).reshape((len(s_mini), 8))
+            t = np.array(t_mini, dtype=np.float32).reshape((len(t_mini), 4))
+            r = np.array(r_mini, dtype=np.float32).reshape((len(r_mini), 1))
             critic_model.fit(s, t, epochs=self.critic_net_epochs, verbose=0, batch_size = self.batch_size)
 
 if __name__ == "__main__":
